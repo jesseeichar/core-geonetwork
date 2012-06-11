@@ -1,6 +1,6 @@
 package jeeves.server;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
@@ -9,11 +9,16 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
 import javax.servlet.ServletContext;
 
 import jeeves.config.EnvironmentalConfig;
+import jeeves.server.sources.ServiceRequest;
+import jeeves.server.sources.ServiceRequest.InputMethod;
+import jeeves.server.sources.ServiceRequest.OutputMethod;
+import jeeves.utils.Xml;
 
 import org.junit.Test;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -83,6 +88,27 @@ public class JeevesEngineTest {
         
         JeevesEngine engine = springContext.getBean(JeevesEngine.class);
         verify(mockContext, atLeastOnce()).getAttribute(anyString());
+    }
+    
+    @Test
+    public void testDispatch() throws Exception {
+        FileSystemXmlApplicationContext springContext = createContext();
+        
+        JeevesEngine engine = springContext.getBean(JeevesEngine.class);
+        
+        ServiceRequest srvReq = new ServiceRequest();
+        srvReq.setAddress("localhost:8080");
+        srvReq.setLanguage("eng");
+        srvReq.setInputMethod(InputMethod.GET);
+        srvReq.setOutputMethod(OutputMethod.XML);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        srvReq.setOutputStream(os);
+        srvReq.setService("test.service");
+        UserSession session = new UserSession();
+
+        engine.dispatch(srvReq, session);
+        
+        assertEquals("OK", Xml.loadString(new String(os.toByteArray()), false).getChildText("result"));
     }
 
 }

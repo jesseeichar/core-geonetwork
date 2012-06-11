@@ -5,15 +5,19 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Required;
 
 import jeeves.server.dispatchers.ErrorPage;
+import jeeves.server.dispatchers.guiservices.Call;
+import jeeves.server.dispatchers.guiservices.GuiService;
+import jeeves.server.dispatchers.guiservices.XmlFile;
 
 public class DefaultConfig {
-    String service;
-    String startupErrorSrv;
-    String language = "eng";
-    String contentType = "text/html";
-    boolean localized = true;
+    private String service;
+    private String startupErrorService;
+    private String language = "eng";
+    private String contentType = "text/html";
+    private boolean localized = true;
     
-    List<ErrorPage> errorPages;
+    private List<ErrorPage> errorPages;
+    private List<GuiService> guiServices;
 
     public String getService() {
         return service;
@@ -22,13 +26,13 @@ public class DefaultConfig {
     public void setService(String service) {
         this.service = service;
     }
-
-    public String getStartupErrorSrv() {
-        return startupErrorSrv;
+    public String getStartupErrorService() {
+        return startupErrorService;
     }
 
-    public void setStartupErrorSrv(String startupErrorSrv) {
-        this.startupErrorSrv = startupErrorSrv;
+    @Required
+    public void setStartupErrorService(String startupErrorService) {
+        this.startupErrorService = startupErrorService;
     }
 
     public String getLanguage() {
@@ -62,6 +66,10 @@ public class DefaultConfig {
     public void setErrorPages(List<ErrorPage> errorPages) {
         this.errorPages = errorPages;
     }
-    
-    
+    public void setCall(List<Call> calls) {
+        this.guiServices.addAll(calls);
+    }
+    public void setXml(List<XmlFile> xml) {
+        this.guiServices.addAll(xml);
+    }
 }

@@ -23,25 +23,30 @@
 
 package jeeves.server.dispatchers;
 
-import com.yammer.metrics.core.TimerContext;
-import jeeves.constants.ConfigFile;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletResponse;
+
 import jeeves.constants.Jeeves;
 import jeeves.exceptions.JeevesException;
 import jeeves.exceptions.ServiceNotAllowedEx;
 import jeeves.exceptions.ServiceNotFoundEx;
 import jeeves.exceptions.ServiceNotMatchedEx;
-import jeeves.interfaces.Service;
 import jeeves.monitor.MonitorManager;
 import jeeves.monitor.timer.ServiceManagerGuiServicesTimer;
 import jeeves.monitor.timer.ServiceManagerServicesTimer;
 import jeeves.monitor.timer.ServiceManagerXslOutputTransformTimer;
 import jeeves.server.ProfileManager;
-import jeeves.server.ServiceConfig;
 import jeeves.server.UserSession;
 import jeeves.server.context.ServiceContext;
-import jeeves.server.dispatchers.guiservices.Call;
 import jeeves.server.dispatchers.guiservices.GuiService;
-import jeeves.server.dispatchers.guiservices.XmlFile;
 import jeeves.server.resources.ProviderManager;
 import jeeves.server.sources.ServiceRequest;
 import jeeves.server.sources.ServiceRequest.InputMethod;
@@ -55,17 +60,12 @@ import jeeves.utils.SOAPUtil;
 import jeeves.utils.SerialFactory;
 import jeeves.utils.Util;
 import jeeves.utils.Xml;
-import org.jdom.Element;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import org.jdom.Element;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
+
+import com.yammer.metrics.core.TimerContext;
 
 //=============================================================================
 
@@ -87,9 +87,6 @@ public class ServiceManager
     private String  baseUrl;
     private String  uploadDir;
     private int     maxUploadSize;
-    private String  defaultLang;
-    private String  defaultContType;
-    private boolean defaultLocal;
     private JeevesServlet servlet;
     private boolean startupError = false;
     private Map<String,String> startupErrors;
@@ -100,29 +97,16 @@ public class ServiceManager
 	//---
 	//---------------------------------------------------------------------------
 
-	public void setAppPath        (String  path)  { appPath        = path;  }
-	public void setDefaultLang    (String  lang)  { defaultLang    = lang;  }
-	public void setDefaultContType(String  type)  { defaultContType= type;  }
-	public void setUploadDir      (String  dir)   { uploadDir      = dir;   }
-    public void setMaxUploadSize  (int  size)     { maxUploadSize  = size;  }
-	public void setDefaultLocal   (boolean yesno) { defaultLocal   = yesno; }
-
+    @Required
+    @Autowired
 	public void setProviderMan  (ProviderManager p) { providMan  = p; }
+    @Required
+    @Autowired
 	public void setMonitorMan  (MonitorManager mm) { monitorManager  = mm; }
 	public void setSerialFactory(SerialFactory   s) { serialFact = s; }
 	public void setServlet(JeevesServlet serv) { servlet = serv; }
     public void setStartupErrors(Map<String,String> errors)   { startupErrors = errors; startupError = true; }
 	public boolean isStartupError() { return startupError; }
-
-	//---------------------------------------------------------------------------
-
-	public void setBaseUrl(String name)
-	{
-		baseUrl = name;
-
-		if (!baseUrl.startsWith("/") && baseUrl.length() != 0)
-			baseUrl = "/"+ baseUrl;
-	}
 
 	//---------------------------------------------------------------------------
 
@@ -137,191 +121,6 @@ public class ServiceManager
 	{
 		htContexts.put(name, context);
 	}
-	//---------------------------------------------------------------------------
-
-	public void addDefaultGui(Element gui) throws Exception
-	{
-		vDefaultGui.add(getGuiService("", gui));
-	}
-
-	//---------------------------------------------------------------------------
-	//---
-	//--- Registering methods (service)
-	//---
-	//---------------------------------------------------------------------------
-
-	@SuppressWarnings("unchecked")
-	public void addService(String pack, Element srv) throws Exception
-	{
-		String name  = srv.getAttributeValue(ConfigFile.Service.Attr.NAME);
-		String match = srv.getAttributeValue(ConfigFile.Service.Attr.MATCH);
-		String sheet = srv.getAttributeValue(ConfigFile.Service.Attr.SHEET);
-		String cache = srv.getAttributeValue(ConfigFile.Service.Attr.CACHE);
-
-		ServiceInfo si = new ServiceInfo(appPath);
-
-		si.setMatch(match);
-		si.setSheet(sheet);
-		si.setCache(cache);
-
-		ArrayList<ServiceInfo> al = htServices.get(name);
-
-		if (al == null) {
-			al = new ArrayList<ServiceInfo>();
-			htServices.put(name, al);
-		}
-
-		al.add(si);
-
-		//--- parse classes elements
-
-		List<Element> classes = srv.getChildren(ConfigFile.Service.Child.CLASS);
-
-		for (Element classe : classes) {
-			si.addService(buildService(pack, classe));
-		}
-
-		//--- parse output pages
-
-		List<Element> outputs = srv.getChildren(ConfigFile.Service.Child.OUTPUT);
-
-		for(Element output : outputs) {
-			si.addOutputPage(buildOutputPage(pack, output));
-		}
-
-		//--- parse error pages
-
-		List<Element> errors = srv.getChildren(ConfigFile.Service.Child.ERROR);
-
-		for(Element error : errors) {
-			si.addErrorPage(buildErrorPage(error));
-		}
-	}
-
-	//---------------------------------------------------------------------------
-
-	@SuppressWarnings("unchecked")
-   private Service buildService(String pack, Element clas) throws Exception
-	{
-		//--- get class name
-
-		String name = clas.getAttributeValue(ConfigFile.Class.Attr.NAME);
-
-		if (name == null)
-			throw new IllegalArgumentException("Missing 'name' attrib in 'class' element");
-
-		if (name.startsWith("."))
-			name = pack + name;
-
-		//--- create instance
-
-		Service service = (Service) Class.forName(name).newInstance();
-
-		service.init(appPath, new ServiceConfig(clas.getChildren(ConfigFile.Class.Child.PARAM)));
-
-		return service;
-	}
-
-	//---------------------------------------------------------------------------
-
-	@SuppressWarnings("unchecked")
-	private OutputPage buildOutputPage(String pack, Element output) throws Exception
-	{
-		OutputPage outPage = new OutputPage();
-
-		outPage.setStyleSheet   (output.getAttributeValue(ConfigFile.Output.Attr.SHEET));
-		outPage.setForward      (output.getAttributeValue(ConfigFile.Output.Attr.FORWARD));
-		outPage.setTestCondition(output.getAttributeValue(ConfigFile.Output.Attr.TEST));
-		outPage.setFile         (output.getAttributeValue(ConfigFile.Output.Attr.FILE) != null);
-		outPage.setBLOB         (output.getAttributeValue(ConfigFile.Output.Attr.BLOB) != null);
-
-		//--- set content type
-
-		String contType = output.getAttributeValue(ConfigFile.Output.Attr.CONTENT_TYPE);
-
-		if (contType == null)
-			contType = defaultContType;
-
-		outPage.setContentType(contType);
-
-		//--- handle children
-
-		List<Element> guiList = output.getChildren();
-
-		for(Element gui : guiList) {
-			outPage.addGuiService(getGuiService(pack, gui));
-		}
-
-		return outPage;
-	}
-
-	//---------------------------------------------------------------------------
-
-	private GuiService getGuiService(String pack, Element elem) throws Exception
-	{
-		if (ConfigFile.Output.Child.XML.equals(elem.getName()))
-			return new XmlFile(elem, defaultLang, defaultLocal);
-
-		if (ConfigFile.Output.Child.CALL.equals(elem.getName()))
-			return new Call(elem, pack, appPath);
-
-		throw new IllegalArgumentException("Unknown GUI element : "+ Xml.getString(elem));
-	}
-
-	//---------------------------------------------------------------------------
-
-	@SuppressWarnings("unchecked")
-	private ErrorPage buildErrorPage(Element err) throws Exception
-	{
-		ErrorPage errPage = new ErrorPage();
-
-		errPage.setStyleSheet   (err.getAttributeValue(ConfigFile.Error.Attr.SHEET));
-		errPage.setTestCondition(err.getAttributeValue(ConfigFile.Error.Attr.ID));
-
-		//--- set content type
-
-		String contType = err.getAttributeValue(ConfigFile.Error.Attr.CONTENT_TYPE);
-
-		if (contType == null)
-			contType = defaultContType;
-
-		errPage.setContentType(contType);
-		
-		// -- set status code
-		int statusCode;
-		String strStatusCode = err.getAttributeValue(ConfigFile.Error.Attr.STATUS_CODE);
-		
-		try {
-			statusCode = Integer.parseInt(strStatusCode);
-		} catch (Exception e) {
-			// Default value for an error page where status code is not defined.
-			statusCode = 500;
-		}
-		
-		errPage.setStatusCode(statusCode);
-
-		//--- handle children
-
-		List<Element> guiList = err.getChildren();
-
-		for(Element gui : guiList) {
-			errPage.addGuiService(getGuiService("?", gui));	
-		}
-
-		return errPage;
-	}
-
-	//---------------------------------------------------------------------------
-	//---
-	//--- Registering methods (error)
-	//---
-	//---------------------------------------------------------------------------
-
-	public void addErrorPage(Element err) throws Exception
-	{
-		vErrorPipe.add(buildErrorPage(err));
-	}
-
 	//---------------------------------------------------------------------------
 
 	public ServiceContext createServiceContext(String name)

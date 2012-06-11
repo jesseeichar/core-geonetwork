@@ -23,14 +23,14 @@
 
 package jeeves.server.dispatchers;
 
+import java.util.List;
+
 import jeeves.constants.Jeeves;
 import jeeves.server.context.ServiceContext;
 import jeeves.server.dispatchers.guiservices.GuiService;
 import jeeves.utils.Util;
-import org.jdom.Element;
 
-import java.util.List;
-import java.util.Vector;
+import org.jdom.Element;
 
 //=============================================================================
 
@@ -40,7 +40,7 @@ public abstract class AbstractPage
 	private String  contentType;
 	private String  testCondition;
 
-	private Vector<GuiService> vGuiServ = new Vector<GuiService>();
+	private List<GuiService> guiServices;
 
 	//--------------------------------------------------------------------------
 	//---
@@ -86,12 +86,18 @@ public abstract class AbstractPage
 
 	//--------------------------------------------------------------------------
 
-	public void addGuiService(GuiService s)
-	{
-		vGuiServ.add(s);
-	}
+	public void setGuiServices(List<GuiService> guiServices) {
+        this.guiServices = guiServices;
+    }
 
 	//---------------------------------------------------------------------------
+
+	public void setSheet(String sheet) {
+        this.sheet = sheet;
+    }
+
+	//---------------------------------------------------------------------------
+
 	/** Invokes all gui services of this page (/root/gui tag)
 	  */
 
@@ -102,7 +108,7 @@ public abstract class AbstractPage
 		//--- invoke default elements
 
 		invokeGuiService(context, response, root, defaults);
-		invokeGuiService(context, response, root, vGuiServ);
+		invokeGuiService(context, response, root, guiServices);
 
 		return root;
 	}

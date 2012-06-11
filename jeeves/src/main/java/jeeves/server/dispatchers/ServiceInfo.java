@@ -23,13 +23,15 @@
 
 package jeeves.server.dispatchers;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import jeeves.config.EnvironmentalConfig;
 import jeeves.constants.Jeeves;
-import jeeves.interfaces.Service;
 import jeeves.server.context.ServiceContext;
 import jeeves.utils.Xml;
-import org.jdom.Element;
 
-import java.util.Vector;
+import org.jdom.Element;
 
 //=============================================================================
 
@@ -38,25 +40,14 @@ import java.util.Vector;
 
 public class ServiceInfo
 {
-	private String  appPath;
 	private String  match;
 	private String  sheet;
 	private boolean cache = false;
 
-	private Vector<Service> vServices= new Vector<Service>();
-	private Vector<OutputPage> vOutputs = new Vector<OutputPage>();
-	private Vector<ErrorPage> vErrors  = new Vector<ErrorPage>();
-
-	//--------------------------------------------------------------------------
-	//---
-	//--- Constructor
-	//---
-	//--------------------------------------------------------------------------
-
-	public ServiceInfo(String appPath)
-	{
-		this.appPath = appPath;
-	}
+	private List<ServiceConfigBean> vServices= new LinkedList<ServiceConfigBean>();
+	private List<OutputPage> vOutputs = new LinkedList<OutputPage>();
+	private List<ErrorPage> vErrors  = new LinkedList<ErrorPage>();
+    private EnvironmentalConfig envConfig;
 
 	//--------------------------------------------------------------------------
 	//---
@@ -95,29 +86,6 @@ public class ServiceInfo
 
 	//--------------------------------------------------------------------------
 
-	public void addService(Service s)
-	{
-		vServices.add(s);
-	}
-
-	//--------------------------------------------------------------------------
-	/** Adds to the engine the output page of a service
-	  */
-
-	public void addOutputPage(OutputPage page)
-	{
-		vOutputs.add(page);
-	}
-
-	//--------------------------------------------------------------------------
-
-	public void addErrorPage(ErrorPage page)
-	{
-		vErrors.add(page);
-	}
-
-	//--------------------------------------------------------------------------
-
 	public Element execServices(Element params, ServiceContext context) throws Exception
 	{
 		if (params == null)
@@ -135,8 +103,8 @@ public class ServiceInfo
 
 		Element response = params;
 
-		for(Service service : vServices) {
-			response = execService(service, response, context);
+		for(ServiceConfigBean service : vServices) {
+			response = service.execute(response, context);
 		}
 
 		//--- we must detach the element from its parent because the output dispatcher
@@ -193,7 +161,7 @@ public class ServiceInfo
 		if (sheet == null)
 			return request;
 
-		String styleSheet = appPath + Jeeves.Path.XSL + sheet;
+		String styleSheet = envConfig.getAppPath() + Jeeves.Path.XSL + sheet;
 
 		ServiceManager.info("Transforming input with stylesheet : " +styleSheet);
 
@@ -221,34 +189,6 @@ public class ServiceInfo
 		}
 	}
 
-	//--------------------------------------------------------------------------
-
-	private Element execService(Service service, Element params, ServiceContext context) throws Exception
-	{
-		try
-		{
-			Element response = service.exec(params, context);
-
-			if (response == null)
-				response = new Element(Jeeves.Elem.RESPONSE);
-
-			//--- commit resources and return response
-
-			context.getResourceManager().close();
-
-			return response;
-		}
-		catch(Exception e)
-		{
-			//--- in case of exception we have to abort all resources
-
-			context.getResourceManager().abort();
-			ServiceManager.error("Exception when executing service");
-			ServiceManager.error(" (C) Exc : " + e);
-
-			throw e;
-		}
-	}
 }
 
 //=============================================================================

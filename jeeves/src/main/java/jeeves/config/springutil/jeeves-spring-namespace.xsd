@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema 
+	xmlns="http://www.w3.org/2001/XMLSchema" 
+	targetNamespace="http://geonetwork-opensource.org/jeeves-spring-namespace" 
+	xmlns:tns="http://geonetwork-opensource.org/jeeves-spring-namespace" 
+	elementFormDefault="qualified">
+	
+	
+
+    
+    <complexType name="classType">
+    	<sequence>
+    		<element name="param" type="tns:paramType"></element>
+    	</sequence>
+    	<attribute name="name" type="string"></attribute>
+    </complexType>
+
+    <complexType name="paramType">
+    	<attribute name="name" type="string"></attribute>
+    	<attribute name="value" type="string"></attribute>
+    </complexType>
+
+    <complexType name="outputType">
+    	<complexContent>
+    		<extension base="tns:abstractPageType">
+    			<attribute name="forward" type="string"></attribute>
+    			<attribute name="isFile" type="boolean"></attribute>
+    			<attribute name="isBLOB" type="boolean"></attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="callType">
+    	<sequence maxOccurs="unbounded" minOccurs="0">
+    		<element name="param" type="tns:paramType"></element>
+    	</sequence>
+    	<attribute name="name" type="string"></attribute>
+    	<attribute name="value" type="string"></attribute>
+    </complexType>
+
+    <complexType name="xmlCallType">
+    	<attribute name="name" type="string"></attribute>
+    	<attribute name="file" type="string"></attribute>
+    	<attribute name="localized" type="boolean"></attribute>
+    </complexType>
+
+
+    <complexType name="serviceType">
+    	<choice>
+    		<element name="class" type="tns:classType"></element>
+    		<element name="output" type="tns:outputType"></element>
+    		<element name="error" type="tns:errorType"></element>
+    	</choice>
+    	<attribute name="name" type="string"></attribute>
+    	<attribute name="match" type="string"></attribute>
+    	<attribute name="sheet" type="string"></attribute>
+    	<attribute name="cache" type="boolean"></attribute>
+    </complexType>
+
+    <complexType name="errorType">
+    	<complexContent>
+    		<extension base="tns:abstractPageType">
+    			<attribute name="statusCode" type="string"></attribute>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <element name="service" type="tns:serviceType"></element>
+
+    <complexType name="abstractPageType">
+    	<choice maxOccurs="unbounded" minOccurs="0">
+    		<element name="call" type="tns:callType"></element>
+    		<element name="xml" type="tns:xmlCallType"></element>
+    	</choice>
+    	<attribute name="sheet" type="string"></attribute>
+    	<attribute name="test" type="string"></attribute>
+    	<attribute name="contentType" type="string"></attribute>
+    </complexType>
+</schema>

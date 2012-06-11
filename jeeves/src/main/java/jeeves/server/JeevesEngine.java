@@ -27,19 +27,32 @@
 
 package jeeves.server;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+
+import javax.annotation.PreDestroy;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.xml.transform.TransformerConfigurationException;
+
 import jeeves.config.DefaultConfig;
 import jeeves.config.EnvironmentalConfig;
 import jeeves.config.GeneralConfig;
 import jeeves.constants.ConfigFile;
-import jeeves.constants.Jeeves;
-import jeeves.exceptions.BadInputEx;
-import jeeves.interfaces.Activator;
 import jeeves.interfaces.ApplicationHandler;
 import jeeves.interfaces.Logger;
 import jeeves.monitor.MonitorManager;
 import jeeves.server.context.ServiceContext;
 import jeeves.server.dispatchers.ServiceManager;
-import jeeves.server.resources.ProviderManager;
 import jeeves.server.resources.ResourceManager;
 import jeeves.server.sources.ServiceRequest;
 import jeeves.server.sources.http.JeevesServlet;
@@ -48,30 +61,13 @@ import jeeves.utils.SerialFactory;
 import jeeves.utils.TransformerFactoryFactory;
 import jeeves.utils.Util;
 import jeeves.utils.Xml;
+
 import org.apache.log4j.PropertyConfigurator;
 import org.jdom.Element;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
-
-import javax.annotation.PreDestroy;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.xml.transform.TransformerConfigurationException;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 //=============================================================================
 
@@ -81,20 +77,21 @@ import java.util.Vector;
 public class JeevesEngine implements ApplicationContextAware
 {
 	private static final String TRANSFORMER_PATH = "/WEB-INF/classes/META-INF/services/javax.xml.transform.TransformerFactory";
-	private String  appPath;
+	private Logger appHandLogger = Log.createLogger(Log.APPHAND);
 	
+	private EnvironmentalConfig envConfig;
 	private GeneralConfig generalConfig;
 	private DefaultConfig defaultConfig;
-	private ServiceManager  serviceMan  = new ServiceManager();
+
+	private ResourceManager resourceManager;
+	private MonitorManager monitorManager;
+	private ServiceManager  serviceMan;
+	
 	private ScheduleManager scheduleMan = new ScheduleManager();
 	private SerialFactory   serialFact  = new SerialFactory();
-	private ResourceManager resourceManager;
 
-	private Logger appHandLogger = Log.createLogger(Log.APPHAND);
 	private List<Element> appHandList = new ArrayList<Element>();
 	private Vector<ApplicationHandler> vAppHandlers = new Vector<ApplicationHandler>();
-    private MonitorManager monitorManager;
-    private EnvironmentalConfig envConfig;
     
     // default for testing
     ResourceManager getResourceManager() {
@@ -107,13 +104,16 @@ public class JeevesEngine implements ApplicationContextAware
             GeneralConfig generalConfig, 
             DefaultConfig defaultConfig, 
             ResourceManager resourceManager,
-            MonitorManager monitorManager) {
+            MonitorManager monitorManager,
+            ServiceManager serviceManager) {
         this.envConfig = envConfig;
-        PropertyConfigurator.configure(envConfig.getConfigPath() +"log4j.cfg");
         this.monitorManager = monitorManager;
         this.resourceManager = resourceManager;
+        this.serviceMan = serviceManager;
         this.generalConfig = generalConfig;
         this.defaultConfig = defaultConfig;
+        
+        PropertyConfigurator.configure(envConfig.getConfigPath() +"/log4j.cfg");
     }
     //---------------------------------------------------------------------------
 	//---
@@ -147,16 +147,18 @@ public class JeevesEngine implements ApplicationContextAware
      * @throws IOException
      * @throws TransformerConfigurationException
      */
-    private void setupXSLTTransformerFactory(JeevesServlet servlet) throws IOException, TransformerConfigurationException {
+    private void setupXSLTTransformerFactory() throws IOException, TransformerConfigurationException {
     	
+        ServletContext servlet = envConfig.getServletContext();
+        
     	InputStream in = null;
     	// In debug mode, Jeeves may load a different file
     	// Load javax.xml.transform.TransformerFactory from application path instead
     	if(servlet != null) {
-    		in = servlet.getServletContext().getResourceAsStream(TRANSFORMER_PATH);
+    		in = servlet.getResourceAsStream(TRANSFORMER_PATH);
     	}
     	if(in == null){
-    		File f = new File(appPath + TRANSFORMER_PATH);
+    		File f = new File(envConfig.getAppPath() + TRANSFORMER_PATH);
     		in = new FileInputStream(f);
     	}        
         try {
@@ -175,7 +177,7 @@ public class JeevesEngine implements ApplicationContextAware
             }
         }
         catch(IOException x) {
-        	String msg = "Definition of XSLT transformer not found (tried: " + new File(appPath + TRANSFORMER_PATH).getCanonicalPath() + ")";
+        	String msg = "Definition of XSLT transformer not found (tried: " + new File(envConfig.getAppPath() + TRANSFORMER_PATH).getCanonicalPath() + ")";
         	if(servlet != null) {
         		msg += " and servlet.getServletContext().getResourceAsStream("+TRANSFORMER_PATH+")";
         	}
@@ -202,8 +204,6 @@ public class JeevesEngine implements ApplicationContextAware
 
 		Element configRoot = Xml.loadFile(file);
 
-        ConfigurationOverrides.updateWithOverrides(file, servletContext, appPath, configRoot);
-
 		//--- init app-handlers
 
 		appHandList.addAll(configRoot.getChildren(ConfigFile.Child.APP_HANDLER));
@@ -211,9 +211,6 @@ public class JeevesEngine implements ApplicationContextAware
 		//--- init services
 
 		List<Element> srvList = configRoot.getChildren(ConfigFile.Child.SERVICES);
-
-		for(int i=0; i<srvList.size(); i++)
-			initServices(srvList.get(i));
 
 		//--- init schedules
 
@@ -316,35 +313,6 @@ public class JeevesEngine implements ApplicationContextAware
 
 	/** Setup services found in the services tag (config.xml)
 	  */
-
-	@SuppressWarnings("unchecked")
-	private void initServices(Element services) throws Exception
-	{
-		info("Initializing services...");
-
-		//--- get services root package
-		String pack = services.getAttributeValue(ConfigFile.Services.Attr.PACKAGE);
-
-		// --- scan services elements
-		for (Element service : (List<Element>) services
-				.getChildren(ConfigFile.Services.Child.SERVICE)) {
-			String name = service
-					.getAttributeValue(ConfigFile.Service.Attr.NAME);
-
-			info("   Adding service : " + name);
-
-			try {
-				serviceMan.addService(pack, service);
-			} catch (Exception e) {
-				warning("Raised exception while registering service. Skipped.");
-				warning("   Service   : " + name);
-				warning("   Package   : " + pack);
-				warning("   Exception : " + e);
-				warning("   Message   : " + e.getMessage());
-				warning("   Stack     : " + Util.getStackTrace(e));
-			}
-		}
-	}
 
 	//---------------------------------------------------------------------------
 	//---
@@ -460,7 +428,7 @@ public class JeevesEngine implements ApplicationContextAware
 
 		//--- if we have a startup error (ie. exception during startup) then
 		//--- override with the startupErrorSrv service (if defined)
-		String startupErrorSrv = defaultConfig.getStartupErrorSrv();
+		String startupErrorSrv = defaultConfig.getStartupErrorService();
         if (serviceMan.isStartupError() && !startupErrorSrv.equals("") 
 				&& !srvReq.getService().contains(startupErrorSrv))
 			srvReq.setService(startupErrorSrv);

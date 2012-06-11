@@ -44,10 +44,10 @@ public class XmlFile implements GuiService
 {
 	private String  name;
 	private String  file;
-	private String  base;
+	private String  base = "loc";
 	private String  language;
 	private String  defaultLang;
-	private boolean localized;
+	private boolean localized = false;
 	private WeakHashMap<String,XmlFileCacher> xmlCaches = new WeakHashMap<String, XmlFileCacher>(4);
 
 	//---------------------------------------------------------------------------
@@ -55,6 +55,7 @@ public class XmlFile implements GuiService
 	//--- Init
 	//---
 	//--------------------------------------------------------------------------
+	public XmlFile() { }
 
 	public XmlFile(Element config, String defaultLanguage, boolean defaultLocalized) throws BadInputEx
 	{
@@ -119,5 +120,25 @@ public class XmlFile implements GuiService
 		}
 		return result.setName(name);
 	}
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setFile(String file) {
+        this.file = file;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public void setDefaultLang(String defaultLang) {
+        this.defaultLang = defaultLang;
+    }
+
+    public void setLocalized(boolean localized) {
+        this.localized = localized;
+    }
 }
 

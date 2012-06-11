@@ -2,9 +2,11 @@ package jeeves.config;
 
 import java.lang.reflect.Field;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -62,6 +64,11 @@ public class EnvironmentalConfig implements BeanDefinitionRegistryPostProcessor 
     @Required
     public void setBaseUrl(String baseUrl) {
         checkState();
+
+        if (!baseUrl.startsWith("/") && baseUrl.length() != 0) {
+            baseUrl = "/"+ baseUrl;
+        }
+
         this.baseUrl = baseUrl;
     }
     /**
@@ -94,16 +101,21 @@ public class EnvironmentalConfig implements BeanDefinitionRegistryPostProcessor 
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
         beanDefinition.setBeanClass(getClass());
+        MutablePropertyValues propertyValues = new MutablePropertyValues();
         for(Field field: getClass().getDeclaredFields()) {
             try {
                 field.setAccessible(true);
-                beanDefinition.setAttribute(field.getName(), field.get(this));
+                if(!field.getName().equals("frozen")) {
+                    propertyValues.addPropertyValue(field.getName(), field.get(this));
+                }
             } catch (Exception e) {
                 throw new BeanInitializationException("Unable to create EnvironmentalConfig Bean due to:"+e.getMessage(), e);
             }
         }
+        beanDefinition.setPropertyValues(propertyValues);
         registry.registerBeanDefinition("envConfig", beanDefinition);
     }
+    @PostConstruct
     public EnvironmentalConfig freeze() {
         frozen  = true;
         return this;
