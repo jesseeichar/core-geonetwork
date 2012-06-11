@@ -16,6 +16,7 @@ import java.util.Map;
 
 import javax.servlet.ServletContext;
 
+import jeeves.config.EnvironmentalConfig;
 import jeeves.constants.ConfigFile;
 import jeeves.server.context.ServiceContext;
 import jeeves.utils.Log;
@@ -23,6 +24,7 @@ import jeeves.utils.Util;
 
 import org.apache.log4j.LogManager;
 import org.jdom.Element;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.DummyCounter;
@@ -53,7 +55,7 @@ public class MonitorManager {
     public static final String EXPENSIVE_HEALTH_CHECK_REGISTRY = "com.yammer.metrics.reporting.HealthCheckServlet.registry.expensive";
     public static final String METRICS_REGISTRY = "com.yammer.metrics.reporting.MetricsServlet.registry";
 
-    ResourceTracker resourceTracker = new ResourceTracker();
+    private final ResourceTracker resourceTracker = new ResourceTracker();
     private final List<HealthCheckFactory> criticalServiceContextHealthChecks = new LinkedList<HealthCheckFactory>();
     private final List<HealthCheckFactory> warningServiceContextHealthChecks = new LinkedList<HealthCheckFactory>();
     private final List<HealthCheckFactory> expensiveServiceContextHealthChecks = new LinkedList<HealthCheckFactory>();
@@ -63,17 +65,18 @@ public class MonitorManager {
     private final Map<Class<MetricsFactory<Histogram>>, Histogram> serviceContextHistogram = new HashMap<Class<MetricsFactory<Histogram>>, Histogram>();
     private final Map<Class<MetricsFactory<Meter>>, Meter> serviceContextMeter = new HashMap<Class<MetricsFactory<Meter>>, Meter>();
 
-    private final HealthCheckRegistry healthCheckRegistry;
-    private final HealthCheckRegistry criticalHealthCheckRegistry;
-    private final HealthCheckRegistry warningHealthCheckRegistry;
-    private final HealthCheckRegistry expensiveHealthCheckRegistry;
+    private HealthCheckRegistry healthCheckRegistry;
+    private HealthCheckRegistry criticalHealthCheckRegistry;
+    private HealthCheckRegistry warningHealthCheckRegistry;
+    private HealthCheckRegistry expensiveHealthCheckRegistry;
 
-    private final MetricsRegistry metricsRegistry;
-    private final JmxReporter jmxReporter;
+    private MetricsRegistry metricsRegistry;
+    private JmxReporter jmxReporter;
 
-    public MonitorManager(ServletContext context, String baseUrl) {
-
-        String webappName = baseUrl.substring(1);
+    @Autowired
+    public MonitorManager(EnvironmentalConfig envConfig) {
+        ServletContext context = envConfig.getServletContext();
+        String webappName = envConfig.getBaseUrl().substring(1);
 
         if (context != null) {
             HealthCheckRegistry tmpHealthCheckRegistry = lookUpHealthCheckRegistry(context,HEALTH_CHECK_REGISTRY);

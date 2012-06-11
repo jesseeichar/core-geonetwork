@@ -26,6 +26,7 @@ package jeeves.server.resources;
 import java.util.HashMap;
 import java.util.Map;
 
+import jeeves.interfaces.Activator;
 import jeeves.monitor.MonitorManager;
 import jeeves.monitor.ResourceTracker;
 import jeeves.monitor.timer.ResourceManagerResourceIsOpenTimer;
@@ -33,6 +34,7 @@ import jeeves.monitor.timer.ResourceManagerWaitForResourceTimer;
 import jeeves.utils.Log;
 
 import org.geotools.data.DataStore;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Multimap;
 import com.yammer.metrics.core.Timer;
@@ -48,7 +50,6 @@ import com.yammer.metrics.core.TimerContext;
 public class ResourceManager
 {
 	private ProviderManager provManager;
-
 	private HashMap<String, Object> htResources = new HashMap<String, Object>(10, .75f);
 
     private Timer resourceManagerWaitForResourceTimer;
@@ -61,7 +62,7 @@ public class ResourceManager
 	//--- Constructor
 	//---
 	//--------------------------------------------------------------------------
-
+	@Autowired
 	public ResourceManager(MonitorManager monitorManager, ProviderManager pm)
 	{
 		provManager = pm;
@@ -329,7 +330,9 @@ public class ResourceManager
         resourceTracker.removeAll(resource);
     }
 
-
+    public ProviderManager getProviderManager() {
+        return provManager;
+    }
 
 }
 

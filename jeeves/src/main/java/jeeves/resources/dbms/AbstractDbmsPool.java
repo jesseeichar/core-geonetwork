@@ -23,11 +23,11 @@
 
 package jeeves.resources.dbms;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
@@ -38,8 +38,6 @@ import jeeves.server.resources.Stats;
 import jeeves.utils.Log;
 
 import org.geotools.data.DataStore;
-
-import org.jdom.Element;
 
 /**
  * @author sppigot
@@ -59,20 +57,6 @@ public abstract class AbstractDbmsPool implements ResourceProvider {
 	private Set<ResourceListener> hsListeners = Collections.synchronizedSet(new HashSet<ResourceListener>());
 	private DataSource dataSource;
 	private DataStore  dataStore;
-	
-	// --------------------------------------------------------------------------
-	// ---
-	// --- Abstract Methods that must be overridden by extending classes
-	// ---
-	// --------------------------------------------------------------------------
-
-	/**
-	 * Initializes the pool from jeeves config and sets the datastore.
-	 *
-	 * @param name The name of the database pool
-	 * @param config The database config params from the jeeves config.xml file
-	 */
-	public abstract void init(String name, Element config) throws Exception;
 
 	// --------------------------------------------------------------------------
 
@@ -210,9 +194,9 @@ public abstract class AbstractDbmsPool implements ResourceProvider {
 
 	// --------------------------------------------------------------------------
 
-	protected int getPreparedStatementCacheSize(Element config) throws NumberFormatException {
+	protected int getPreparedStatementCacheSize(Map<String,String> config) throws NumberFormatException {
 		int iMaxOpen = -1;
-		String maxOpenPreparedStatements = config.getChildText(Jeeves.Res.Pool.MAX_OPEN_PREPARED_STATEMENTS);
+		String maxOpenPreparedStatements = config.get(Jeeves.Res.Pool.MAX_OPEN_PREPARED_STATEMENTS);
 		if (maxOpenPreparedStatements != null) {
 			try {
 				iMaxOpen = new Integer(maxOpenPreparedStatements);

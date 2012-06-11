@@ -427,21 +427,8 @@
         <artifactId>jcommon</artifactId>
         <version>1.0.15</version>
       </dependency>
-			<!-- May be required to register connection unwrappers with 
-			     geotools
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-jdbc</artifactId>
-        <version>2.5.3</version>
-      </dependency>
-			-->
  
       <!-- Z39.50, SRU  stuff (ie: Spring, CQL, ...)  -->
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-context</artifactId>
-        <version>2.5.3</version>
-      </dependency>
       <dependency>
         <groupId>org.dspace</groupId>
         <artifactId>cql-java</artifactId>
@@ -705,6 +692,43 @@
             <version>1.2.0</version>
         </dependency>
         <!-- end language detection -->
+        
+        <!-- spring dependencies -->
+        
+    		<dependency>
+    			<groupId>org.springframework</groupId>
+    			<artifactId>spring-context</artifactId>
+    			<version>${spring.version}</version>
+    			<exclusions>
+    				<!-- Exclude Commons Logging in favor of SLF4j -->
+    				<exclusion>
+    					<groupId>commons-logging</groupId>
+    					<artifactId>commons-logging</artifactId>
+    				</exclusion>
+    			</exclusions>
+    		</dependency>
+    		<dependency>
+        	<groupId>org.mockito</groupId>
+        	<artifactId>mockito-all</artifactId>
+        	<version>1.9.0</version>
+        	<scope>test</scope>
+        </dependency>
+        <dependency>
+    			<groupId>org.springframework</groupId>
+    			<artifactId>spring-test</artifactId>
+    			<version>${spring.version}</version>
+        	<scope>test</scope>
+    		</dependency>
+    		
+  			<!-- May be required to register connection unwrappers with 
+  			     geotools
+        <dependency>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-jdbc</artifactId>
+          <version>${spring.version}</version>
+        </dependency>
+  			-->
+        <!-- End spring dependencies -->
     </dependencies>
   </dependencyManagement>
 
@@ -874,5 +898,6 @@
     <jetty.version>7.3.1.v20110307</jetty.version>
     <geotools.version>2.7.4</geotools.version>
     <lucene.version>3.0.2</lucene.version>
+		<spring.version>3.0.5.RELEASE</spring.version>
   </properties>
 </project>

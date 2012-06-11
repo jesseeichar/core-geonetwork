@@ -27,20 +27,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.sql.Connection;
 
+import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 
 import jeeves.constants.Jeeves;
-
 import jeeves.server.resources.Stats;
+
 import org.apache.commons.dbcp.BasicDataSource;
-
 import org.geotools.data.DataStore;
-
 import org.geotools.data.postgis.PostgisDataStoreFactory;
-
-import org.jdom.Element;
 
 /**
  * @author sppigot
@@ -58,44 +54,40 @@ public class ApacheDBCPool extends AbstractDbmsPool {
 
     private BasicDataSource basicDataSource;
 	
+    public ApacheDBCPool(Map<String,String> config) throws Exception {
+        parseJeevesDBConfig(config);
+        setDataSource((DataSource)basicDataSource);
+        setDataStore(createDataStore());
+        debug(toString());
+
+    }
+    
 	// --------------------------------------------------------------------------
 	// ---
 	// --- API
 	// ---
 	// --------------------------------------------------------------------------
-
-	/**
-	 * Builds the pool using JNDI context or init parameters from jeeves config.
-	 */
-	public void init(String name, Element config) throws Exception {
-
-		parseJeevesDBConfig(config);
-
-		setDataSource((DataSource)basicDataSource);
-		setDataStore(createDataStore());
-		debug(toString());
-	}
-
+	
 	/**
 	 * Builds the pool using init parameters from jeeves config.
 	 */
-	private void parseJeevesDBConfig(Element config) throws Exception {
-		url = config.getChildText(Jeeves.Res.Pool.URL);
+	private void parseJeevesDBConfig(Map<String,String> config) throws Exception {
+		url = config.get(Jeeves.Res.Pool.URL);
 
-		String user = config.getChildText(Jeeves.Res.Pool.USER);
-		String passwd = config.getChildText(Jeeves.Res.Pool.PASSWORD);
-		String driver = config.getChildText(Jeeves.Res.Pool.DRIVER);
-		String size = config.getChildText(Jeeves.Res.Pool.POOL_SIZE);
-		String maxw = config.getChildText(Jeeves.Res.Pool.MAX_WAIT);
-		String maxIdle  = config.getChildText(Jeeves.Res.Pool.MAX_IDLE);
-		String minIdle = config.getChildText(Jeeves.Res.Pool.MIN_IDLE);
-		String maxActive = config.getChildText(Jeeves.Res.Pool.MAX_ACTIVE);
-		String testWhileIdleStr = config.getChildText(Jeeves.Res.Pool.TEST_WHILE_IDLE);
-		String timeBetweenEvictionRunsMillisStr = config.getChildText(Jeeves.Res.Pool.TIME_BETWEEN_EVICTION_RUNS_MILLIS);
-		String minEvictableIdleTimeMillisStr = config.getChildText(Jeeves.Res.Pool.MIN_EVICTABLE_IDLE_TIME_MILLIS);
-		String numTestsPerEvictionRunStr = config.getChildText(Jeeves.Res.Pool.NUM_TESTS_PER_EVICTION_RUN);
-		String validationQuery = config.getChildText(Jeeves.Res.Pool.VALIDATION_QUERY);
-		String transactionIsolation = config.getChildText(Jeeves.Res.Pool.TRANSACTION_ISOLATION);
+		String user = config.get(Jeeves.Res.Pool.USER);
+		String passwd = config.get(Jeeves.Res.Pool.PASSWORD);
+		String driver = config.get(Jeeves.Res.Pool.DRIVER);
+		String size = config.get(Jeeves.Res.Pool.POOL_SIZE);
+		String maxw = config.get(Jeeves.Res.Pool.MAX_WAIT);
+		String maxIdle  = config.get(Jeeves.Res.Pool.MAX_IDLE);
+		String minIdle = config.get(Jeeves.Res.Pool.MIN_IDLE);
+		String maxActive = config.get(Jeeves.Res.Pool.MAX_ACTIVE);
+		String testWhileIdleStr = config.get(Jeeves.Res.Pool.TEST_WHILE_IDLE);
+		String timeBetweenEvictionRunsMillisStr = config.get(Jeeves.Res.Pool.TIME_BETWEEN_EVICTION_RUNS_MILLIS);
+		String minEvictableIdleTimeMillisStr = config.get(Jeeves.Res.Pool.MIN_EVICTABLE_IDLE_TIME_MILLIS);
+		String numTestsPerEvictionRunStr = config.get(Jeeves.Res.Pool.NUM_TESTS_PER_EVICTION_RUN);
+		String validationQuery = config.get(Jeeves.Res.Pool.VALIDATION_QUERY);
+		String transactionIsolation = config.get(Jeeves.Res.Pool.TRANSACTION_ISOLATION);
 		if (transactionIsolation == null) {
 			// use READ_COMMITTED for everything by default except McKoi which 
 			// only supports SERIALIZABLE 
@@ -208,7 +200,7 @@ public class ApacheDBCPool extends AbstractDbmsPool {
 	}
 
 	// --------------------------------------------------------------------------
-
+	@PreDestroy
 	public void end() {
 		try {
 		  basicDataSource.close();

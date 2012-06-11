@@ -27,9 +27,6 @@
 
 package jeeves.server;
 
-import jeeves.config.DefaultConfig;
-import jeeves.config.EnvironmentalConfig;
-import jeeves.config.GeneralConfig;
 import jeeves.constants.ConfigFile;
 import jeeves.constants.Jeeves;
 import jeeves.exceptions.BadInputEx;
@@ -40,7 +37,6 @@ import jeeves.monitor.MonitorManager;
 import jeeves.server.context.ServiceContext;
 import jeeves.server.dispatchers.ServiceManager;
 import jeeves.server.resources.ProviderManager;
-import jeeves.server.resources.ResourceManager;
 import jeeves.server.sources.ServiceRequest;
 import jeeves.server.sources.http.JeevesServlet;
 import jeeves.utils.Log;
@@ -50,13 +46,7 @@ import jeeves.utils.Util;
 import jeeves.utils.Xml;
 import org.apache.log4j.PropertyConfigurator;
 import org.jdom.Element;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
 
-import javax.annotation.PreDestroy;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.xml.transform.TransformerConfigurationException;
@@ -67,7 +57,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,43 +67,34 @@ import java.util.Vector;
 /** This is the main class. It handles http connections and inits the system
   */
 
-public class JeevesEngine implements ApplicationContextAware
+public class CopyOfJeevesEngine
 {
 	private static final String TRANSFORMER_PATH = "/WEB-INF/classes/META-INF/services/javax.xml.transform.TransformerFactory";
+	private String  defaultSrv;
+	private String	startupErrorSrv;
+	private String  profilesFile;
+	private String  defaultLang;
+	private String  defaultContType;
+	private String  uploadDir;
+	private int     maxUploadSize;
 	private String  appPath;
-	
-	private GeneralConfig generalConfig;
-	private DefaultConfig defaultConfig;
+	private boolean defaultLocal;
+	private boolean debugFlag;
+
+	/** true if the 'general' part has been loaded */
+	private boolean generalLoaded;
+
 	private ServiceManager  serviceMan  = new ServiceManager();
+	private ProviderManager providerMan = new ProviderManager();
 	private ScheduleManager scheduleMan = new ScheduleManager();
 	private SerialFactory   serialFact  = new SerialFactory();
-	private ResourceManager resourceManager;
 
 	private Logger appHandLogger = Log.createLogger(Log.APPHAND);
 	private List<Element> appHandList = new ArrayList<Element>();
 	private Vector<ApplicationHandler> vAppHandlers = new Vector<ApplicationHandler>();
+	private Vector<Activator> vActivators = new Vector<Activator>();
     private MonitorManager monitorManager;
-    private EnvironmentalConfig envConfig;
-    
-    // default for testing
-    ResourceManager getResourceManager() {
-        return resourceManager;
-    }
-    
-    @Autowired
-    public JeevesEngine(
-            EnvironmentalConfig envConfig,
-            GeneralConfig generalConfig, 
-            DefaultConfig defaultConfig, 
-            ResourceManager resourceManager,
-            MonitorManager monitorManager) {
-        this.envConfig = envConfig;
-        PropertyConfigurator.configure(envConfig.getConfigPath() +"log4j.cfg");
-        this.monitorManager = monitorManager;
-        this.resourceManager = resourceManager;
-        this.generalConfig = generalConfig;
-        this.defaultConfig = defaultConfig;
-    }
+
     //---------------------------------------------------------------------------
 	//---
 	//--- Init
@@ -128,6 +108,87 @@ public class JeevesEngine implements ApplicationContextAware
 	{
 		try
 		{
+			PropertyConfigurator.configure(configPath +"log4j.cfg");
+
+            ServletContext servletContext = null;
+            if(servlet != null) servletContext= servlet.getServletContext();
+
+            ConfigurationOverrides.updateLoggingAsAccordingToOverrides(servletContext, appPath);
+
+            monitorManager = new MonitorManager(servletContext, baseUrl);
+			this.appPath = appPath;
+
+			long start   = System.currentTimeMillis();
+
+			long maxMem  = Runtime.getRuntime().maxMemory()   / 1024;
+			long totMem  = Runtime.getRuntime().totalMemory() / 1024;
+			long freeMem = Runtime.getRuntime().freeMemory()  / 1024;
+
+			long usedMem      = totMem - freeMem;
+			long startFreeMem = maxMem - usedMem;
+
+			// System.setProperty("javax.xml.transform.TransformerFactory",
+			//						 "net.sf.saxon.TransformerFactoryImpl");
+			// Do this using library meta-inf to avoid affecting other servlets
+			// in the same container
+
+			info("=== Starting system ========================================");
+
+			//---------------------------------------------------------------------
+			//--- init system
+			info("Engine : "+ this.getClass().getName());
+			info("Java version : "+ System.getProperty("java.vm.version"));
+			info("Java vendor  : "+ System.getProperty("java.vm.vendor"));
+
+            setupXSLTTransformerFactory(servlet);
+
+			info("Path    : "+ appPath);
+			info("BaseURL : "+ baseUrl);
+
+			serviceMan.setAppPath(appPath);
+			serviceMan.setProviderMan(providerMan);
+			serviceMan.setMonitorMan(monitorManager);
+			serviceMan.setSerialFactory(serialFact);
+			serviceMan.setBaseUrl(baseUrl);
+			serviceMan.setServlet(servlet);
+
+			scheduleMan.setAppPath(appPath);
+			scheduleMan.setProviderMan(providerMan);
+			scheduleMan.setMonitorManager(monitorManager);
+			scheduleMan.setSerialFactory(serialFact);
+			scheduleMan.setBaseUrl(baseUrl);
+
+			loadConfigFile(servletContext, configPath, Jeeves.CONFIG_FILE, serviceMan);
+
+			info("Initializing profiles...");
+			serviceMan.loadProfiles(servletContext, profilesFile);
+            
+			//--- handlers must be started here because they may need the context
+			//--- with the ProfileManager already loaded
+
+			for(int i=0; i<appHandList.size(); i++)
+				initAppHandler((Element) appHandList.get(i), servlet);
+
+			info("Starting schedule manager...");
+			scheduleMan.start();
+
+			//---------------------------------------------------------------------
+
+			long end      = System.currentTimeMillis();
+			long duration = (end - start) / 1000;
+
+			freeMem = Runtime.getRuntime().freeMemory()  / 1024;
+			totMem  = Runtime.getRuntime().totalMemory() / 1024;
+			usedMem = totMem - freeMem;
+
+			long endFreeMem = maxMem - usedMem;
+			long dataMem    = startFreeMem - endFreeMem;
+
+			info("Memory used is  : " + dataMem  + " Kb");
+			info("Total memory is : " + maxMem   + " Kb");
+			info("Startup time is : " + duration + " (secs)");
+
+			info("=== System working =========================================");
 		}
 		catch (Exception e)
 		{
@@ -204,6 +265,38 @@ public class JeevesEngine implements ApplicationContextAware
 
         ConfigurationOverrides.updateWithOverrides(file, servletContext, appPath, configRoot);
 
+		Element elGeneral = configRoot.getChild(ConfigFile.Child.GENERAL);
+		Element elDefault = configRoot.getChild(ConfigFile.Child.DEFAULT);
+
+		if (!generalLoaded)
+		{
+			if (elGeneral == null)
+				throw new NullPointerException("Missing 'general' element in config file :" +file);
+
+			if (elDefault == null)
+				throw new NullPointerException("Missing 'default' element in config file :" +file);
+
+			generalLoaded = true;
+
+			initGeneral(elGeneral, serviceMan);
+			initDefault(elDefault, serviceMan);
+		}
+		else
+		{
+			if (elGeneral != null)
+				throw new IllegalArgumentException("Illegal 'general' element in secondary include");
+
+			if (elDefault != null)
+				throw new IllegalArgumentException("Illegal 'default' element in secondary include");
+		}
+
+		//--- init resources
+
+		List<Element> resList = configRoot.getChildren(ConfigFile.Child.RESOURCES);
+
+		for(int i=0; i<resList.size(); i++)
+			initResources(resList.get(i), file);
+
 		//--- init app-handlers
 
 		appHandList.addAll(configRoot.getChildren(ConfigFile.Child.APP_HANDLER));
@@ -243,6 +336,175 @@ public class JeevesEngine implements ApplicationContextAware
 
 	//---------------------------------------------------------------------------
 	//---
+	//--- 'general' element
+	//---
+	//---------------------------------------------------------------------------
+
+	/** Setup parameters from config tag (config.xml)
+	  */
+
+	private void initGeneral(Element general, ServiceManager serviceMan) throws BadInputEx
+	{
+		info("Initializing general configuration...");
+
+		profilesFile = Util.getParam(general, ConfigFile.General.Child.PROFILES);
+		uploadDir    = Util.getParam(general, ConfigFile.General.Child.UPLOAD_DIR);
+		try {
+		    maxUploadSize = Integer.parseInt(Util.getParam(general, ConfigFile.General.Child.MAX_UPLOAD_SIZE));
+		} 
+		catch(Exception e){
+		    maxUploadSize = 50;
+		    error("Maximum upload size not properly configured in config.xml. Using default size of 50MB");
+            error("   Exception : " +e);
+            error("   Message   : " +e.getMessage());
+            error("   Stack     : " +Util.getStackTrace(e));
+	    }
+
+		if (!new File(uploadDir).isAbsolute())
+			uploadDir = appPath + uploadDir;
+
+		if (!uploadDir.endsWith("/"))
+			uploadDir += "/";
+
+		new File(uploadDir).mkdirs();
+
+		debugFlag = "true".equals(general.getChildText(ConfigFile.General.Child.DEBUG));
+
+		serviceMan.setUploadDir(uploadDir);
+		serviceMan.setMaxUploadSize(maxUploadSize);
+	}
+
+	//---------------------------------------------------------------------------
+	//---
+	//--- 'general' element
+	//---
+	//---------------------------------------------------------------------------
+
+	/** Setup parameters from config tag (config.xml)
+	  */
+
+	@SuppressWarnings("unchecked")
+	private void initDefault(Element defaults, ServiceManager serviceMan) throws Exception
+	{
+		info("Initializing defaults...");
+
+		defaultSrv     = Util.getParam(defaults, ConfigFile.Default.Child.SERVICE);
+
+		// -- Don't break behaviour before gn 2.7 - if the startupErrorService 
+		// -- doesn't exist then ignore this parameter
+		startupErrorSrv = Util.getParam(defaults, ConfigFile.Default.Child.STARTUPERRORSERVICE, "");
+		defaultLang    = Util.getParam(defaults, ConfigFile.Default.Child.LANGUAGE);
+		defaultContType= Util.getParam(defaults, ConfigFile.Default.Child.CONTENT_TYPE);
+
+		defaultLocal = "true".equals(defaults.getChildText(ConfigFile.Default.Child.LOCALIZED));
+
+		info("   Default local is :" +defaultLocal);
+
+		serviceMan.setDefaultLang(defaultLang);
+		serviceMan.setDefaultLocal(defaultLocal);
+		serviceMan.setDefaultContType(defaultContType);
+
+		List<Element> errorPages = defaults.getChildren(ConfigFile.Default.Child.ERROR);
+
+		for(int i=0; i<errorPages.size(); i++)
+			serviceMan.addErrorPage(errorPages.get(i));
+
+		Element gui = defaults.getChild(ConfigFile.Default.Child.GUI);
+
+		if (gui != null)
+		{
+			List<Element> guiElems = gui.getChildren();
+
+			for(int i=0; i<guiElems.size(); i++)
+				serviceMan.addDefaultGui(guiElems.get(i));
+		}
+	}
+
+	//---------------------------------------------------------------------------
+	//---
+	//--- 'resources' element
+	//---
+	//---------------------------------------------------------------------------
+
+	/** Setup resources from the resource element (config.xml)
+	  */
+
+	@SuppressWarnings("unchecked")
+	private void initResources(Element resources, String file)
+	{
+		boolean resourceFound = false;
+		info("Initializing resources...");
+
+		List<Element> resList = resources.getChildren(ConfigFile.Resources.Child.RESOURCE);
+
+		for(int i=0; i<resList.size(); i++)
+		{
+			Element res = resList.get(i);
+
+			String  name      = res.getChildText(ConfigFile.Resource.Child.NAME);
+			String  provider  = res.getChildText(ConfigFile.Resource.Child.PROVIDER);
+			Element config    = res.getChild    (ConfigFile.Resource.Child.CONFIG);
+			Element activator = res.getChild    (ConfigFile.Resource.Child.ACTIVATOR);
+
+			String enabled = res.getAttributeValue(ConfigFile.Resource.Attr.ENABLED);
+
+			if ((enabled == null) || enabled.equals("true"))
+			{
+				info("   Adding resource : " + name);
+				resourceFound = true;
+				try
+				{
+					if (activator != null)
+					{
+						String clas = activator.getAttributeValue(ConfigFile.Activator.Attr.CLASS);
+
+						info("      Loading activator  : "+ clas);
+						Activator activ = (Activator) Class.forName(clas).newInstance();
+
+						info("      Starting activator : "+ clas);
+						activ.startup(appPath, activator);
+
+						vActivators.add(activ);
+					}
+
+					providerMan.register(provider, name, config);
+
+					// Try and open a resource from the provider
+					providerMan.getProvider(name).open();
+
+				}
+				catch(Exception e)
+				{
+					Map<String,String> errors = new HashMap<String,String>();
+					String eS = "Raised exception while initializing resource "+name+" in "+file+". Skipped.";
+					error(eS); 
+					errors.put("Error", eS); 
+					error("   Resource  : " +name);
+					errors.put("Resource", name); 
+					error("   Provider  : " +provider);
+					errors.put("Provider", provider);
+					error("   Exception : " +e);
+					errors.put("Exception",e.toString());
+					error("   Message   : " +e.getMessage());
+					errors.put("Message", e.getMessage());
+					error("   Stack     : " +Util.getStackTrace(e));
+					errors.put("Stack", Util.getStackTrace(e));
+					error(errors.toString());
+					serviceMan.setStartupErrors(errors);
+				}
+			}
+		}
+
+		if (!resourceFound) {
+			Map<String,String> errors = new HashMap<String,String>();
+			errors.put("Error", "No database resources found to initialize - check "+file); 
+			error(errors.toString());
+			serviceMan.setStartupErrors(errors);
+		}
+	}
+
+	//---------------------------------------------------------------------------
+	//---
 	//--- 'appHandler' element
 	//---
 	//---------------------------------------------------------------------------
@@ -268,7 +530,7 @@ public class JeevesEngine implements ApplicationContextAware
 			ApplicationHandler h = (ApplicationHandler) c.newInstance();
 
 			ServiceContext srvContext = serviceMan.createServiceContext("AppHandler");
-			srvContext.setLanguage(defaultConfig.getLanguage());
+			srvContext.setLanguage(defaultLang);
 			srvContext.setLogger(appHandLogger);
 			srvContext.setServlet(servlet);
 
@@ -397,7 +659,7 @@ public class JeevesEngine implements ApplicationContextAware
 	//--- Destroy
 	//---
 	//---------------------------------------------------------------------------
-	@PreDestroy
+
 	public void destroy()
 	{
 		try
@@ -412,6 +674,9 @@ public class JeevesEngine implements ApplicationContextAware
 
 			info("Stopping handlers...");
 			stopHandlers();
+
+			info("Stopping resources...");
+			stopResources();
 
 			info("=== System stopped ========================================");
 		}
@@ -435,33 +700,45 @@ public class JeevesEngine implements ApplicationContextAware
 	}
 
 	//---------------------------------------------------------------------------
+	/** Stop resources
+	  */
+
+	private void stopResources()
+	{
+		providerMan.end();
+		for (Activator a : vActivators) {
+			info("   Stopping activator : " + a.getClass().getName());
+			a.shutdown();
+		}
+	}
+
+	//---------------------------------------------------------------------------
 	//---
 	//--- API methods
 	//---
 	//---------------------------------------------------------------------------
 
-	public String getUploadDir() { return generalConfig.getUploadDir(); }
+	public String getUploadDir() { return uploadDir; }
 
 	//---------------------------------------------------------------------------
 
-  public int getMaxUploadSize() { return generalConfig.getMaxUploadSize(); }
+  public int getMaxUploadSize() { return maxUploadSize; }
 
   //---------------------------------------------------------------------------
 
 	public void dispatch(ServiceRequest srvReq, UserSession session)
 	{
 		if (srvReq.getService() == null || srvReq.getService().length() == 0)
-			srvReq.setService(defaultConfig.getService());
+			srvReq.setService(defaultSrv);
 
 		if (srvReq.getLanguage() == null || srvReq.getLanguage().length() == 0)
-			srvReq.setLanguage(defaultConfig.getLanguage());
+			srvReq.setLanguage(defaultLang);
 
-		srvReq.setDebug(srvReq.hasDebug() && generalConfig.isDebug());
+		srvReq.setDebug(srvReq.hasDebug() && debugFlag);
 
 		//--- if we have a startup error (ie. exception during startup) then
 		//--- override with the startupErrorSrv service (if defined)
-		String startupErrorSrv = defaultConfig.getStartupErrorSrv();
-        if (serviceMan.isStartupError() && !startupErrorSrv.equals("") 
+		if (serviceMan.isStartupError() && !startupErrorSrv.equals("") 
 				&& !srvReq.getService().contains(startupErrorSrv))
 			srvReq.setService(startupErrorSrv);
 
@@ -480,11 +757,6 @@ public class JeevesEngine implements ApplicationContextAware
 	private void warning(String message) { Log.warning(Log.ENGINE, message); }
 	private void error  (String message) { Log.error  (Log.ENGINE, message); }
 	private void fatal  (String message) { Log.fatal  (Log.ENGINE, message); }
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        // TODO Auto-generated method stub
-        
-    }
 }
 
 //=============================================================================

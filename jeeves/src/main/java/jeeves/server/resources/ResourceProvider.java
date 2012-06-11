@@ -30,6 +30,8 @@ import org.geotools.data.DataStore;
 import java.sql.SQLException;
 import java.util.Map;
 
+import javax.annotation.PreDestroy;
+
 //=============================================================================
 
 /** Describe a generic resource provider. Usually it is a pool of dbms objects
@@ -41,9 +43,6 @@ public interface ResourceProvider
 	  * a resource of a certain type */
 
 	public String getName();
-
-	/** Initializes the provider */
-	public void init(String name, Element config) throws Exception;
 
 	/** gets props from the provider */
 	public Map<String,String> getProps();

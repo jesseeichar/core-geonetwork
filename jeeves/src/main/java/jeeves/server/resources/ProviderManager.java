@@ -23,9 +23,16 @@
 
 package jeeves.server.resources;
 
-import org.jdom.Element;
-
 import java.util.HashMap;
+import java.util.Map;
+
+import jeeves.server.dispatchers.ServiceManager;
+import jeeves.utils.Log;
+import jeeves.utils.Util;
+
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 //=============================================================================
 
@@ -33,9 +40,10 @@ import java.util.HashMap;
   * on demand
   */
 
-public class ProviderManager
+public class ProviderManager implements ApplicationContextAware
 {
-	private HashMap<String, ResourceProvider> hmProviders = new HashMap<String, ResourceProvider>(10, .75f);
+
+	private Map<String, ResourceProvider> hmProviders;
 
 	//--------------------------------------------------------------------------
 	//---
@@ -43,25 +51,23 @@ public class ProviderManager
 	//---
 	//--------------------------------------------------------------------------
 
-	/** Register a new resource provider (like the dbmspool)
-	  */
-
-	public void register(String provider, String name, Element config) throws Exception
-	{
-		//--- load class and check it
-
-		ResourceProvider resProv =  (ResourceProvider) Class.forName(provider).newInstance();
-
-		resProv.init(name, config);
-		hmProviders.put(name, resProv);
-	}
-
+	
+	private void error(String message) {
+        Log.error(Log.RESOURCES, message);
+        
+    }
 	//--------------------------------------------------------------------------
 
 	public void end()
 	{
-		for(ResourceProvider resProv : hmProviders.values())
-			resProv.end();
+		for (ResourceProvider provider : hmProviders.values()) {
+		    Log.info(Log.RESOURCES, "   Stopping provider : " + provider.getClass().getName());
+		    try {
+                provider.end();
+		    } catch (Exception e) {
+		        Log.error(Log.RESOURCES, "Failure while stopping provider: " + provider.getClass().getName());
+		    }
+        }
 	}
 
 	//--------------------------------------------------------------------------
@@ -77,6 +83,54 @@ public class ProviderManager
 	{
 		return hmProviders.values();
 	}
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        ServiceManager serviceManager = applicationContext.getBean(ServiceManager.class);
+        this.hmProviders = applicationContext.getBeansOfType(ResourceProvider.class);
+        
+        boolean resourceFound = false;
+        Log.info(Log.RESOURCES, "Initializing resources...");
+
+        for (Map.Entry<String, ResourceProvider> entry : this.hmProviders.entrySet()) {
+            String name = entry.getKey();
+            ResourceProvider provider = entry.getValue();
+            try {
+                // ensure the provider can be opened
+                Object resource = provider.open();
+                provider.close(resource);
+                hmProviders.put(name, provider);
+            } catch (Exception e) {
+                Map<String, String> errorReport = new HashMap<String, String>();
+                String eS = "Raised exception while initializing resource " + name + ". ----  Skipped ---- ";
+                error(eS);
+                errorReport.put("Error", eS);
+                error("   Resource  : " + name);
+                errorReport.put("Resource", name);
+                error("   Provider  : " + provider);
+                errorReport.put("Provider", provider.getClass().getName());
+                error("   Exception : " + e);
+                errorReport.put("Exception", e.toString());
+                error("   Message   : " + e.getMessage());
+                errorReport.put("Message", e.getMessage());
+                error("   Stack     : " + Util.getStackTrace(e));
+                errorReport.put("Stack", Util.getStackTrace(e));
+                error(errorReport.toString());
+                serviceManager.setStartupErrors(errorReport);
+            }
+        }
+        if (!resourceFound) {
+            Map<String, String> errorReport = new HashMap<String, String>();
+            errorReport.put("Error", "No database resources found to initialize");
+            error(errorReport.toString());
+            serviceManager.setStartupErrors(errorReport);
+        }
+
+        
+    }
+
+	//--------------------------------------------------------------------------
+
+	
 }
 
 //=============================================================================

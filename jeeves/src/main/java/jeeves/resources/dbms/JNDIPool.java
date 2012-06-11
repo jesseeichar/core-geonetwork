@@ -23,30 +23,25 @@
 
 package jeeves.resources.dbms;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.sql.Connection;
-import java.sql.SQLException;
 
-import javax.sql.DataSource;
-import javax.naming.Context;
-import javax.naming.InitialContext;
+import javax.annotation.PreDestroy;
 
 import jeeves.constants.Jeeves;
-
 import jeeves.server.resources.Stats;
-import org.jdom.Element;
 
-import org.geotools.jdbc.JDBCDataStore;
-import org.geotools.jdbc.JDBCDataStoreFactory;
+import org.geotools.data.DataStore;
 import org.geotools.data.db2.DB2NGJNDIDataStoreFactory;
 import org.geotools.data.h2.H2JNDIDataStoreFactory;
 import org.geotools.data.mysql.MySQLJNDIDataStoreFactory;
 import org.geotools.data.oracle.OracleNGJNDIDataStoreFactory;
-import org.geotools.data.postgis.PostgisNGJNDIDataStoreFactory;
 import org.geotools.data.postgis.PostgisNGDataStoreFactory;
+import org.geotools.data.postgis.PostgisNGJNDIDataStoreFactory;
 import org.geotools.data.sqlserver.SQLServerJNDIDataStoreFactory;
-import org.geotools.data.DataStore;
+import org.geotools.jdbc.JDBCDataStore;
+import org.geotools.jdbc.JDBCDataStoreFactory;
 
 //=============================================================================
 
@@ -68,17 +63,17 @@ public class JNDIPool extends AbstractDbmsPool {
 	/**
 	 * Builds the pool using JNDI context.
 	 */
-	public void init(String name, Element config) throws Exception {
+	public JNDIPool(Map<String,String> config) throws Exception {
 
 		// check and see whether we have a JNDI context defined
 
-		String contextName = config.getChildText(Jeeves.Res.Pool.CONTEXT);
+		String contextName = config.get(Jeeves.Res.Pool.CONTEXT);
 		boolean provideDataStore = false; 
 
 		if (contextName != null) {
-			String dsName      = config.getChildText(Jeeves.Res.Pool.RESOURCE_NAME);
+			String dsName      = config.get(Jeeves.Res.Pool.RESOURCE_NAME);
 			if (dsName == null) throw new IllegalArgumentException("context "+contextName+" specified but resource name parameter "+Jeeves.Res.Pool.RESOURCE_NAME+" has not been found");
-			url                = config.getChildText(Jeeves.Res.Pool.URL);
+			url                = config.get(Jeeves.Res.Pool.URL);
 			if (url == null) throw new IllegalArgumentException("context "+contextName+" specified with resource name parameter "+dsName+" but "+Jeeves.Res.Pool.URL+" not found");
 
 			this.name = url;
@@ -91,7 +86,7 @@ public class JNDIPool extends AbstractDbmsPool {
 			String dbType = JDBCDataStoreFactory.DBTYPE.key;
 			params.put("jndiReferenceName", contextName + "/" + dsName);
 
-			String provideDataStoreStr = config.getChildText(Jeeves.Res.Pool.PROVIDE_DATA_STORE);
+			String provideDataStoreStr = config.get(Jeeves.Res.Pool.PROVIDE_DATA_STORE);
 			if (provideDataStoreStr != null) {
 				provideDataStore = provideDataStoreStr.equals("true");
 			}
@@ -161,7 +156,7 @@ public class JNDIPool extends AbstractDbmsPool {
 	}
 
 	// --------------------------------------------------------------------------
-
+	@PreDestroy
 	public void end() {
 		debug("Disposing datastore");
 		dataStore.dispose();
