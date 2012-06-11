@@ -25,7 +25,7 @@ package jeeves.server.dispatchers;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -62,17 +62,21 @@ import jeeves.utils.Util;
 import jeeves.utils.Xml;
 
 import org.jdom.Element;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.yammer.metrics.core.TimerContext;
 
 //=============================================================================
 
-public class ServiceManager
+public class ServiceManager implements ApplicationContextAware
 {
-	private Hashtable<String, ArrayList<ServiceInfo>> htServices = 
-		new Hashtable<String, ArrayList<ServiceInfo>>(100);
+	private Multimap<String, ServiceInfo> htServices = HashMultimap.create();
 	private Hashtable<String, Object> htContexts = 
 		new Hashtable<String, Object>();
 	private Vector<ErrorPage> vErrorPipe = new Vector<ErrorPage>();
@@ -103,6 +107,7 @@ public class ServiceManager
     @Required
     @Autowired
 	public void setMonitorMan  (MonitorManager mm) { monitorManager  = mm; }
+    
 	public void setSerialFactory(SerialFactory   s) { serialFact = s; }
 	public void setServlet(JeevesServlet serv) { servlet = serv; }
     public void setStartupErrors(Map<String,String> errors)   { startupErrors = errors; startupError = true; }
@@ -179,9 +184,9 @@ public class ServiceManager
 				info("Dispatching : " +srvName);
 				logParameters(req.getParams());
 
-				ArrayList<ServiceInfo> al = htServices.get(srvName);
+				Collection<ServiceInfo> al = htServices.get(srvName);
 
-				if (al == null)
+				if (al == null || al.isEmpty())
 				{
 					error("Service not found : " +srvName);
 					throw new ServiceNotFoundEx(srvName);
@@ -719,6 +724,16 @@ public class ServiceManager
 	static  void info   (String message) { Log.info   (Log.SERVICE, message); }
 	private void warning(String message) { Log.warning(Log.SERVICE, message); }
 	static  void error  (String message) { Log.error  (Log.SERVICE, message); }
+
+	@Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        Map<String, ServiceInfo> definitions = applicationContext.getBeansOfType(ServiceInfo.class);
+        
+        for (ServiceInfo info : definitions.values()) {
+            htServices.put(info.getName(), info);
+        }
+        
+    }
 }
 
 //=============================================================================

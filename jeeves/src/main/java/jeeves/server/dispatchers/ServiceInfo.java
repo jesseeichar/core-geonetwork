@@ -32,6 +32,7 @@ import jeeves.server.context.ServiceContext;
 import jeeves.utils.Xml;
 
 import org.jdom.Element;
+import org.springframework.beans.factory.annotation.Required;
 
 //=============================================================================
 
@@ -43,10 +44,11 @@ public class ServiceInfo
 	private String  match;
 	private String  sheet;
 	private boolean cache = false;
+	private String name;
 
-	private List<ServiceConfigBean> vServices= new LinkedList<ServiceConfigBean>();
-	private List<OutputPage> vOutputs = new LinkedList<OutputPage>();
-	private List<ErrorPage> vErrors  = new LinkedList<ErrorPage>();
+	private List<ServiceConfigBean> vServices;
+	private List<OutputPage> vOutputs;
+	private List<ErrorPage> vErrors;
     private EnvironmentalConfig envConfig;
 
 	//--------------------------------------------------------------------------
@@ -54,7 +56,25 @@ public class ServiceInfo
 	//--- API methods
 	//---
 	//--------------------------------------------------------------------------
-
+    public String getName() {
+        return name;
+    }
+    @Required
+    public void setName(String name) {
+        this.name = name;
+    }
+    @Required
+    public void setServiceConfig(List<ServiceConfigBean> configs) {
+        this.vServices = configs;
+    }
+    @Required
+    public void setOutput(List<OutputPage> pages) {
+        this.vOutputs = pages;
+    }
+    @Required
+    public void setError(List<ErrorPage> pages) {
+        this.vErrors = pages;
+    }
 	public void setMatch(String match)
 	{
 		if (match != null && match.trim().equals(""))

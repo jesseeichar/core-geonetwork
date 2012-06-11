@@ -27,6 +27,11 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
 
     @Override
     protected void doParse(Element element, BeanDefinitionBuilder builder) {
+        if (element.hasAttribute(ConfigFile.Service.Attr.NAME)) {
+            addPropertyValue(builder, element, ConfigFile.Service.Attr.NAME);
+        } else {
+            builder.addPropertyValue(ConfigFile.Service.Attr.NAME, element.getAttribute("id"));
+        }
         addPropertyValue(builder, element, ConfigFile.Service.Attr.NAME);
         addPropertyValue(builder, element, ConfigFile.Service.Attr.MATCH);
         addPropertyValue(builder, element, ConfigFile.Service.Attr.SHEET);
@@ -37,7 +42,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         for(int i = 0; i < children.getLength(); i++) { 
             classes.add(parseServiceClass((Element) children.item(i)));
         }
-        builder.addPropertyValue(ConfigFile.Service.Child.CLASS, classes);
+        builder.addPropertyValue("serviceConfig", classes);
         
         List<BeanDefinition> outputs = new LinkedList<BeanDefinition>();
         children = element.getElementsByTagName(ConfigFile.Service.Child.OUTPUT);
@@ -110,8 +115,10 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
     }
     
     private void addPropertyValue(BeanDefinitionBuilder builder, Element element, String name) {
-        String value = element.getAttribute(name);
-        builder.addPropertyValue(name, value);
+        if (element.hasAttribute(name)) {
+            String value = element.getAttribute(name);
+            builder.addPropertyValue(name, value);
+        }
 
     }
     private BeanDefinition parseGuiService(Element elem) {
