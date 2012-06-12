@@ -58,7 +58,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         ManagedList<BeanDefinition> errors = new ManagedList<BeanDefinition>();
         children = element.getElementsByTagName(ConfigFile.Service.Child.ERROR);
         for(int i = 0; i < children.getLength(); i++) { 
-            errors.add(parseServiceError(element));
+            errors.add(parseServiceError((Element) children.item(i)));
         }
         if (!errors.isEmpty()) {
             builder.addPropertyValue(ConfigFile.Service.Child.ERROR, errors);
@@ -74,14 +74,16 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
     }
 
     private void parseParam(Element element, BeanDefinitionBuilder builder) {
+        
         NodeList paramsList = element.getElementsByTagName(ConfigFile.Class.Child.PARAM);
         ManagedList<BeanDefinition> params = new ManagedList<BeanDefinition>();
         for(int i = 0; i < paramsList.getLength(); i++) {
             BeanDefinitionBuilder paramBuilder = newBuilder(Param.class);
             Element paramDef = (Element) paramsList.item(i);
-            
+         
             addPropertyValue(paramBuilder, paramDef, ConfigFile.Param.Attr.NAME);
             addPropertyValue(paramBuilder, paramDef, ConfigFile.Param.Attr.VALUE);
+            params.add(paramBuilder.getBeanDefinition());
         }
         if (!params.isEmpty()) {
             builder.addPropertyValue(ConfigFile.Class.Child.PARAM, params);
@@ -107,6 +109,8 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         addPropertyValue(builder, element, ConfigFile.Error.Attr.SHEET);
         addPropertyValue(builder, element, ConfigFile.Error.Attr.STATUS_CODE);
         addPropertyValue(builder, element, ConfigFile.Error.Attr.CONTENT_TYPE);
+        addPropertyValue(builder, element, ConfigFile.Error.Attr.TEST);
+        
         parseGuiServices(builder, element);
         
         return builder.getBeanDefinition();

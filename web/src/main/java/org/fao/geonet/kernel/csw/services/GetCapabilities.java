@@ -98,10 +98,7 @@ public class GetCapabilities extends AbstractOperation implements CatalogService
 		try
 		{
 			Element capabilities = Xml.loadFile(file);
-            ServletContext servletContext = null;
-            if(context.getServlet() != null) {
-                servletContext = context.getServlet().getServletContext();
-            }
+            ServletContext servletContext = context.getServletContext();
 			ConfigurationOverrides.updateWithOverrides(file, servletContext, context.getAppPath(), capabilities);
 
             String cswServiceSpecificContraint = request.getChildText(Geonet.Elem.FILTER);

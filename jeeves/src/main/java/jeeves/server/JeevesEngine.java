@@ -33,15 +33,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import javax.annotation.PreDestroy;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.xml.transform.TransformerConfigurationException;
 
 import jeeves.config.DefaultConfig;
@@ -90,8 +88,7 @@ public class JeevesEngine implements ApplicationContextAware
 	private ScheduleManager scheduleMan = new ScheduleManager();
 	private SerialFactory   serialFact  = new SerialFactory();
 
-	private List<Element> appHandList = new ArrayList<Element>();
-	private Vector<ApplicationHandler> vAppHandlers = new Vector<ApplicationHandler>();
+	private List<ApplicationHandler> appHandlers;
     
     // default for testing
     ResourceManager getResourceManager() {
@@ -105,7 +102,7 @@ public class JeevesEngine implements ApplicationContextAware
             DefaultConfig defaultConfig, 
             ResourceManager resourceManager,
             MonitorManager monitorManager,
-            ServiceManager serviceManager) {
+            ServiceManager serviceManager) throws TransformerConfigurationException, IOException {
         this.envConfig = envConfig;
         this.monitorManager = monitorManager;
         this.resourceManager = resourceManager;
@@ -114,31 +111,8 @@ public class JeevesEngine implements ApplicationContextAware
         this.defaultConfig = defaultConfig;
         
         PropertyConfigurator.configure(envConfig.getConfigPath() +"/log4j.cfg");
+        setupXSLTTransformerFactory();
     }
-    //---------------------------------------------------------------------------
-	//---
-	//--- Init
-	//---
-	//---------------------------------------------------------------------------
-
-	/** Inits the engine, loading all needed data
-	  */
-
-	public void init(String appPath, String configPath, String baseUrl, JeevesServlet servlet) throws ServletException
-	{
-		try
-		{
-		}
-		catch (Exception e)
-		{
-			fatal("Raised exception during init");
-			fatal("   Exception : " +e);
-			fatal("   Message   : " +e.getMessage());
-			fatal("   Stack     : " +Util.getStackTrace(e));
-
-			throw new ServletException("Exception raised", e);
-		}
-	}
 
     /**
      * Looks up the implementation of XSLT factory defined in META-INF/services/javax.xml.transform.TransformerFactory and instantiates
@@ -204,14 +178,6 @@ public class JeevesEngine implements ApplicationContextAware
 
 		Element configRoot = Xml.loadFile(file);
 
-		//--- init app-handlers
-
-		appHandList.addAll(configRoot.getChildren(ConfigFile.Child.APP_HANDLER));
-
-		//--- init services
-
-		List<Element> srvList = configRoot.getChildren(ConfigFile.Child.SERVICES);
-
 		//--- init schedules
 
 		List<Element> schedList = configRoot.getChildren(ConfigFile.Child.SCHEDULES);
@@ -226,16 +192,6 @@ public class JeevesEngine implements ApplicationContextAware
         for(int i=0; i<monitorList.size(); i++)
             monitorManager.initMonitors(monitorList.get(i));
 
-		//--- recurse on includes
-
-		List<Element> includes = configRoot.getChildren(ConfigFile.Child.INCLUDE);
-
-		for(int i=0; i<includes.size(); i++)
-		{
-			Element include = includes.get(i);
-
-			loadConfigFile(servletContext, path, include.getText(), serviceMan);
-		}
 	}
 
 	//---------------------------------------------------------------------------
@@ -267,7 +223,7 @@ public class JeevesEngine implements ApplicationContextAware
 			ServiceContext srvContext = serviceMan.createServiceContext("AppHandler");
 			srvContext.setLanguage(defaultConfig.getLanguage());
 			srvContext.setLogger(appHandLogger);
-			srvContext.setServlet(servlet);
+			srvContext.setServletContext(servlet.getServletContext());
 
 			try
 			{
@@ -276,7 +232,7 @@ public class JeevesEngine implements ApplicationContextAware
 				Object context = h.start(handler, srvContext);
 
 				srvContext.getResourceManager().close();
-				vAppHandlers.add(h);
+				appHandlers.add(h);
 				serviceMan .registerContext(h.getContextName(), context);
 				scheduleMan.registerContext(h.getContextName(), context);
                 monitorManager.initMonitorsForApp(srvContext);
@@ -397,7 +353,7 @@ public class JeevesEngine implements ApplicationContextAware
 	  */
 
 	private void stopHandlers() throws Exception {
-		for (ApplicationHandler h : vAppHandlers) {
+		for (ApplicationHandler h : appHandlers) {
 			h.stop();
 		}
 	}
@@ -447,10 +403,14 @@ public class JeevesEngine implements ApplicationContextAware
 	private void info   (String message) { Log.info   (Log.ENGINE, message); }
 	private void warning(String message) { Log.warning(Log.ENGINE, message); }
 	private void error  (String message) { Log.error  (Log.ENGINE, message); }
-	private void fatal  (String message) { Log.fatal  (Log.ENGINE, message); }
-    @Override
+
+	@Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        // TODO Auto-generated method stub
+        Collection<ApplicationHandler> apps = applicationContext.getBeansOfType(ApplicationHandler.class).values();
+        
+        for (ApplicationHandler applicationHandler : apps) {
+            appHandlers.add(applicationHandler);
+        }
         
     }
 }

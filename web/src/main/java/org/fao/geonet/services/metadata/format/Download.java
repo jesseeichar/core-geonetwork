@@ -50,7 +50,7 @@ public class Download extends AbstractFormatService {
         
         try {
             
-            File tmpDir = (File) context.getServlet().getServletContext()
+            File tmpDir = (File) context.getServletContext()
                     .getAttribute("javax.servlet.context.tempdir");
             File zippedFile = File.createTempFile(xslid, ".zip", tmpDir);
             ZipOutputStream zipOut = new ZipOutputStream(zippedFile);

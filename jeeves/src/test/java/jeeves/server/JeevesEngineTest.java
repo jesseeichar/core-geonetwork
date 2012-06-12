@@ -108,7 +108,8 @@ public class JeevesEngineTest {
 
         engine.dispatch(srvReq, session);
         
-        assertEquals("OK", Xml.loadString(new String(os.toByteArray()), false).getChildText("result"));
+        String data = new String(os.toByteArray());
+        assertEquals("OK", Xml.loadString(data, false).getText());
     }
 
 }

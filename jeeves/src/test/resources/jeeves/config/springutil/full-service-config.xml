@@ -14,12 +14,13 @@
 
  	<context:annotation-config/>
 	
-	 <j:service id="theid" name="test.service">
-		<serviceClass
-				name="jeeves.config.springutil.TestService"
-				match="request/service"
+	 <j:service id="theid" 
+	 			name="test.service"
+				match="service"
 				sheet="param-transform.xsl"
 				cache="false">
+		<serviceClass
+				name="jeeves.config.springutil.TestService">
 			<param name="p1" value="v1"/>
 			<param name="p2" value="v2"/>
 		</serviceClass>
@@ -27,15 +28,15 @@
 				testCondition="a"
 				contentType="application/pdf"
 				forward="service2"
-				isFile="true"
-				isBlob="false">
+				file="true"
+				blob="false">
 			<xml file="output.xml" name="sources" localized="true" base="loc" language="fre"/>
 			<call name="outputService" serviceClass="jeeves.config.springutil.TestService">
 				<param name="op1" value = "ov1"/>
 			</call>
 		</output>
 		<error sheet="error-transform.xsl"
-				testCondition="/xxx"
+				testCondition="correctError"
 				contentType="text"
 				statusCode="500">
 			<call name="errorService" serviceClass="jeeves.config.springutil.TestService">

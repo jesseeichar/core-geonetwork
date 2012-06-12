@@ -1,5 +1,6 @@
 package jeeves.config.springutil;
 
+import org.jdom.Content;
 import org.jdom.Element;
 
 import jeeves.interfaces.Service;
@@ -21,7 +22,7 @@ public class TestService implements Service {
     @Override
     public Element exec(Element params, ServiceContext context) throws Exception {
         this.requestParams = params;
-        return null;
+        return new Element("result").addContent((Content) params.clone());
     }
 
     public Element getRequestParams() {

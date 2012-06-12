@@ -99,6 +99,7 @@ public class ProviderManager implements ApplicationContextAware
                 Object resource = provider.open();
                 provider.close(resource);
                 hmProviders.put(name, provider);
+                resourceFound = true;
             } catch (Exception e) {
                 Map<String, String> errorReport = new HashMap<String, String>();
                 String eS = "Raised exception while initializing resource " + name + ". ----  Skipped ---- ";

@@ -5,8 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import javax.servlet.ServletContext;
+
 import jeeves.server.ServiceConfig;
-import jeeves.server.sources.http.JeevesServlet;
 import jeeves.utils.BinaryFile;
 import jeeves.utils.Log;
 
@@ -29,7 +30,7 @@ public class GeonetworkDataDirectory {
 	public static final String GEONETWORK_DIR_KEY = "geonetwork.dir";
 
 	private String systemDataDir;
-	private JeevesServlet jeevesServlet;
+	private ServletContext servletContext;
 
 	/**
 	 * Check and create if needed GeoNetwork data directory.
@@ -52,11 +53,11 @@ public class GeonetworkDataDirectory {
 	 * 
 	 */
 	public GeonetworkDataDirectory(String webappName, String path,
-			ServiceConfig handlerConfig, JeevesServlet jeevesServlet) {
+			ServiceConfig handlerConfig, ServletContext servletContext) {
         if (Log.isDebugEnabled(Geonet.DATA_DIRECTORY))
             Log.debug(Geonet.DATA_DIRECTORY,
 				"Check and create if needed GeoNetwork data directory");
-		this.jeevesServlet = jeevesServlet;
+		this.servletContext = servletContext;
 		setDataDirectory(webappName, path, handlerConfig);
 	}
 
@@ -78,7 +79,7 @@ public class GeonetworkDataDirectory {
 	 * @return String The absolute path to the data directory, or
 	 *         <code>null</code> if it could not be found.
 	 */
-	private static String lookupProperty(JeevesServlet jeevesServlet, ServiceConfig handlerConfig, String key) {
+	private static String lookupProperty(ServletContext servletContext, ServiceConfig handlerConfig, String key) {
 
 		final String[] typeStrs = { "Java environment variable ",
 				"Servlet context parameter ", "Config.xml appHandler parameter", "System environment variable " };
@@ -99,7 +100,7 @@ public class GeonetworkDataDirectory {
 				value = System.getProperty(key);
 				break;
 			case 1:
-				value = jeevesServlet == null ? null : jeevesServlet.getInitParameter(key);
+				value = servletContext == null ? null : servletContext.getInitParameter(key);
 				break;
 			case 2:
 				value = handlerConfig.getValue(key);
@@ -132,13 +133,13 @@ public class GeonetworkDataDirectory {
 			ServiceConfig handlerConfig) {
 
 		// System property defined according to webapp name
-		systemDataDir = GeonetworkDataDirectory.lookupProperty(jeevesServlet,
+		systemDataDir = GeonetworkDataDirectory.lookupProperty(servletContext,
 				handlerConfig, webappName + KEY_SUFFIX);
 
 		// GEONETWORK.dir is default
 		if (systemDataDir == null) {
 			systemDataDir = GeonetworkDataDirectory.lookupProperty(
-					jeevesServlet, handlerConfig, GEONETWORK_DIR_KEY);
+					servletContext, handlerConfig, GEONETWORK_DIR_KEY);
 		}
 		boolean useDefaultDataDir = false;
 		Log.warning(Geonet.DATA_DIRECTORY,
@@ -293,7 +294,7 @@ public class GeonetworkDataDirectory {
 			String systemDataDir, String key, String folder, String handlerKey) {
 		String envKey = webappName + key;
 		String dir = GeonetworkDataDirectory.lookupProperty(
-				jeevesServlet, handlerConfig, envKey);
+				servletContext, handlerConfig, envKey);
 		if (dir == null) {
 			dir = systemDataDir + folder;
 			System.setProperty(envKey, dir);

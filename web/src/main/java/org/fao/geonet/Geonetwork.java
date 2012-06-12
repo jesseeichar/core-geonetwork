@@ -145,10 +145,8 @@ public class Geonetwork implements ApplicationHandler {
 		String webappName = baseURL.substring(1);
 		// TODO : if webappName is "". ie no context
 		
-        ServletContext servletContext = null;
-        if (context.getServlet() != null) {
-            servletContext = context.getServlet().getServletContext();
-        }
+        ServletContext servletContext = context.getServletContext();
+        
 		ServerLib sl = new ServerLib(servletContext, path);
 		String version = sl.getVersion();
 		String subVersion = sl.getSubVersion();
@@ -159,7 +157,7 @@ public class Geonetwork implements ApplicationHandler {
 		ServiceConfig handlerConfig = new ServiceConfig(config.getChildren());
 		
 		// Init configuration directory
-		new GeonetworkDataDirectory(webappName, path, handlerConfig, context.getServlet());
+		new GeonetworkDataDirectory(webappName, path, handlerConfig, context.getServletContext());
 		
 		// Get config handler properties
 		String systemDataDir = handlerConfig.getMandatoryValue(Geonet.Config.SYSTEM_DATA_DIR);
@@ -638,10 +636,7 @@ public class Geonetwork implements ApplicationHandler {
 		String dbURL = dbms.getURL();
 		logger.info("  - Database connection on " + dbURL + " ...");
 
-        ServletContext servletContext = null;
-        if(context.getServlet() != null) {
-            servletContext = context.getServlet().getServletContext();
-        }
+        ServletContext servletContext = context.getServletContext();
 
 		Boolean created = false;
 		// Create db if empty

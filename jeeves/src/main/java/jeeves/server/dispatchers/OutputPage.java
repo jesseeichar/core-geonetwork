@@ -73,7 +73,7 @@ public class OutputPage extends AbstractPage
 
 	//--------------------------------------------------------------------------
 
-	public void setBLOB(boolean yesno)
+	public void setBlob(boolean yesno)
 	{
 		isBLOB = yesno;
 	}

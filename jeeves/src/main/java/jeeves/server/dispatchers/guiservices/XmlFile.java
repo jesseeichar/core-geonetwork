@@ -97,10 +97,7 @@ public class XmlFile implements GuiService
 		if (localized) xmlFilePath = rootPath + File.separator + lang +File.separator + file;
 		else xmlFilePath = appPath + file;
 
-        ServletContext servletContext = null;
-        if(context.getServlet() != null) {
-            servletContext = context.getServlet().getServletContext();
-        }
+        ServletContext servletContext = context.getServletContext();
 
         XmlFileCacher xmlCache = xmlCaches.get(language);
 		if (xmlCache == null){

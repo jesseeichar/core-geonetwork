@@ -41,10 +41,7 @@ public class Resources {
 	 * @return locateResourcesDir(...) + FS + "images" + FS + "logos"
 	 */
 	public static String locateLogosDir(ServiceContext context) {
-		ServletContext servletContext = null;
-		if (context.getServlet() != null) {
-			servletContext = context.getServlet().getServletContext();
-		}
+		ServletContext servletContext = context.getServletContext();
 		return locateLogosDir(servletContext, context.getAppPath());
 	}
 
@@ -79,10 +76,7 @@ public class Resources {
 	 * @return locateResourcesDir(...) + FS + "images" + FS + "harvesting"
 	 */
 	public static String locateHarvesterLogosDir(ServiceContext context) {
-		ServletContext servletContext = null;
-		if (context.getServlet() != null) {
-			servletContext = context.getServlet().getServletContext();
-		}
+		ServletContext servletContext = context.getServletContext();
 		return locateHarvesterLogosDir(servletContext, context.getAppPath());
 	}
 
@@ -122,8 +116,8 @@ public class Resources {
 	 */
 	public static String locateResourcesDir(ServiceContext context) {
 		String webappName = "geonetwork";
-		if (context.getServlet() != null) {
-			webappName = context.getServlet().getServletContext().getServletContextName();
+		if (context.getServletContext() != null) {
+			webappName = context.getServletContext().getServletContextName();
 		}
 		return System.getProperty(webappName + ".resources.dir");
 	}
@@ -278,10 +272,7 @@ public class Resources {
 	 */
 	public static void copyLogo(ServiceContext context, String icon,
 			String destName) {
-		ServletContext servletContext = null;
-		if (context.getServlet() != null) {
-			servletContext = context.getServlet().getServletContext();
-		}
+		ServletContext servletContext = context.getServletContext();
 		String appDir = context.getAppPath();
 
 		File des = null;

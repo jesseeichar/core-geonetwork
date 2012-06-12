@@ -10,6 +10,9 @@ import org.jdom.Element;
 public class Param {
     String name;
     String value;
+    public Param() {
+        // required for spring
+    }
     public Param(String name, String value) {
         this.name = name;
         this.value = value;
@@ -17,8 +20,14 @@ public class Param {
     public String getName() {
         return name;
     }
+    public void setName(String name) {
+        this.name = name;
+    }
     public String getValue() {
         return value;
+    }
+    public void setValue(String value) {
+        this.value = value;
     }
     public Element toElem() {
         return new Element("param").setAttribute("name", name).setAttribute("value", value);

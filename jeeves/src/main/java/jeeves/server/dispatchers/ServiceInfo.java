@@ -170,7 +170,7 @@ public class ServiceInfo
 		if (match == null)
 			return true;
 		else
-			return Xml.selectBoolean(request, match);
+			return jeeves.utils.Xml.selectBoolean(request, match);
 	}
 
 	//---------------------------------------------------------------------------

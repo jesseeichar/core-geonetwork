@@ -37,6 +37,8 @@ import jeeves.utils.SerialFactory;
 import java.util.Hashtable;
 import java.util.Map;
 
+import javax.servlet.ServletContext;
+
 //=============================================================================
 
 /** Contains the context for a service execution
@@ -77,9 +79,9 @@ public class ServiceContext extends BasicContext
 	private String ipAddress;
 	private String uploadDir;
 	private int    maxUploadSize;
-	private JeevesServlet servlet;
 	private boolean startupError = false;
 	Map<String,String> startupErrors;
+    private ServletContext servletContext;
 
 	//--------------------------------------------------------------------------
 	//---
@@ -114,15 +116,11 @@ public class ServiceContext extends BasicContext
 	public OutputMethod getOutputMethod() { return output; }
 	public Map<String,String> getStartupErrors() { return startupErrors; }
 	public boolean isStartupError() { return startupError; }
-	public boolean isServletInitialized() { 
-		if (servlet != null) return servlet.isInitialized(); 
-		else return true; // Jeeves not running in servlet container eg for testing
-	}
 
 	//--------------------------------------------------------------------------
 
 	public void setLanguage (String lang)    { language  = lang;    }
-	public void setServlet (JeevesServlet serv)    { servlet  = serv;    }
+	public void setServletContext (ServletContext context)    { this.servletContext  = context;    }
 	public void setIpAddress(String address) { ipAddress = address; }
 	public void setUploadDir(String dir)     { uploadDir = dir;     }
     public void setMaxUploadSize(int size)   { maxUploadSize = size;}
@@ -172,8 +170,8 @@ public class ServiceContext extends BasicContext
 		this.headers = headers;
 	}
 
-	public JeevesServlet getServlet() {
-        return servlet;
+    public ServletContext getServletContext() {
+        return servletContext;
     }
 
 }

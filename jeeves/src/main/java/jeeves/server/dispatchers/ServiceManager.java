@@ -112,7 +112,9 @@ public class ServiceManager implements ApplicationContextAware
     
 	public void setSerialFactory(SerialFactory   s) { serialFact = s; }
 	public void setServlet(JeevesServlet serv) { servlet = serv; }
-    public void setStartupErrors(Map<String,String> errors)   { startupErrors = errors; startupError = true; }
+    public void setStartupErrors(Map<String,String> errors)   { 
+        startupErrors = errors; startupError = true; 
+        }
 	public boolean isStartupError() { return startupError; }
 
 	//---------------------------------------------------------------------------
