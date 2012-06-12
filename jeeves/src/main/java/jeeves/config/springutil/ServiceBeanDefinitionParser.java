@@ -14,6 +14,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -65,7 +66,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
     }
 
     private BeanDefinition parseServiceClass(Element element) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ServiceConfigBean.class);
+        BeanDefinitionBuilder builder = newBuilder(ServiceConfigBean.class);
         addPropertyValue(builder, element, ConfigFile.Class.Attr.NAME, true);
         
         parseParam(element, builder);
@@ -76,7 +77,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         NodeList paramsList = element.getElementsByTagName(ConfigFile.Class.Child.PARAM);
         ManagedList<BeanDefinition> params = new ManagedList<BeanDefinition>();
         for(int i = 0; i < paramsList.getLength(); i++) {
-            BeanDefinitionBuilder paramBuilder = BeanDefinitionBuilder.rootBeanDefinition(Param.class);
+            BeanDefinitionBuilder paramBuilder = newBuilder(Param.class);
             Element paramDef = (Element) paramsList.item(i);
             
             addPropertyValue(paramBuilder, paramDef, ConfigFile.Param.Attr.NAME);
@@ -88,7 +89,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
     }
 
     private BeanDefinition parseServiceOutput(Element element) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(OutputPage.class);
+        BeanDefinitionBuilder builder = newBuilder(OutputPage.class);
         addPropertyValue(builder, element, ConfigFile.Output.Attr.SHEET);
         addPropertyValue(builder, element, ConfigFile.Output.Attr.BLOB);
         addPropertyValue(builder, element, ConfigFile.Output.Attr.CONTENT_TYPE);
@@ -101,7 +102,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
     }
 
     private BeanDefinition parseServiceError(Element element) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ErrorPage.class);
+        BeanDefinitionBuilder builder = newBuilder(ErrorPage.class);
         
         addPropertyValue(builder, element, ConfigFile.Error.Attr.SHEET);
         addPropertyValue(builder, element, ConfigFile.Error.Attr.STATUS_CODE);
@@ -145,7 +146,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
     }
     private BeanDefinition parseGuiService(Element elem) {
         if (ConfigFile.Output.Child.XML.equals(elem.getLocalName())) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(XmlFile.class);
+            BeanDefinitionBuilder builder = newBuilder(XmlFile.class);
             addPropertyValue(builder, elem, ConfigFile.Xml.Attr.NAME);
             addPropertyValue(builder, elem, ConfigFile.Xml.Attr.BASE);
             addPropertyValue(builder, elem, ConfigFile.Xml.Attr.FILE);
@@ -156,7 +157,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         }
 
         if (ConfigFile.Output.Child.CALL.equals(elem.getLocalName())) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(Call.class);
+            BeanDefinitionBuilder builder = newBuilder(Call.class);
             addPropertyValue(builder, elem, ConfigFile.Call.Attr.NAME);
             addPropertyValue(builder, elem, ConfigFile.Call.Attr.CLASS);
             parseParam(elem, builder);
@@ -164,4 +165,10 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         }
         throw new IllegalArgumentException("Unknown GUI element : "+ elem.getLocalName());
     }
+    private BeanDefinitionBuilder newBuilder(Class<?> beanClass) {
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(beanClass);
+        builder.setAutowireMode(RootBeanDefinition.AUTOWIRE_BY_TYPE);
+        return builder;
+    }
+
 }

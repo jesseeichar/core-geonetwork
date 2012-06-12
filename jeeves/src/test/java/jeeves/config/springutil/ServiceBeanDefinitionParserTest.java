@@ -47,7 +47,7 @@ public class ServiceBeanDefinitionParserTest {
         
         assertEquals(1, serviceInfos.size());
         Entry<String, ServiceInfo> infoEntry = serviceInfos.entrySet().iterator().next();
-        assertEquals("test.service", infoEntry.getKey());
+        assertEquals("theid", infoEntry.getKey());
         
         ServiceInfo info = infoEntry.getValue();
         List<ServiceConfigBean> beans = (List<ServiceConfigBean>) ReflectionTestUtils.getField(info, "servicesConfigBeans");

@@ -11,8 +11,14 @@
         http://www.springframework.org/schema/context/spring-context-3.0.xsd
         http://geonetwork-opensource.org/jeeves-spring-namespace
         http://geonetwork-opensource.org/jeeves-spring-namespace/jeeves-spring-namespace.xsd"> 
+	
+ 	<j:service id="theid" name="test.service" >
+		<serviceClass name="jeeves.server.TestService">
+			<param name="result" value="OK"/>
+		</serviceClass>
+	</j:service>
  
-	<j:service id="test.service" >
+	<!-- <j:service id="theid" name="test.server">
 		<serviceClass
 				name="jeeves.config.springutil.TestService"
 				match="request/service"
@@ -41,5 +47,5 @@
 			</call>
 			<xml file="error.xml" name="sources" localized="false" base="erloc" language="eng"/>
 		</error>
-	</j:service>
+	</j:service> -->
 </beans>
