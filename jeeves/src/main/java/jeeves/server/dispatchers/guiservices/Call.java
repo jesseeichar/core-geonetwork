@@ -23,80 +23,83 @@
 
 package jeeves.server.dispatchers.guiservices;
 
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+
+import jeeves.config.EnvironmentalConfig;
 import jeeves.constants.ConfigFile;
 import jeeves.constants.Jeeves;
 import jeeves.interfaces.Service;
 import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
+import jeeves.server.dispatchers.Param;
+import jeeves.server.dispatchers.ServiceConfigBean;
 import jeeves.utils.Util;
 import org.jdom.Element;
+import org.springframework.beans.factory.annotation.Autowired;
 
 //=============================================================================
 
-public class Call implements GuiService
-{
-	private String  name;
-	private Service serviceObj;
+public class Call implements GuiService {
+    private String name;
+    private String serviceClass;
+    private List<Param> params = Collections.emptyList();
+    private Service serviceObj;
+    EnvironmentalConfig envConfig;
 
-	//---------------------------------------------------------------------------
-	//---
-	//--- Init
-	//---
-	//--------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------
+    // ---
+    // --- Init
+    // ---
+    // --------------------------------------------------------------------------
 
-	@SuppressWarnings("unchecked")
-   public Call(Element config, String pack, String appPath) throws Exception
-	{
-		name = Util.getAttrib(config, ConfigFile.Call.Attr.NAME);
+    public void setName(String name) {
+        this.name = name;
+    }
 
-		//--- handle 'class' attrib
+    public void setServiceClass(String serviceClass) {
+        this.serviceClass = serviceClass;
+    }
 
-		String clas = Util.getAttrib(config, ConfigFile.Call.Attr.CLASS);
+    public void setParam(List<Param> params) {
+        this.params = params;
+    }
 
-		if (clas.startsWith("."))
-			clas = pack + clas;
+    @PostConstruct
+    public void init() throws Exception {
+        params.add(new Param(Jeeves.Text.GUI_SERVICE, "yes"));
+        serviceObj = ServiceConfigBean.createService(serviceClass, params, envConfig);
+    }
 
-		//--- let everyone else know that this is a guiservice
-		Element guiService = new Element("param");
-		guiService.setAttribute(Jeeves.Attr.NAME, Jeeves.Text.GUI_SERVICE);
-		guiService.setAttribute(Jeeves.Attr.VALUE, "yes");
-		config.addContent(guiService);
+    // ---------------------------------------------------------------------------
+    // ---
+    // --- Exec
+    // ---
+    // --------------------------------------------------------------------------
 
-		serviceObj = (Service) Class.forName(clas).newInstance();
-		serviceObj.init(appPath, new ServiceConfig(config.getChildren()));
-	}
+    public Element exec(Element response, ServiceContext context) throws Exception {
+        try {
+            // --- invoke the method and obtain a jdom result
 
-	//---------------------------------------------------------------------------
-	//---
-	//--- Exec
-	//---
-	//--------------------------------------------------------------------------
+            response = serviceObj.exec(response, context);
 
-	public Element exec(Element response, ServiceContext context) throws Exception
-	{
-		try
-		{
-			//--- invoke the method and obtain a jdom result
+            context.getResourceManager().close();
 
-			response = serviceObj.exec(response, context);
+            if (response != null)
+                response.setName(name);
 
-			context.getResourceManager().close();
+            return response;
+        } catch (Exception e) {
+            // --- in case of exception we have to abort all resources
 
-			if (response != null)
-				response.setName(name);
+            context.getResourceManager().abort();
 
-			return response;
-		}
-		catch(Exception e)
-		{
-			//--- in case of exception we have to abort all resources
-
-			context.getResourceManager().abort();
-
-			throw e;
-		}
-	}
+            throw e;
+        }
+    }
 }
 
-//=============================================================================
+// =============================================================================
 

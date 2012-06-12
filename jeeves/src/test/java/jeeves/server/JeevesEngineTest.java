@@ -25,7 +25,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 public class JeevesEngineTest {
 
-    private final String appPath = JeevesEngineTest.class.getResource("config.xml").getFile();
+    private final String appPath = JeevesEngineTest.class.getResource(".").getFile();
     private final String configPath = appPath;
     private final String baseUrl = "/test";
     private final EnvironmentalConfig envConfig = new EnvironmentalConfig(baseUrl, appPath, configPath).freeze();

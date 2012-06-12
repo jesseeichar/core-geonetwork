@@ -35,19 +35,21 @@
     		<element name="param" type="tns:paramType"></element>
     	</sequence>
     	<attribute name="name" type="string"></attribute>
-    	<attribute name="value" type="string"></attribute>
+    	<attribute name="serviceClass" type="string"></attribute>
     </complexType>
 
     <complexType name="xmlCallType">
     	<attribute name="name" type="string"></attribute>
     	<attribute name="file" type="string"></attribute>
     	<attribute name="localized" type="boolean"></attribute>
+    	<attribute name="base" type="string"></attribute>
+    	<attribute name="language" type="string"></attribute>
     </complexType>
 
 
     <complexType name="serviceType">
     	<choice>
-    		<element name="class" type="tns:classType"></element>
+    		<element name="serviceClass" type="tns:classType"></element>
     		<element name="output" type="tns:outputType"></element>
     		<element name="error" type="tns:errorType"></element>
     	</choice>
@@ -73,7 +75,7 @@
     		<element name="xml" type="tns:xmlCallType"></element>
     	</choice>
     	<attribute name="sheet" type="string"></attribute>
-    	<attribute name="test" type="string"></attribute>
+    	<attribute name="testCondition" type="string"></attribute>
     	<attribute name="contentType" type="string"></attribute>
     </complexType>
 </schema>

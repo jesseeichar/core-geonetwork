@@ -140,5 +140,8 @@ public class XmlFile implements GuiService
     public void setLocalized(boolean localized) {
         this.localized = localized;
     }
+    public void setBase(String base) {
+        this.base = base;
+    }
 }
 

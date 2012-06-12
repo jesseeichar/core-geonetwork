@@ -3,7 +3,6 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:util="http://www.springframework.org/schema/util"
 	xmlns:j="http://geonetwork-opensource.org/jeeves-spring-namespace"
 	xsi:schemaLocation="
 		http://www.springframework.org/schema/beans 
@@ -11,28 +10,27 @@
 		http://www.springframework.org/schema/context
         http://www.springframework.org/schema/context/spring-context-3.0.xsd
         http://geonetwork-opensource.org/jeeves-spring-namespace
-        http://geonetwork-opensource.org/jeeves-spring-namespace/jeeves-spring-namespace.xsd
-        http://www.springframework.org/schema/util
-        http://www.springframework.org/schema/util/spring-util-3.0.xsd"> 
+        http://geonetwork-opensource.org/jeeves-spring-namespace/jeeves-spring-namespace.xsd"> 
  
  <!-- Import database you want to use -->
  	<import resource="config-h2-database.xml"/>
  	<import resource="user-profiles.xml"/>
 
 	<bean class="jeeves.config.GeneralConfig"
-		p:profilesFile="test-profiles.xml"
 		p:uploadDir="test-uploads">
 	</bean>
 	
 	<bean class="jeeves.config.DefaultConfig"
 		p:service="home"
 		p:startupErrorService="main.error">
-		<util:list id="errorPages">
-			<bean class="jeeves.server.dispatchers.ErrorPage" 
-				p:contentType="text/html"
-				p:statusCode="403"
-				p:styleSheet="xml/privileges-error.xml"/>
-		</util:list>
+		<property name="errorPages">
+			<list>
+				<bean class="jeeves.server.dispatchers.ErrorPage" 
+					p:contentType="text/html"
+					p:statusCode="403"
+					p:styleSheet="xml/privileges-error.xml"/>
+			</list>
+		</property>
 	</bean>
 	
 	<j:service id="test.service" >

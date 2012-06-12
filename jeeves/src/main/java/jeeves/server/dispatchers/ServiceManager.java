@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 
 import jeeves.constants.Jeeves;
@@ -82,8 +81,8 @@ public class ServiceManager implements ApplicationContextAware
 	private Vector<ErrorPage> vErrorPipe = new Vector<ErrorPage>();
 	private Vector<GuiService> vDefaultGui = new Vector<GuiService>();
 
-    private ProviderManager providMan;
-    private ProfileManager  profilMan;
+    private ProviderManager providManager;
+    private ProfileManager  profileManager;
     private MonitorManager monitorManager;
 
 	private SerialFactory   serialFact;
@@ -103,22 +102,18 @@ public class ServiceManager implements ApplicationContextAware
 
     @Required
     @Autowired
-	public void setProviderMan  (ProviderManager p) { providMan  = p; }
+	public void setProviderManager  (ProviderManager p) { providManager  = p; }
     @Required
     @Autowired
-	public void setMonitorMan  (MonitorManager mm) { monitorManager  = mm; }
+    public void setProfileManager  (ProfileManager p) { profileManager  = p; }
+    @Required
+    @Autowired
+	public void setMonitorManager  (MonitorManager mm) { monitorManager  = mm; }
     
 	public void setSerialFactory(SerialFactory   s) { serialFact = s; }
 	public void setServlet(JeevesServlet serv) { servlet = serv; }
     public void setStartupErrors(Map<String,String> errors)   { startupErrors = errors; startupError = true; }
 	public boolean isStartupError() { return startupError; }
-
-	//---------------------------------------------------------------------------
-
-	public void loadProfiles(ServletContext servletContext, String file) throws Exception
-	{
-		profilMan = new ProfileManager(servletContext, appPath, appPath + Jeeves.Path.WEBINF + file);
-	}
 
 	//---------------------------------------------------------------------------
 
@@ -130,7 +125,7 @@ public class ServiceManager implements ApplicationContextAware
 
 	public ServiceContext createServiceContext(String name)
 	{
-		ServiceContext context = new ServiceContext(name, monitorManager, providMan, serialFact, profilMan, htContexts);
+		ServiceContext context = new ServiceContext(name, monitorManager, providManager, serialFact, profileManager, htContexts);
 
 		context.setBaseUrl(baseUrl);
 		context.setLanguage("?");
@@ -153,7 +148,7 @@ public class ServiceManager implements ApplicationContextAware
 	public void dispatch(ServiceRequest req, UserSession session)
 	{
 
-		ServiceContext context = new ServiceContext(req.getService(), monitorManager, providMan, serialFact, profilMan, htContexts);
+		ServiceContext context = new ServiceContext(req.getService(), monitorManager, providManager, serialFact, profileManager, htContexts);
 
 		context.setBaseUrl(baseUrl);
 		context.setLanguage(req.getLanguage());
@@ -213,7 +208,7 @@ public class ServiceManager implements ApplicationContextAware
 				if (session.isAuthenticated())
 					profile = session.getProfile();
 
-				if (!profilMan.hasAccessTo(profile, srvName))
+				if (!profileManager.hasAccessTo(profile, srvName))
 				{
 					error("Service not allowed : "+ srvName);
 					throw new ServiceNotAllowedEx(srvName);

@@ -28,7 +28,7 @@ public class Profile {
     }
     public Set<String> getAllAccess(ProfileManager profileManager) {
         if(allAccess == null) {
-            synchronized (allAccess) {
+            synchronized (this) {
                 if(allAccess == null) {
                     allAccess = new HashSet<String>();
                     allAccess.addAll(access);

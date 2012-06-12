@@ -407,7 +407,7 @@ public class ConfigFile
 			 */
 			private Attr() {}
 			
-		   public static final String TEST         = "test";
+		    public static final String TEST         = "testCondition";
 			public static final String SHEET        = "sheet";
 			public static final String FORWARD      = "forward";
 			public static final String FILE         = "file";
@@ -440,7 +440,8 @@ public class ConfigFile
 			 */
 			private Attr() {}
 			
-		   public static final String ID           = "id";
+            public static final String ID           = "id";
+            public static final String TEST         = "testCondition";
 			public static final String SHEET        = "sheet";
 			public static final String CONTENT_TYPE = "contentType";
 			public static final String STATUS_CODE  = "statusCode";
@@ -496,7 +497,7 @@ public class ConfigFile
 			private Attr() {}
 			
 		   public static final String NAME     = "name";
-			public static final String CLASS    = "class";
+			public static final String CLASS    = "serviceClass";
 		}
 	}
 

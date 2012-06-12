@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:j="http://geonetwork-opensource.org/jeeves-spring-namespace"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://geonetwork-opensource.org/jeeves-spring-namespace
+        http://geonetwork-opensource.org/jeeves-spring-namespace/jeeves-spring-namespace.xsd"> 
+ 
+	<j:service id="test.service" >
+		<serviceClass
+				name="jeeves.config.springutil.TestService"
+				match="request/service"
+				sheet="param-transform.xsl"
+				cache="false">
+			<param name="p1" value="v1"/>
+			<param name="p2" value="v2"/>
+		</serviceClass>
+		<output sheet="output-transform.xsl"
+				testCondition="a"
+				contentType="application/pdf"
+				forward="service2"
+				isFile="true"
+				isBlob="false">
+			<xml file="output.xml" name="sources" localized="true" base="loc" language="fre"/>
+			<call name="outputService" serviceClass="jeeves.config.springutil.TestService">
+				<param name="op1" value = "ov1"/>
+			</call>
+		</output>
+		<error sheet="error-transform.xsl"
+				testCondition="/xxx"
+				contentType="text"
+				statusCode="500">
+			<call name="errorService" serviceClass="jeeves.config.springutil.TestService">
+				<param name="ep1" value = "ev1"/>
+			</call>
+			<xml file="error.xml" name="sources" localized="false" base="erloc" language="eng"/>
+		</error>
+	</j:service>
+</beans>

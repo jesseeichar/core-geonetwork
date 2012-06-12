@@ -48,9 +48,9 @@ public class ServiceInfo
 	private boolean cache = false;
 	private String name;
 
-	private List<ServiceConfigBean> vServices = Collections.emptyList();
-	private List<OutputPage> vOutputs = Collections.emptyList();
-	private List<ErrorPage> vErrors = Collections.emptyList();
+	private List<ServiceConfigBean> servicesConfigBeans = Collections.emptyList();
+	private List<OutputPage> outputs = Collections.emptyList();
+	private List<ErrorPage> errors = Collections.emptyList();
     private EnvironmentalConfig envConfig;
 
 	//--------------------------------------------------------------------------
@@ -70,13 +70,13 @@ public class ServiceInfo
         this.name = name;
     }
     public void setServiceClass(List<ServiceConfigBean> configs) {
-        this.vServices = configs;
+        this.servicesConfigBeans = configs;
     }
     public void setOutput(List<OutputPage> pages) {
-        this.vOutputs = pages;
+        this.outputs = pages;
     }
     public void setError(List<ErrorPage> pages) {
-        this.vErrors = pages;
+        this.errors = pages;
     }
 	public void setMatch(String match)
 	{
@@ -118,7 +118,7 @@ public class ServiceInfo
 
 		params = transformInput(params);
 
-		if (vServices.size() == 0)
+		if (servicesConfigBeans.size() == 0)
 		{
 			params.setName(Jeeves.Elem.RESPONSE);
 			return params;
@@ -126,7 +126,7 @@ public class ServiceInfo
 
 		Element response = params;
 
-		for(ServiceConfigBean service : vServices) {
+		for(ServiceConfigBean service : servicesConfigBeans) {
 			response = service.execute(response, context);
 		}
 
@@ -142,7 +142,7 @@ public class ServiceInfo
 	//--------------------------------------------------------------------------
 
 	public OutputPage findOutputPage(Element response) throws Exception {
-		for (OutputPage page : vOutputs) {
+		for (OutputPage page : outputs) {
 			if (page.matches(response))
 				return page;
 		}
@@ -153,7 +153,7 @@ public class ServiceInfo
 	//--------------------------------------------------------------------------
 
 	public ErrorPage findErrorPage(String id) {
-		for (ErrorPage page : vErrors) {
+		for (ErrorPage page : errors) {
 			if (page.matches(id))
 				return page;
 		}

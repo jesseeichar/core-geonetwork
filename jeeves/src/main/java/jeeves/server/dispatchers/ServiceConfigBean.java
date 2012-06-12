@@ -1,5 +1,6 @@
 package jeeves.server.dispatchers;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Required;
 import jeeves.config.EnvironmentalConfig;
 import jeeves.constants.Jeeves;
 import jeeves.interfaces.Service;
+import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
 
 /**
@@ -23,7 +25,7 @@ public class ServiceConfigBean {
     private String name;
     private List<Param> param = Collections.emptyList();
     private EnvironmentalConfig envConfig;
-    private Service service;
+    private Service serviceObj;
     @Required
     public void setName(String name) {
         this.name = name;
@@ -38,17 +40,27 @@ public class ServiceConfigBean {
 
     @PostConstruct
     public void init() {
+        this.serviceObj = createService(name, param, envConfig);
+    }
+
+    public static Service createService(String className, List<Param> param, EnvironmentalConfig envConfig) {
         try {
-            Class<?> serviceClass = Class.forName(name);
-            this.service = (Service) serviceClass.newInstance();
+            Class<?> serviceClass = Class.forName(className);
+            Service service = (Service) serviceClass.newInstance();
+            List<Element> el = new ArrayList<Element>();
+            for (Param p : param) {
+                el.add(p.toElem());
+            }
+            service.init(envConfig.getAppPath(), new ServiceConfig(el));
+            return service;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
 
+    }
     public Element execute(Element params, ServiceContext context) throws Exception {
         try {
-            Element response = service.exec(params, context);
+            Element response = serviceObj.exec(params, context);
 
             if (response == null)
                 response = new Element(Jeeves.Elem.RESPONSE);
