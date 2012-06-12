@@ -11,7 +11,6 @@ public class Param {
     String name;
     String value;
     public Param(String name, String value) {
-        super();
         this.name = name;
         this.value = value;
     }
@@ -22,7 +21,7 @@ public class Param {
         return value;
     }
     public Element toElem() {
-        return new Element(name).setText(value);
+        return new Element("param").setAttribute("name", name).setAttribute("value", value);
     }
     @Override
     public int hashCode() {

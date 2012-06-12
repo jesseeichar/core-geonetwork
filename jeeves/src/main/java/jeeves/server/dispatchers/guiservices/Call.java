@@ -23,20 +23,18 @@
 
 package jeeves.server.dispatchers.guiservices;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 
 import jeeves.config.EnvironmentalConfig;
-import jeeves.constants.ConfigFile;
 import jeeves.constants.Jeeves;
 import jeeves.interfaces.Service;
-import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
 import jeeves.server.dispatchers.Param;
 import jeeves.server.dispatchers.ServiceConfigBean;
-import jeeves.utils.Util;
+
 import org.jdom.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class Call implements GuiService {
     private String name;
     private String serviceClass;
-    private List<Param> params = Collections.emptyList();
+    private List<Param> params = new ArrayList<Param>(1);
     private Service serviceObj;
     EnvironmentalConfig envConfig;
 
@@ -65,6 +63,10 @@ public class Call implements GuiService {
 
     public void setParam(List<Param> params) {
         this.params = params;
+    }
+    @Autowired
+    public void setEnvConfig(EnvironmentalConfig envConfig) {
+        this.envConfig = envConfig;
     }
 
     @PostConstruct

@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import jeeves.config.EnvironmentalConfig;
 import jeeves.constants.ConfigFile;
 import jeeves.constants.Jeeves;
+import jeeves.server.ServiceConfig;
 import jeeves.server.dispatchers.ErrorPage;
 import jeeves.server.dispatchers.OutputPage;
 import jeeves.server.dispatchers.Param;
@@ -44,7 +45,7 @@ public class ServiceBeanDefinitionParserTest {
         springContext.refresh();
 
         Map<String, ServiceInfo> serviceInfos = springContext.getBeansOfType(ServiceInfo.class);
-        
+
         assertEquals(1, serviceInfos.size());
         Entry<String, ServiceInfo> infoEntry = serviceInfos.entrySet().iterator().next();
         assertEquals("theid", infoEntry.getKey());
@@ -57,8 +58,9 @@ public class ServiceBeanDefinitionParserTest {
         assertFalse(info.isCacheSet());
         
         assertEquals(appPath, service.getAppPath());
-        assertEquals("v1", service.getParams().getMandatoryValue("p1"));
-        assertEquals("v2", service.getParams().getMandatoryValue("p2"));
+        ServiceConfig serviceConfig = service.getParams();
+        assertEquals("v1", serviceConfig.getMandatoryValue("p1"));
+        assertEquals("v2", serviceConfig.getMandatoryValue("p2"));
         
         Element params = new Element("request").addContent("rp1").setText("rv1");
         info.execServices(params , null);
