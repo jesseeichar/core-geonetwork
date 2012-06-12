@@ -23,63 +23,30 @@
 
 package jeeves.server;
 
-import jeeves.constants.Jeeves;
-import jeeves.constants.Profiles;
-import jeeves.server.sources.http.JeevesServlet;
-import jeeves.utils.Xml;
-import org.jdom.Attribute;
-import org.jdom.Element;
-
-import javax.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
+
+import jeeves.constants.Jeeves;
+
+import org.jdom.Attribute;
+import org.jdom.Element;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 //=============================================================================
 
 /** This class is a container for the user-profiles.xml file
   */
 
-public class ProfileManager
+public class ProfileManager implements ApplicationContextAware
 {
 	public static final String GUEST = "Guest";
 	public static final String ADMIN = "Administrator";
 
-	private Hashtable<String, Element> htProfiles;
-
-	//--------------------------------------------------------------------------
-	//---
-	//--- Constructor
-	//---
-	//--------------------------------------------------------------------------
-
-	/** Given the user-profiles.xml file name, loads it abd inits its internal data
-	  * putting data in memory into a convenient way
-	 * @param appPath 
-	  */
-
-	@SuppressWarnings("unchecked")
-	public ProfileManager(ServletContext servletContext, String appPath, String profilesFile) throws Exception
-	{
-		Element elProfiles = Xml.loadFile(profilesFile);
-		if (servletContext != null) {
-		      ConfigurationOverrides.updateWithOverrides(profilesFile, servletContext, appPath, elProfiles);
-		}
-		htProfiles  = new Hashtable<String, Element>(50);
-
-		List<Element> profList = elProfiles.getChildren(Profiles.Elem.PROFILE);
-
-		for(int i=0; i<profList.size(); i++)
-		{
-			Element elProfile = (Element) profList.get(i);
-			String  sName     = elProfile.getAttributeValue(Profiles.Attr.NAME);
-
-			htProfiles.put(sName, elProfile);
-		}
-	}
+	private Map<String, Profile> htProfiles;
 
 	//--------------------------------------------------------------------------
 	//---
@@ -111,6 +78,9 @@ public class ProfileManager
 		return "";
 	}
 
+	public Profile getProfile(String profileName) {
+	    return htProfiles.get(profileName);
+	}
 	//--------------------------------------------------------------------------
 
 	public Element getProfilesElement(String profile)
@@ -147,19 +117,10 @@ public class ProfileManager
 
 			hs.add(profile);
 
-			Element elProfile = htProfiles.get(profile);
+			Profile elProfile = htProfiles.get(profile);
 
-			String extend = elProfile.getAttributeValue(Profiles.Attr.EXTENDS);
-
-			if (extend != null)
-			{
-				StringTokenizer st = new StringTokenizer(extend, ",");
-
-				while(st.hasMoreTokens())
-					al.add(st.nextToken().trim());
-			}
+			al.addAll(elProfile.getParentProfileNames());
 		}
-
 		return hs;
 	}
 
@@ -167,48 +128,13 @@ public class ProfileManager
 	/** Returns all services accessible by the given profile
 	  */
 
-	@SuppressWarnings("unchecked")
 	public Element getAccessibleServices(String profile)
 	{
-		HashSet<String>   hs = new HashSet<String>();
-		ArrayList<String> al = new ArrayList<String>();
-
-		al.add(profile);
-
-		while(!al.isEmpty())
-		{
-			profile = (String) al.get(0);
-			al.remove(0);
-
-			Element elProfile = (Element) htProfiles.get(profile);
-
-			//--- scan allow list
-
-			List<Element> allowList = elProfile.getChildren(Profiles.Elem.ALLOW);
-
-			for (Element elAllow : allowList) {
-				String  sService = elAllow.getAttributeValue(Profiles.Attr.SERVICE);
-				hs.add(sService);
-			}
-
-			//--- ops, no allow found. Try an ancestor (if any)
-
-			String extend = elProfile.getAttributeValue(Profiles.Attr.EXTENDS);
-
-			if (extend != null)
-			{
-				StringTokenizer st = new StringTokenizer(extend, ",");
-
-				while(st.hasMoreTokens())
-					al.add(st.nextToken().trim());
-			}
-		}
-
 		//--- build proper result
 
 		Element elRes = new Element(Jeeves.Elem.SERVICES);
 
-		for (String service : hs) {
+		for (String service : htProfiles.get(profile).getAllAccess(this)) {
 			elRes.addContent(new Element(Jeeves.Elem.SERVICE)
 					.setAttribute(new Attribute(Jeeves.Attr.NAME, service)));
 		}
@@ -216,50 +142,21 @@ public class ProfileManager
 		return elRes;
 	}
 
-	//--------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 	/** Returns true if the service is accessible from the given profile, resolving
 	  * any inheritance
 	  */
 
-	@SuppressWarnings("unchecked")
-	public boolean hasAccessTo(String profile, String service)
+	public boolean hasAccessTo(String profileName, String service)
 	{
-		ArrayList<String> al = new ArrayList<String>();
-		al.add(profile);
-
-		while(!al.isEmpty())
-		{
-			profile = (String) al.get(0);
-			al.remove(0);
-
-			Element elProfile = (Element) htProfiles.get(profile);
-
-			//--- scan allow list
-
-			List<Element> allowList = elProfile.getChildren(Profiles.Elem.ALLOW);
-
-			for (Element elAllow : allowList) {
-				String  sService = elAllow.getAttributeValue(Profiles.Attr.SERVICE);
-
-				if (service.equals(sService))
-					return true;
-			}
-
-			//--- ops, no allow found. Try an ancestor (if any)
-
-			String extend = profile = elProfile.getAttributeValue(Profiles.Attr.EXTENDS);
-
-			if (extend != null)
-			{
-				StringTokenizer st = new StringTokenizer(extend, ",");
-
-				while(st.hasMoreTokens())
-					al.add(st.nextToken().trim());
-			}
-		}
-
-		return false;
+	    Profile profile = htProfiles.get(profileName);
+	    return profile.getAllAccess(this).contains(service);
 	}
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        htProfiles = applicationContext.getBeansOfType(Profile.class);
+    }
 }
 
 //=============================================================================

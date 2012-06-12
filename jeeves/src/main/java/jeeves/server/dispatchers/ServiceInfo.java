@@ -23,6 +23,7 @@
 
 package jeeves.server.dispatchers;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,6 +33,7 @@ import jeeves.server.context.ServiceContext;
 import jeeves.utils.Xml;
 
 import org.jdom.Element;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 
 //=============================================================================
@@ -46,9 +48,9 @@ public class ServiceInfo
 	private boolean cache = false;
 	private String name;
 
-	private List<ServiceConfigBean> vServices;
-	private List<OutputPage> vOutputs;
-	private List<ErrorPage> vErrors;
+	private List<ServiceConfigBean> vServices = Collections.emptyList();
+	private List<OutputPage> vOutputs = Collections.emptyList();
+	private List<ErrorPage> vErrors = Collections.emptyList();
     private EnvironmentalConfig envConfig;
 
 	//--------------------------------------------------------------------------
@@ -56,6 +58,10 @@ public class ServiceInfo
 	//--- API methods
 	//---
 	//--------------------------------------------------------------------------
+    @Autowired
+    public void setEnvConfig(EnvironmentalConfig envConfig) {
+        this.envConfig = envConfig;
+    }
     public String getName() {
         return name;
     }
@@ -63,15 +69,12 @@ public class ServiceInfo
     public void setName(String name) {
         this.name = name;
     }
-    @Required
-    public void setServiceConfig(List<ServiceConfigBean> configs) {
+    public void setServiceClass(List<ServiceConfigBean> configs) {
         this.vServices = configs;
     }
-    @Required
     public void setOutput(List<OutputPage> pages) {
         this.vOutputs = pages;
     }
-    @Required
     public void setError(List<ErrorPage> pages) {
         this.vErrors = pages;
     }

@@ -1,10 +1,12 @@
 package jeeves.server.dispatchers;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 
 import org.jdom.Element;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 
 import jeeves.config.EnvironmentalConfig;
@@ -19,18 +21,17 @@ import jeeves.server.context.ServiceContext;
  */
 public class ServiceConfigBean {
     private String name;
-    private List<Param> params;
+    private List<Param> param = Collections.emptyList();
     private EnvironmentalConfig envConfig;
     private Service service;
     @Required
     public void setName(String name) {
         this.name = name;
     }
-    @Required
-    public void setParams(List<Param> params) {
-        this.params = params;
+    public void setParam(List<Param> param) {
+        this.param = param;
     }
-    @Required
+    @Autowired
     public void setEnvConfig(EnvironmentalConfig envConfig) {
         this.envConfig = envConfig;
     }

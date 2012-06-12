@@ -29,6 +29,10 @@
 		class="jeeves.server.dispatchers.ServiceManager">
 	</bean>
 	
+	<bean id="profileManager"
+		class="jeeves.server.ProfileManager">
+	</bean>
+	
 	
 	<!-- more bean definitions for services go here -->
 </beans>

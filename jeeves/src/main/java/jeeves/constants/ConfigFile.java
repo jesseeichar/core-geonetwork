@@ -345,7 +345,7 @@ public class ConfigFile
 			 */
 			private Child() {}
 			
-		   public static final String CLASS  = "class";
+		   public static final String SERVICECLASS  = "serviceClass";
 			public static final String OUTPUT = "output";
 			public static final String ERROR  = "error";
 		}

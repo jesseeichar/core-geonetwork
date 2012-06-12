@@ -1,8 +1,5 @@
 package jeeves.config.springutil;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 import jeeves.constants.ConfigFile;
 import jeeves.server.dispatchers.ErrorPage;
@@ -13,8 +10,10 @@ import jeeves.server.dispatchers.ServiceInfo;
 import jeeves.server.dispatchers.guiservices.Call;
 import jeeves.server.dispatchers.guiservices.XmlFile;
 
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -32,39 +31,44 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         } else {
             builder.addPropertyValue(ConfigFile.Service.Attr.NAME, element.getAttribute("id"));
         }
-        addPropertyValue(builder, element, ConfigFile.Service.Attr.NAME);
         addPropertyValue(builder, element, ConfigFile.Service.Attr.MATCH);
         addPropertyValue(builder, element, ConfigFile.Service.Attr.SHEET);
         addPropertyValue(builder, element, ConfigFile.Service.Attr.CACHE);
 
-        List<BeanDefinition> classes = new LinkedList<BeanDefinition>();
-        NodeList children = element.getElementsByTagName(ConfigFile.Service.Child.CLASS);
+        ManagedList<BeanDefinition> classes = new ManagedList<BeanDefinition>();
+        NodeList children = element.getElementsByTagName(ConfigFile.Service.Child.SERVICECLASS);
         for(int i = 0; i < children.getLength(); i++) { 
             classes.add(parseServiceClass((Element) children.item(i)));
         }
-        builder.addPropertyValue("serviceConfig", classes);
+        if (!classes.isEmpty()) {
+            builder.addPropertyValue(ConfigFile.Service.Child.SERVICECLASS, classes);
+        }
         
-        List<BeanDefinition> outputs = new LinkedList<BeanDefinition>();
+        ManagedList<BeanDefinition> outputs = new ManagedList<BeanDefinition>();
         children = element.getElementsByTagName(ConfigFile.Service.Child.OUTPUT);
         for(int i = 0; i < children.getLength(); i++) { 
             outputs.add(parseServiceOutput((Element) children.item(i)));
         }
-        builder.addPropertyValue(ConfigFile.Service.Child.OUTPUT, outputs);
+        if (!outputs.isEmpty()) {
+            builder.addPropertyValue(ConfigFile.Service.Child.OUTPUT, outputs);
+        }
 
-        List<BeanDefinition> errors = new LinkedList<BeanDefinition>();
+        ManagedList<BeanDefinition> errors = new ManagedList<BeanDefinition>();
         children = element.getElementsByTagName(ConfigFile.Service.Child.ERROR);
         for(int i = 0; i < children.getLength(); i++) { 
             errors.add(parseServiceError(element));
         }
-        builder.addPropertyValue(ConfigFile.Service.Child.ERROR, outputs);
+        if (!errors.isEmpty()) {
+            builder.addPropertyValue(ConfigFile.Service.Child.ERROR, errors);
+        }
     }
 
     private BeanDefinition parseServiceClass(Element element) {
         BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ServiceConfigBean.class);
-        addPropertyValue(builder, element, ConfigFile.Class.Attr.NAME);
+        addPropertyValue(builder, element, ConfigFile.Class.Attr.NAME, true);
         
         NodeList paramsList = element.getElementsByTagName(ConfigFile.Class.Child.PARAM);
-        List<BeanDefinition> params = new ArrayList<BeanDefinition>();
+        ManagedList<BeanDefinition> params = new ManagedList<BeanDefinition>();
         for(int i = 0; i < paramsList.getLength(); i++) {
             BeanDefinitionBuilder paramBuilder = BeanDefinitionBuilder.rootBeanDefinition(Param.class);
             Element paramDef = (Element) paramsList.item(i);
@@ -86,7 +90,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         addPropertyValue(builder, element, ConfigFile.Output.Attr.TEST);
         
         NodeList paramsList = element.getElementsByTagName(ConfigFile.Class.Child.PARAM);
-        List<BeanDefinition> params = new ArrayList<BeanDefinition>();
+        ManagedList<BeanDefinition> params = new ManagedList<BeanDefinition>();
         for(int i = 0; i < paramsList.getLength(); i++) {
             Element paramDef = (Element) paramsList.item(i);
             
@@ -98,12 +102,13 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
 
     private BeanDefinition parseServiceError(Element element) {
         BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ErrorPage.class);
+        
         addPropertyValue(builder, element, ConfigFile.Error.Attr.SHEET);
         addPropertyValue(builder, element, ConfigFile.Error.Attr.STATUS_CODE);
         addPropertyValue(builder, element, ConfigFile.Error.Attr.CONTENT_TYPE);
         
         NodeList paramsList = element.getElementsByTagName(ConfigFile.Class.Child.PARAM);
-        List<BeanDefinition> params = new ArrayList<BeanDefinition>();
+        ManagedList<BeanDefinition> params = new ManagedList<BeanDefinition>();
         for(int i = 0; i < paramsList.getLength(); i++) {
             Element paramDef = (Element) paramsList.item(i);
             
@@ -115,9 +120,14 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
     }
     
     private void addPropertyValue(BeanDefinitionBuilder builder, Element element, String name) {
+        addPropertyValue(builder, element, name, false);
+    }
+    private void addPropertyValue(BeanDefinitionBuilder builder, Element element, String name, boolean required) {
         if (element.hasAttribute(name)) {
             String value = element.getAttribute(name);
             builder.addPropertyValue(name, value);
+        } else if (required) {
+            throw new BeanInitializationException("Property "+name+" of "+element.getLocalName()+" is a required element");
         }
 
     }
