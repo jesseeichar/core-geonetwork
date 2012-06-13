@@ -31,7 +31,6 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
@@ -45,17 +44,17 @@ import jeeves.constants.Jeeves;
 import jeeves.interfaces.ApplicationHandler;
 import jeeves.interfaces.Logger;
 import jeeves.resources.dbms.Dbms;
-import jeeves.server.ConfigurationOverrides;
 import jeeves.server.UserSession;
 import jeeves.server.context.ServiceContext;
 import jeeves.server.dispatchers.ServiceManager;
 import jeeves.utils.Log;
 import jeeves.utils.ProxyInfo;
 import jeeves.utils.Util;
-import jeeves.utils.Xml;
 import jeeves.utils.XmlResolver;
 import jeeves.xlink.Processor;
 
+import org.fao.geonet.DatabaseSetupAndMigrationConfig.DbConfigFile;
+import org.fao.geonet.DatabaseSetupAndMigrationConfig.Version;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.csw.common.Csw;
 import org.fao.geonet.kernel.AccessManager;
@@ -95,7 +94,6 @@ import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.jdom.Element;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,7 +126,6 @@ public class Geonetwork implements ApplicationHandler {
     // -- NOT injected by spring
     //----------------------------------------------
 	private String   FS         = File.separator;
-	private Element dbConfiguration;
 	
     GeonetContext geonetworkContext = new GeonetContext();
     //----------------------------------------------
@@ -139,14 +136,16 @@ public class Geonetwork implements ApplicationHandler {
     private EnvironmentalConfig envConfig;
     private GeonetworkConfig config;
     private ServiceManager serviceMan;
+    private DatabaseSetupAndMigrationConfig dbConfiguration;
     //----------------------------------------------
 
 	@Autowired
 	public Geonetwork(EnvironmentalConfig envConfig, GeonetworkConfig config, 
-	        ServiceManager serviceMan) {
+	        ServiceManager serviceMan, DatabaseSetupAndMigrationConfig dbConfiguration) {
         this.config = config;
         this.envConfig = envConfig;
         this.serviceMan = serviceMan;
+        this.dbConfiguration = dbConfiguration;
     }
 	
 	//---------------------------------------------------------------------------
@@ -199,13 +198,6 @@ public class Geonetwork implements ApplicationHandler {
 		// force caches to be config'd so shutdown hook works correctly
 		JeevesJCS jcsDummy = JeevesJCS.getInstance(Processor.XLINK_JCS);
 		jcsDummy = JeevesJCS.getInstance(XmlResolver.XMLRESOLVER_JCS);
-
-		
-
-		// --- Check current database and create database if an emty one is found
-		String dbConfigurationFilePath = path + "/WEB-INF/config-db.xml";
-		dbConfiguration = Xml.loadFile(dbConfigurationFilePath);
-        ConfigurationOverrides.updateWithOverrides(dbConfigurationFilePath, servletContext, path, dbConfiguration);
 
 		Pair<Dbms,Boolean> pair = initDatabase(context);
 		Dbms dbms = pair.one();
@@ -510,38 +502,22 @@ public class Geonetwork implements ApplicationHandler {
 			logger.debug("      Migrating from " + from + " to " + to + " (dbtype:" + dbType + ")...");
 			
 		    logger.info("      Loading SQL migration step configuration from config-db.xml ...");
-            @SuppressWarnings(value = "unchecked")
-	        List<Element> versions = dbConfiguration.getChild("migrate").getChildren();
-            for(Element version : versions) {
-                int versionNumber = Integer.valueOf(version.getAttributeValue("id"));
+            for(Version version : dbConfiguration.migrate) {
+                int versionNumber = version.version;
                 if (versionNumber > from && versionNumber <= to) {
                     logger.info("       - running tasks for " + versionNumber + "...");
-                    @SuppressWarnings(value = "unchecked")
-                    List<Element> versionConfiguration = version.getChildren();
-                    for(Element file : versionConfiguration) {
-                    	if(file.getName().equals("java")) {
-	                        try {
-	                        	settingMan.refresh(dbms);
-	                            DatabaseMigrationTask task = (DatabaseMigrationTask) Class.forName(file.getAttributeValue("class")).newInstance();
-	                            task.update(settingMan, dbms);
-	                        } catch (Exception e) {
-	                            logger.info("          Errors occurs during SQL migration file: " + e.getMessage());
-	                            e.printStackTrace();
-	                            anyMigrationError = true;
-	                        }
-                    	} else {
-	                        String filePath = path + file.getAttributeValue("path");
-	                        String filePrefix = file.getAttributeValue("filePrefix");
-	                        anyMigrationAction = true;
-	                        logger.info("         - SQL migration file:" + filePath + " prefix:" + filePrefix + " ...");
-	                        try {
-	                            Lib.db.insertData(servletContext, dbms, path, filePath, filePrefix);
-	                        } catch (Exception e) {
-	                            logger.info("          Errors occurs during SQL migration file: " + e.getMessage());
-	                            e.printStackTrace();
-	                            anyMigrationError = true;
-	                        }
-                    	}
+                    for(DbConfigFile file : version.file) {
+                        String filePath = path + file.path;
+                        String filePrefix = file.filePrefix;
+                        anyMigrationAction = true;
+                        logger.info("         - SQL migration file:" + filePath + " prefix:" + filePrefix + " ...");
+                        try {
+                            Lib.db.insertData(servletContext, dbms, path, filePath, filePrefix);
+                        } catch (Exception e) {
+                            logger.info("          Errors occurs during SQL migration file: " + e.getMessage());
+                            e.printStackTrace();
+                            anyMigrationError = true;
+                        }
                     }
                 }
             }
@@ -617,24 +593,18 @@ public class Geonetwork implements ApplicationHandler {
 		if (!Lib.db.touch(dbms)) {
 			logger.info("      " + dbURL + " is an empty database (Metadata table not found).");
 
-            @SuppressWarnings(value = "unchecked")
-			List<Element> createConfiguration = dbConfiguration.getChild("create").getChildren();
-			for(Element file : createConfiguration) {
-			    String filePath = path + file.getAttributeValue("path");
-			    String filePrefix = file.getAttributeValue("filePrefix");
-			    logger.info("         - SQL create file:" + filePath + " prefix:" + filePrefix + " ...");
+			for(DbConfigFile file : dbConfiguration.create) {
+			    String filePath = path + file.path;
+			    logger.info("         - SQL create file:" + filePath + " prefix:" + file.filePrefix + " ...");
                 // Do we need to remove object before creating the database ?
-    			Lib.db.removeObjects(servletContext, dbms, path, filePath, filePrefix);
-    			Lib.db.createSchema(servletContext, dbms, path, filePath, filePrefix);
+    			Lib.db.removeObjects(servletContext, dbms, path, filePath, file.filePrefix);
+    			Lib.db.createSchema(servletContext, dbms, path, filePath, file.filePrefix);
 			}
 			
-            @SuppressWarnings(value = "unchecked")
-	        List<Element> dataConfiguration = dbConfiguration.getChild("data").getChildren();
-	        for(Element file : dataConfiguration) {
-                String filePath = path + file.getAttributeValue("path");
-                String filePrefix = file.getAttributeValue("filePrefix");
-                logger.info("         - SQL data file:" + filePath + " prefix:" + filePrefix + " ...");
-                Lib.db.insertData(servletContext, dbms, path, filePath, filePrefix);
+	        for(DbConfigFile file : dbConfiguration.data) {
+                String filePath = path + file.path;
+                logger.info("         - SQL data file:" + filePath + " prefix:" + file.filePrefix + " ...");
+                Lib.db.insertData(servletContext, dbms, path, filePath, file.filePrefix);
 	        }
 	        dbms.commit();
             

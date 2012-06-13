@@ -32,8 +32,8 @@ public class JeevesApplicationContextLoader {
 
         String configPath = envConfig.getConfigPath();
         String[] contexts = { 
-                new File(configPath, "config-jeeves.xml").getAbsolutePath(),
-                new File(configPath, "config.xml").getAbsolutePath() 
+                new File(configPath, "config-jeeves.xml").toURI().toString(),
+                new File(configPath, "config.xml").toURI().toString() 
         };
         FileSystemXmlApplicationContext springContext = new FileSystemXmlApplicationContext(contexts, false);
 

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="databaseMigrationConfig" class="org.fao.geonet.DatabaseSetupAndMigrationConfig"
+		p:basedir="WEB-INF/classes/setup/sql/">
+		<property name="create">
+			<list>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="create" p:filePrefix="create-db-"/>
+			</list>
+		</property>
+		<property name="data">
+			<list>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="data-db-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-eng-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-fre-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-ger-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-spa-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-cat-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-rus-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-por-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-chi-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-dut-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-nor-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-fin-"/>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-ara-"/><!-- Draft to be improved-->
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="data" p:filePrefix="loc-ita-"/><!-- Draft to be improved-->
+				<!--<bean class="org.fao.geonet.DatabaseMigrationConfig$File" p:path="data" p:filePrefix="loc-vie-"/>Draft to be improved -->
+			</list>
+		</property>
+		<property name="migrate">
+			<list>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$Version" p:version="243">
+					<property name="file">
+						<list>
+							<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="migrate/243" p:filePrefix="migrate-"/>
+						</list>
+					</property>
+				</bean>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$Version" p:version="260">
+					<property name="file">
+						<list>
+							<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="migrate/260" p:filePrefix="migrate-db-"/>
+							<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="migrate/260" p:filePrefix="migrate-"/>
+						</list>
+					</property>
+				</bean>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$Version" p:version="261">
+					<property name="file">
+						<list>
+							<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="migrate/261" p:filePrefix="migrate-"/>
+						</list>
+					</property>
+				</bean>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$Version" p:version="262">
+					<property name="file">
+						<list>
+							<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="migrate/262" p:filePrefix="migrate-"/>
+						</list>
+					</property>
+				</bean>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$Version" p:version="263">
+					<property name="file">
+						<list>
+							<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="migrate/263" p:filePrefix="migrate-"/>
+						</list>
+					</property>
+				</bean>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$Version" p:version="264">
+					<property name="file">
+						<list>
+							<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="migrate/264" p:filePrefix="migrate-db-"/>
+							<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="migrate/264" p:filePrefix="migrate-"/>
+						</list>
+					</property>
+				</bean>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$Version" p:version="265">
+					<property name="file">
+						<list>
+							<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="migrate/265" p:filePrefix="migrate-"/>
+						</list>
+					</property>
+				</bean>
+				<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$Version" p:version="270">
+					<property name="file">
+						<list>
+							<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="migrate/270" p:filePrefix="migrate-db-"/>
+							<bean class="org.fao.geonet.DatabaseSetupAndMigrationConfig$DbConfigFile" p:path="migrate/270" p:filePrefix="migrate-"/>
+						</list>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+</beans>

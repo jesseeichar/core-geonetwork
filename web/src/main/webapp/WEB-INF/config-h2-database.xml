@@ -8,5 +8,18 @@
 		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/context
         http://www.springframework.org/schema/context/spring-context-3.0.xsd"> 
-	<bean id="summaryConfig" class="org.fao.geonet.kernel.search.SummaryConfig"></bean>
+ 
+
+	<bean id="main-db" class="jeeves.resources.dbms.ApacheDBCPool">
+		<constructor-arg>
+			<map>
+				<entry key="user" value="admin"/>
+				<entry key="password" value="gnos"/>
+				<entry key="driver" value="org.h2.Driver"/>
+				<entry key="url" value="jdbc:h2:geonetwork;LOCK_TIMEOUT=20000"/>
+				<entry key="poolSize" value="33"/>
+				<entry key="validationQuery" value="SELECT 1"/>
+			</map>
+		</constructor-arg>
+	</bean>
 </beans>

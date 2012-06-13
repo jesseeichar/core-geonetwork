@@ -34,8 +34,10 @@ public class LuceneConfig extends ReloadableBean {
     }
     
     @Required
+    @Autowired
     public void setIndex(Index index) { this.index = index; }
     @Required
+    @Autowired
     public void setSearch(Search search) { this.search = search; }
     
     public Analyzer getDefaultAnalyzer() { return defaultAnalyzer; }
@@ -56,7 +58,7 @@ public class LuceneConfig extends ReloadableBean {
     public Set<String> getTokenizedFields() { return tokenizedFields; }
     public void setTokenized(Set<String> tokenized) { this.tokenizedFields = tokenized; }
     
-    public int getRamBufferSizeMB() { return index.ramBufferSizeMB; }
+    public float getRamBufferSizeMB() { return index.ramBufferSizeMB; }
     public int getMergeFactor() { return index.mergeFactor; }
     public int getLuceneVersion() { return index.luceneVersion; }
     public boolean isTrackDocScores() { return search.trackDocScores; }
@@ -86,21 +88,21 @@ public class LuceneConfig extends ReloadableBean {
         sb.append(" * Version: " + getLuceneVersion() + "\n");
         sb.append(" * RAMBufferSize: " + getRamBufferSizeMB() + "\n");
         sb.append(" * MergeFactor: " + getMergeFactor() + "\n");
-        sb.append(" * Default analyzer: " + getDefaultAnalyzer().getClass() + "\n");
+        sb.append(" * Default analyzer: " + classString(getDefaultAnalyzer()) + "\n");
         sb.append(" * Field analyzers: "
-                + getFieldSpecificAnalyzer().toString() + "\n");
+                + getFieldSpecificAnalyzer() + "\n");
         sb.append(" * Field search analyzers: "
-                + getFieldSpecificSearchAnalyzer().toString() + "\n");
+                + getFieldSpecificSearchAnalyzer() + "\n");
         sb.append(" * Field boost factor: "
                 + getFieldBoosting().toString() + "\n");
-        sb.append(" * Boost document class: " + getDocumentBoosting().getClass() + "\n");
-        sb.append(" * Tokenized fields: " + getTokenizedFields().toString()
+        sb.append(" * Boost document class: " + classString(getDocumentBoosting()) + "\n");
+        sb.append(" * Tokenized fields: " + getTokenizedFields()
                 + "\n");
         sb.append(" * Numeric fields: "
                 + getNumericFields().keySet().toString() + "\n");
-        sb.append(" * Dump fields: " + getDumpFields().toString()
+        sb.append(" * Dump fields: " + getDumpFields()
                 + "\n");
-        sb.append(" * Search boost query: " + getQueryBoost().getClass() + "\n");
+        sb.append(" * Search boost query: " + classString(getQueryBoost()) + "\n");
         sb.append(" * Score: \n");
         sb.append("  * trackDocScores: " + isTrackDocScores() + " \n");
         sb.append("  * trackMaxScore: " + isTrackMaxScore() + " \n");
@@ -108,12 +110,16 @@ public class LuceneConfig extends ReloadableBean {
         return sb.toString();
     }
 
+    private String classString(Object obj) {
+        return obj == null ? "none" : obj.getClass().getName();
+    }
+
     public static class Index {
-        private int ramBufferSizeMB;
+        private float ramBufferSizeMB;
         private int mergeFactor;
         private int luceneVersion;
         @Required
-        public void setRamBufferSizeMB(int ramBufferSizeMB) { this.ramBufferSizeMB = ramBufferSizeMB; }
+        public void setRamBufferSizeMB(float ramBufferSizeMB) { this.ramBufferSizeMB = ramBufferSizeMB; }
         @Required
         public void setMergeFactor(int mergeFactor) { this.mergeFactor = mergeFactor; }
         @Required
@@ -125,10 +131,13 @@ public class LuceneConfig extends ReloadableBean {
         private boolean trackMaxScore;
         private boolean docsScoredInOrder;
         private QueryBoostFactory queryBoost;
-        private Map<String,String> dumpFields;
+        private Map<String,String> dumpFields = Collections.emptyMap();
         
+        @Required
         public void setTrackDocScores(boolean trackDocScores) { this.trackDocScores = trackDocScores; }
+        @Required
         public void setTrackMaxScore(boolean trackMaxScore) { this.trackMaxScore = trackMaxScore; }
+        @Required
         public void setDocsScoredInOrder(boolean docsScoredInOrder) { this.docsScoredInOrder = docsScoredInOrder; }
         public void setQueryBoost(QueryBoostFactory queryBoost) { this.queryBoost = queryBoost; }
         public void setDumpFields(Map<String, String> dumpFields) { this.dumpFields = dumpFields; }

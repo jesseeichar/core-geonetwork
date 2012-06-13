@@ -1,0 +1,344 @@
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Subject" p:field="keyword"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="*/gmd:MD_Keywords/gmd:keyword/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Title" p:field="title"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Abstract" p:field="abstract"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification/gmd:abstract/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="AnyText" p:field="any"  p:type="SupportedISOQueryables" >
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Format" p:field="format"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:name/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Identifier" p:field="_uuid"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:fileIdentifier/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Modified" p:field="changeDate"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:dateStamp/gco:DateTime" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Type" p:field="type"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:hierarchyLevel/gmd:MD_ScopeCode/@codeListValue" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="RevisionDate" p:field="revisionDate"  p:type="SupportedISOQueryables" p:range="true">
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date[gmd:dateType/gmd:CI_DateTypeCode/@codeListValue='revision']/gmd:date/gco:Date|gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date[gmd:dateType/gmd:CI_DateTypeCode/@codeListValue='revision']/gmd:date/gco:Date" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="AlternateTitle" p:field="altTitle"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification/gmd:alternateTitle/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="CreationDate" p:field="createDate"  p:type="SupportedISOQueryables" p:range="true">
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date[gmd:dateType/gmd:CI_DateTypeCode/@codeListValue='creation']/gmd:date/gco:Date|gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date[gmd:dateType/gmd:CI_DateTypeCode/@codeListValue='creation']/gmd:date/gco:Date" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="PublicationDate" p:field="publicationDate"  p:type="SupportedISOQueryables" p:range="true">
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date[gmd:dateType/gmd:CI_DateTypeCode/@codeListValue='publication']/gmd:date/gco:Date|gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date[gmd:dateType/gmd:CI_DateTypeCode/@codeListValue='publication']/gmd:date/gco:Date" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="OrganisationName" p:field="orgName"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="HasSecurityConstraints" p:field="secConstr"  p:type="SupportedISOQueryables" >
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Language" p:field="language"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:language/gco:CharacterString|gmd:language/gmd:LanguageCode/@codeListValue" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="ResourceIdentifier" p:field="identifier"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:identifier/gmd:MD_Identifier/gmd:code/gco:CharacterString|gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:identifier/gmd:MD_Identifier/gmd:code/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="ParentIdentifier" p:field="parentUuid"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:parentIdentifier/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="KeywordType" p:field="keywordType"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="*/gmd:MD_Keywords/gmd:type/gmd:MD_KeywordTypeCode/@codeListValue" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="GeographicDescriptionCode" p:field="geoDescCode"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="*/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicDescription/gmd:geographicIdentifier/gmd:MD_Identifier/gmd:code/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="TopicCategory" p:field="topicCat"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo//gmd:MD_DataIdentification/gmd:topicCategory/gmd:MD_TopicCategoryCode|gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:topicCategory/gmd:MD_TopicCategoryCode" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="ResourceLanguage" p:field="datasetLang"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo//gmd:MD_DataIdentification/gmd:language/gco:CharacterString|gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:language/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Denominator" p:field="denominator"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:spatialResolution/gmd:MD_Resolution/gmd:equivalentScale/gmd:MD_RepresentativeFraction/gmd:denominator/gco:Integer" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="DistanceValue" p:field="distanceVal"  p:type="SupportedISOQueryables" p:range="true">
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:spatialResolution/gmd:MD_Resolution/gmd:distance/gco:Distance" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="DistanceUOM" p:field="distanceUom"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:spatialResolution/gmd:MD_Resolution/gmd:distance/gco:Distance/@uom" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="TempExtent_begin" p:field="tempExtentBegin"  p:type="SupportedISOQueryables" p:range="true">
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification|gmd:identificationInfo/*/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition|gmd:identificationInfo/gmd:MD_DataIdentification|gmd:identificationInfo/*/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:beginPosition/gml:begin/gml:TimeInstant/gml:timePosition" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="TempExtent_end" p:field="tempExtentEnd"  p:type="SupportedISOQueryables" p:range="true">
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification|gmd:identificationInfo/*/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition|gmd:identificationInfo/gmd:MD_DataIdentification|gmd:identificationInfo/*/gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TimePeriod/gml:endPosition/gml:end/gml:TimeInstant/gml:timePosition" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="ServiceType" p:field="serviceType"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/srv:SV_ServiceIdentification/srv:serviceType/gco:LocalName" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="ServiceTypeVersion" p:field="serviceTypeVersion"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/srv:SV_ServiceIdentification]/srv:serviceTypeVersion/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Operation" p:field="operation"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="//srv:SV_OperationMetadata/srv:operationName/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="OperatesOn" p:field="operatesOn"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="srv:operatesOn/@uuidref" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="OperatesOnIdentifier" p:field="operatesOnIdentifier"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="srv:coupledResource/srv:coupledResource" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="OperatesOnName" p:field="operatesOnName"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="srv:coupledResource/srv:SV_CoupledResource/srv:operationName/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="CouplingType" p:field="couplingType"  p:type="SupportedISOQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="//srv:SV_CouplingType/srv:code/@codeListValue" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Degree" p:field="degree"  p:type="AdditionalQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:dataQualityInfo/*/gmd:report/*/gmd:result//gmd:pass/gco:Boolean" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="SpecificationTitle" p:field="specificationTitle"  p:type="AdditionalQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:dataQualityInfo/*/gmd:report/*/gmd:result//gmd:specification/*/gmd:title/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="SpecificationDate" p:field="specificationDate"  p:type="AdditionalQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:dataQualityInfo/*/gmd:report/*/gmd:result//gmd:specification/*/gmd:date/*/gmd:date/gco:DateTime" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="SpecificationDateType" p:field="specificationDateType"  p:type="AdditionalQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:dataQualityInfo/*/gmd:report/*/gmd:result//gmd:specification/*/gmd:date/*/gmd:dateType/gmd:CI_DateTypeCode/@codeListValue" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="AccessConstraints" p:field="accessConstr"  p:type="AdditionalQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints//gmd:accessConstraints/gmd:MD_RestrictionCode/@codeListValueClassification|gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:resourceConstraints//gmd:accessConstraints/gmd:MD_RestrictionCode/@codeListValueClassification" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="OtherConstraints" p:field="otherConstr"  p:type="AdditionalQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="[gmd:identificationInfo//gmd:MD_DataIdentification/gmd:resourceConstraints//gmd:otherConstraints/gco:CharacterString|gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:resourceConstraints//gmd:otherConstraints/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Classification" p:field="classif"  p:type="AdditionalQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:identificationInfo/gmd:MD_DataIdentification/gmd:resourceConstraints/gmd:classification/gmd:MD_ClassificationCode/@codeListValue|gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:resourceConstraints/gmd:classification/gmd:MD_ClassificationCode/@codeListValue" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="ConditionApplyingToAccessAndUse" p:field="conditionApplyingToAccessAndUse"  p:type="AdditionalQueryables" >
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="MetadataPointOfContact" p:field="metadataPOC"  p:type="AdditionalQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:contact/*/gmd:organisationName/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Lineage" p:field="lineage"  p:type="AdditionalQueryables" >
+  <property name="xpaths">
+    <list>
+      <bean p:schema="iso19139"  p:path="gmd:dataQualityInfo/*/gmd:lineage/*/gmd:statement/gco:CharacterString" class="org.fao.geonet.kernel.csw.CatalogConfig$XPath"/>
+		</list>
+  </property>
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="ResponsiblePartyRole" p:field="responsiblePartyRole"  p:type="AdditionalQueryables" >
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="OnlineResourceType" p:field="protocol"  p:type="AdditionalQueryables" >
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="OnlineResourceMimeType" p:field="mimetype"  p:type="AdditionalQueryables" >
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Date" p:field="createDate"  p:type="AdditionalQueryables" >
+</bean>
+<bean class="org.fao.geonet.kernel.csw.CatalogConfig$GetRecordParameter"
+			p:name="Relation" p:field="relation"  p:type="AdditionalQueryables" >
+</bean>

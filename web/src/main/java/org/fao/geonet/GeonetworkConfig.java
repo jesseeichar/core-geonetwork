@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.Lifecycle;
 
 public class GeonetworkConfig implements Lifecycle {
+    // ------------------------------------------------------------------------------
+    // -- Injected by spring
+    // ------------------------------------------------------------------------------
     private String languageProfilesDir;
     private String licenseDir;
     private String preferredSchema;
@@ -19,10 +22,13 @@ public class GeonetworkConfig implements Lifecycle {
     private int maxWritesInTransaction = SpatialIndexWriter.MAX_WRITES_IN_TRANSACTION;
     private boolean useSubversion;
     private String statusActionsClassName;
+    
     private EnvironmentalConfig envConfig;
     private GeonetworkDataDirectory dataDirectories;
     private LuceneConfig luceneConfig;
     private SummaryConfig summaryConfig;
+    // ------------------------------------------------------------------------------
+    
     private boolean started;
     
     @Autowired

@@ -32,8 +32,6 @@
 			</list>
 		</property>
 	</bean>
-	<bean id="geonetworkAppHandler" class="org.fao.geonet.Geonetwork">
-	</bean>
 	<j:service id="test.service" >
 		<serviceClass name="jeeves.server.TestService">
 			<param name="result" value="OK"/>
