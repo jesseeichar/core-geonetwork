@@ -105,7 +105,7 @@ import java.util.TreeSet;
 public class LuceneSearcher extends MetaSearcher {
 	private static SearchManager _sm;
 	private String        _styleSheetName;
-	private Element       _summaryConfig;
+	private SummaryConfig       _summaryConfig;
 
 	private Query         _query;
 	private Filter        _filter;
@@ -135,13 +135,13 @@ public class LuceneSearcher extends MetaSearcher {
      *
      * @param sm
      * @param styleSheetName
-     * @param summaryConfig
+     * @param _summaryConfig2
      * @param luceneConfig
      */
-	public LuceneSearcher (SearchManager sm, String styleSheetName, Element summaryConfig, LuceneConfig luceneConfig) {
+	public LuceneSearcher (SearchManager sm, String styleSheetName, SummaryConfig _summaryConfig2, LuceneConfig luceneConfig) {
 		_sm             = sm;
 		_styleSheetName = styleSheetName;
-		_summaryConfig  = summaryConfig;
+		_summaryConfig  = _summaryConfig2;
 		_selector = new FieldSelector() {
 			public final FieldSelectorResult accept(String name) {
 				if (name.equals("_id")) return FieldSelectorResult.LOAD;
@@ -988,187 +988,6 @@ public class LuceneSearcher extends MetaSearcher {
             return query;
         }
 
-    /**
-     * TODO javadoc.
-     *
-     * @param summaryConfig
-     * @param resultType
-     * @param maxSummaryKeys
-     * @return
-     * @throws Exception
-     */
-	private static Map<String,Map<String,Object>> getSummaryConfig(Element summaryConfig, String resultType, int maxSummaryKeys) throws Exception {
-
-		Map<String, Map<String,Object>> results = new HashMap<String, Map<String, Object>>();
-
-		Element resultTypeConfig = summaryConfig.getChild("def").getChild(resultType);
-        @SuppressWarnings(value = "unchecked")
-		List<Element> elements = resultTypeConfig.getChildren();
-
-		for (Element summaryElement : elements) {
-			String name = summaryElement.getAttributeValue("name");
-			String plural = summaryElement.getAttributeValue("plural");
-			String key = summaryElement.getAttributeValue("indexKey");
-			String order = summaryElement.getAttributeValue("order");
-			String maxString = summaryElement.getAttributeValue("max");
-			String type = summaryElement.getAttributeValue("type");
-			if (order == null) {
-				order = "frequency";
-			}
-			int max;
-			if (maxString == null) {
-				max = 10;
-			} else {
-				max = Integer.parseInt(maxString);
-			}
-			max = Math.min(maxSummaryKeys, max);
-			if( type==null ){
-				type = "string";
-			}
-
-			Map<String,Object> values = new HashMap<String,Object>();
-			values.put("name", name);
-			values.put("plural", plural);
-			values.put("max", max);
-			values.put("order", order);
-			values.put("type", type);
-			values.put("typeConfig", summaryConfig.getChild("typeConfig"));
-			results.put(key,values);
-		}
-
-		return results;
-	}
-
-    /**
-     * TODO javadoc.
-     *
-     * @param langCode
-     * @param summaryConfigValuesForKey
-     * @return
-     * @throws Exception
-     */
-	private static SummaryComparator getSummaryComparator(String langCode, Map<String, Object> summaryConfigValuesForKey) throws Exception {
-			SortOption sortOption = SortOption.parse((String)summaryConfigValuesForKey.get("order"));
-			return new SummaryComparator(sortOption, Type.parse((String)summaryConfigValuesForKey.get("type")), langCode,
-                    (Element)summaryConfigValuesForKey.get("typeConfig"));
-	}
-
-    /**
-     * TODO javadoc.
-     *
-     * @param indexKeys
-     * @return
-     * @throws Exception
-     */
-	private static Map<String,Map<String,Integer>> prepareSummaryMaps(Set<String> indexKeys) throws Exception {
-		Map<String,Map<String,Integer>> summaryMaps = new HashMap<String, Map<String, Integer>>();
-		for (String key : indexKeys) {
-			summaryMaps.put(key, new HashMap<String, Integer>());
-		}
-		return summaryMaps;
-	}
-
-    /**
-     * TODO javadoc.
-     *
-     * @param elSummary
-     * @param reader
-     * @param sdocs
-     * @param summaryMaps
-     * @return
-     */
-	private static Map<String,Map<String,Integer>> buildSummaryMaps(Element elSummary, IndexReader reader,
-                                                                    ScoreDoc[] sdocs,
-                                                                    final Map<String,Map<String,Integer>> summaryMaps) {
-		elSummary.setAttribute("hitsusedforsummary", sdocs.length+"");
-
-		FieldSelector keySelector = new FieldSelector() {
-			public final FieldSelectorResult accept(String name) {
-				if (summaryMaps.get(name) != null) return FieldSelectorResult.LOAD;
-				else return FieldSelectorResult.NO_LOAD;
-			}
-		};
-
-        for (ScoreDoc sdoc : sdocs) {
-            Document doc = null;
-            try {
-                doc = reader.document(sdoc.doc, keySelector);
-            }
-            catch (Exception e) {
-                Log.error(Geonet.SEARCH_ENGINE, e.getMessage() + " Caused Failure to get document " + sdoc.doc);
-                e.printStackTrace();
-            }
-
-            for (String key : summaryMaps.keySet()) {
-                Map<String, Integer> summary = summaryMaps.get(key);
-                String hits[] = doc.getValues(key);
-                if (hits != null) {
-                    for (String info : hits) {
-                        Integer catCount = summary.get(info);
-                        if (catCount == null) {
-                            catCount = 1;
-                        }
-                        else {
-                            catCount = catCount + 1;
-                        }
-                        summary.put(info, catCount);
-                    }
-                }
-            }
-        }
-
-		return summaryMaps;
-	}
-
-    /**
-     * TODO javadoc.
-     *
-     * @param elSummary
-     * @param langCode
-     * @param summaryMaps
-     * @param summaryConfigValues
-     * @return
-     * @throws Exception
-     */
-	private static Element addSortedSummaryKeys(Element elSummary, String langCode, Map<String,Map<String,Integer>> summaryMaps, Map<String,Map<String,Object>> summaryConfigValues) throws Exception {
-	
-		for ( String indexKey : summaryMaps.keySet() ) {
-			Map <String,Object> summaryConfigValuesForKey = summaryConfigValues.get(indexKey);
-            Element rootElem = new Element((String)summaryConfigValuesForKey.get("plural"));
-            // sort according to frequency
-			SummaryComparator summaryComparator = LuceneSearcher.getSummaryComparator(langCode, summaryConfigValuesForKey);
-			Map<String,Integer> summary = summaryMaps.get(indexKey);
-            if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
-                Log.debug(Geonet.SEARCH_ENGINE, "Sorting "+summary.size()+" according to frequency of " + indexKey);
-
-			TreeSet<Map.Entry<String, Integer>> sortedSummary = new TreeSet<Map.Entry<String, Integer>>(summaryComparator);
-			sortedSummary.addAll(summary.entrySet());
-
-			Integer max = (Integer)summaryConfigValuesForKey.get("max");
-
-			int nKeys = 0;
-            for (Object aSortedSummary : sortedSummary) {
-                if (++nKeys > max) {
-                    break;
-                }
-
-                Map.Entry me = (Map.Entry) aSortedSummary;
-                String keyword = (String) me.getKey();
-                Integer keyCount = (Integer) me.getValue();
-
-                Element childElem = new Element((String) summaryConfigValuesForKey.get("name"));
-                childElem.setAttribute("count", keyCount.toString());
-                childElem.setAttribute("name", keyword);
-                childElem.setAttribute("indexKey", indexKey);
-
-                rootElem.addContent(childElem);
-            }
-			elSummary.addContent(rootElem);
-		}
-
-		return elSummary;
-	}
-	
 	/**
 	 * Do Lucene search and optionally build a summary for the search.
 	 * 
@@ -1178,7 +997,7 @@ public class LuceneSearcher extends MetaSearcher {
 	 * @param maxSummaryKeys	the max number of keys to process in a summary
 	 * @param langCode	the language code used by SummaryComparator
 	 * @param resultType	the resultType is used to define the type of summary to build according to summary configuration in config-summary.xml.
-	 * @param summaryConfig	the summary configuration
+	 * @param _summaryConfig2	the summary configuration
 	 * @param reader  reader
 	 * @param query   query
 	 * @param cFilter filter
@@ -1195,7 +1014,7 @@ public class LuceneSearcher extends MetaSearcher {
 	 */
 	public static Pair<TopDocs, Element> doSearchAndMakeSummary(int numHits, int startHit, int endHit,
                                                                 int maxSummaryKeys, String langCode, String resultType,
-                                                                Element summaryConfig,  IndexReader reader, Query query,
+                                                                SummaryConfig _summaryConfig2,  IndexReader reader, Query query,
                                                                 Filter cFilter, Sort sort, boolean buildSummary,
                                                                 boolean trackDocScores, boolean trackMaxScore,
                                                                 boolean docsScoredInOrder) throws Exception {
@@ -1226,18 +1045,11 @@ public class LuceneSearcher extends MetaSearcher {
             if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
                 Log.debug(Geonet.SEARCH_ENGINE, "Building summary");
 
-			// -- prepare
-			Map<String, Map<String,Object>> summaryConfigValues = LuceneSearcher.getSummaryConfig(summaryConfig, resultType, maxSummaryKeys);
-            if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
-                Log.debug(Geonet.SEARCH_ENGINE, "ResultType is "+resultType+", SummaryKeys are "+summaryConfigValues);
-			Map<String, Map<String,Integer>> summaryMaps = LuceneSearcher.prepareSummaryMaps(summaryConfigValues.keySet());
-
 			// -- get all hits from search to build the summary
 			tdocs = tfc.topDocs(0, numHits);
 
 			// -- add summary keys to summary element
-			summaryMaps = LuceneSearcher.buildSummaryMaps(elSummary, reader, tdocs.scoreDocs, summaryMaps);
-			elSummary = LuceneSearcher.addSortedSummaryKeys(elSummary, langCode, summaryMaps, summaryConfigValues);
+			elSummary = _summaryConfig2.buildSummaryMaps(elSummary, resultType, langCode, reader, tdocs.scoreDocs);
 		} else {
 			tdocs = tfc.topDocs(startHit, endHit);
 		}

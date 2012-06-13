@@ -30,6 +30,8 @@ import jeeves.utils.Log;
 import jeeves.utils.SOAPUtil;
 import jeeves.utils.Util;
 import jeeves.utils.Xml;
+
+import org.fao.geonet.GeonetworkConfig;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.csw.common.exceptions.CatalogException;
 import org.fao.geonet.csw.common.exceptions.MissingParameterValueEx;
@@ -62,15 +64,15 @@ public class CatalogDispatcher
 	//---
 	//---------------------------------------------------------------------------
 
-	public CatalogDispatcher(File summaryConfig, LuceneConfig luceneConfig)
+	public CatalogDispatcher(GeonetworkConfig config)
 	{
 		register(new DescribeRecord());
 		register(new GetCapabilities());
 		register(new GetDomain());
-		register(new GetRecordById(summaryConfig, luceneConfig));
-		register(new GetRecords(summaryConfig, luceneConfig));
+		register(new GetRecordById(config));
+		register(new GetRecords(config));
 		register(new Harvest());
-		register(new Transaction(summaryConfig, luceneConfig));
+		register(new Transaction(config));
 	}
 
 	//---------------------------------------------------------------------------

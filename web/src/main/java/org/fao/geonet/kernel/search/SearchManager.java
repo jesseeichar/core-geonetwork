@@ -70,6 +70,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.search.Filter;
 import org.fao.geonet.GeonetContext;
+import org.fao.geonet.GeonetworkConfig;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.csw.common.Csw;
 import org.fao.geonet.csw.common.exceptions.NoApplicableCodeEx;
@@ -122,7 +123,7 @@ public class SearchManager {
 
 	private final File _stylesheetsDir;
     private static File _stopwordsDir;
-	private final Element _summaryConfig;
+	private final SummaryConfig _summaryConfig;
 	private LuceneConfig _luceneConfig;
 	private File _luceneDir;
     private SettingInfo _settingInfo;
@@ -144,7 +145,7 @@ public class SearchManager {
 	private static DocumentBoosting _documentBoostClass;
 	private String _luceneTermsToExclude;
 	private boolean _logSpatialObject;
-	private SchemaManager _scm;
+	private SchemaManager _schemaMan;
 	private static PerFieldAnalyzerWrapper _defaultAnalyzer;
 	private String _htmlCacheDir;
     private Spatial _spatial;
@@ -408,25 +409,19 @@ public class SearchManager {
      * @param servletContext
      * @throws Exception
      */
-	public SearchManager(String appPath, String luceneDir, String htmlCacheDir, String thesauriDir,
-                         String summaryConfigXmlFile, LuceneConfig lc,  boolean logAsynch, boolean logSpatialObject,
-                         String luceneTermsToExclude, DataStore dataStore, int maxWritesInTransaction, SettingInfo si,
-                         SchemaManager scm, ServletContext servletContext) throws Exception {
-		_scm = scm;
-		_thesauriDir = thesauriDir;
-		_summaryConfig = Xml.loadStream(new FileInputStream(new File(appPath,summaryConfigXmlFile)));
+    public SearchManager(String path, GeonetworkConfig config, DataStore dataStore, SettingInfo settingInfo, SchemaManager schemaMan,
+            ServletContext servletContext) throws Exception {
+		_schemaMan = schemaMan;
+		_thesauriDir = config.getDataDirectories().getCodelistDir();
+		_summaryConfig = config.getSummaryConfig();
 
-		if (servletContext != null) {
-			ConfigurationOverrides.updateWithOverrides(summaryConfigXmlFile, servletContext, appPath, _summaryConfig);
-		}
+		_luceneConfig = config.getLuceneConfig();
+        _settingInfo = settingInfo;
 
-		_luceneConfig = lc;
-        _settingInfo = si;
+		_stylesheetsDir = new File(config.getEnvConfig().getAppPath(), SEARCH_STYLESHEETS_DIR_PATH);
+        _stopwordsDir = new File(config.getEnvConfig().getAppPath() + STOPWORDS_DIR_PATH);
 
-		_stylesheetsDir = new File(appPath, SEARCH_STYLESHEETS_DIR_PATH);
-        _stopwordsDir = new File(appPath + STOPWORDS_DIR_PATH);
-
-        _inspireEnabled = si.getInspireEnabled();
+        _inspireEnabled = settingInfo.getInspireEnabled();
         createAnalyzer();
         _documentBoostClass = _luceneConfig.getDocumentBoosting();
         
@@ -434,30 +429,30 @@ public class SearchManager {
             throw new Exception("directory " + _stylesheetsDir + " not found");
         }
 
-		File htmlCacheDirTest   = new File(htmlCacheDir);
+		File htmlCacheDirTest   = new File(config.getDataDirectories().getHtmlcacheDir());
 		if (!htmlCacheDirTest.isDirectory() && !htmlCacheDirTest.mkdirs()) {
-            throw new IllegalArgumentException("directory " + htmlCacheDir + " not found");
+            throw new IllegalArgumentException("directory " + htmlCacheDirTest + " not found");
         }
-		_htmlCacheDir = htmlCacheDir;
+		_htmlCacheDir = htmlCacheDirTest.getAbsolutePath();
 
 
-		_luceneDir = new File(luceneDir + NON_SPATIAL_DIR);
+		_luceneDir = new File(config.getDataDirectories().getLuceneDir() + NON_SPATIAL_DIR);
 
 		if (!_luceneDir.isAbsolute()) {
-            _luceneDir = new File(luceneDir+ NON_SPATIAL_DIR);
+            _luceneDir = new File(config.getDataDirectories().getLuceneDir() + NON_SPATIAL_DIR);
         }
 
         _luceneDir.getParentFile().mkdirs();
-        _spatial = new Spatial(dataStore, maxWritesInTransaction);
+        _spatial = new Spatial(dataStore, config.getMaxWritesInTransaction());
 
-     	 _logAsynch = logAsynch;
-		 _logSpatialObject = logSpatialObject;
-		 _luceneTermsToExclude = luceneTermsToExclude;
+     	 _logAsynch = config.isStatLogAsynch();
+		 _logSpatialObject = config.isStatLogSpatialObjects();
+		 _luceneTermsToExclude = config.getStatLuceneTermsExclude();
 
 		initLucene();
 		initZ3950();
 		
-		_luceneOptimizerManager = new LuceneOptimizerManager(this, si);
+		_luceneOptimizerManager = new LuceneOptimizerManager(this, settingInfo);
 	}
 
     /**
@@ -517,7 +512,7 @@ public class SearchManager {
 	public MetaSearcher newSearcher(int type, String stylesheetName) throws Exception {
 		switch (type) {
 			case LUCENE: return new LuceneSearcher(this, stylesheetName, _summaryConfig, _luceneConfig);
-			case Z3950: return new Z3950Searcher(this, _scm, stylesheetName);
+			case Z3950: return new Z3950Searcher(this, _schemaMan, stylesheetName);
 			case UNUSED: return new UnusedSearcher();
 			default: throw new Exception("unknown MetaSearcher type: " + type);
 		}

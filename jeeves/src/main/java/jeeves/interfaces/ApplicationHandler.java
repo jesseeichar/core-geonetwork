@@ -23,16 +23,14 @@
 
 package jeeves.interfaces;
 
-import jeeves.server.context.ServiceContext;
-import org.jdom.Element;
 
 //=============================================================================
 
 public interface ApplicationHandler
 {
 	public String getContextName();
-	public Object start(Element config, ServiceContext s) throws Exception;
-	public void   stop();
+	// TODO get rid of this class in favor of spring only 
+	public Object getContext() throws Exception;
 }
 
 //=============================================================================

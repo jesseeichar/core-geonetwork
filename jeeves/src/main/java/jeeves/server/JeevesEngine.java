@@ -34,9 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.PreDestroy;
 import javax.servlet.ServletContext;
@@ -49,15 +47,12 @@ import jeeves.constants.ConfigFile;
 import jeeves.interfaces.ApplicationHandler;
 import jeeves.interfaces.Logger;
 import jeeves.monitor.MonitorManager;
-import jeeves.server.context.ServiceContext;
 import jeeves.server.dispatchers.ServiceManager;
 import jeeves.server.resources.ResourceManager;
 import jeeves.server.sources.ServiceRequest;
-import jeeves.server.sources.http.JeevesServlet;
 import jeeves.utils.Log;
 import jeeves.utils.TransformerFactoryFactory;
 import jeeves.utils.Util;
-import jeeves.utils.Xml;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.jdom.Element;
@@ -74,7 +69,6 @@ import org.springframework.context.ApplicationContextAware;
 public class JeevesEngine implements ApplicationContextAware
 {
 	private static final String TRANSFORMER_PATH = "/WEB-INF/classes/META-INF/services/javax.xml.transform.TransformerFactory";
-	private Logger appHandLogger = Log.createLogger(Log.APPHAND);
 	
 	private EnvironmentalConfig envConfig;
 	private GeneralConfig generalConfig;
@@ -174,73 +168,6 @@ public class JeevesEngine implements ApplicationContextAware
 
 	//---------------------------------------------------------------------------
 	//---
-	//--- 'appHandler' element
-	//---
-	//---------------------------------------------------------------------------
-
-	@SuppressWarnings("unchecked")
-	private void initAppHandler(Element handler, JeevesServlet servlet) throws Exception
-	{
-		if (handler == null)
-			info("Handler not found");
-		else
-		{
-			String className = handler.getAttributeValue(ConfigFile.AppHandler.Attr.CLASS);
-
-			if (className == null)
-				throw new IllegalArgumentException("Missing '"        +ConfigFile.AppHandler.Attr.CLASS+
-															  "' attribute in '" +ConfigFile.Child.APP_HANDLER+
-															  "' element");
-
-			info("Found handler : " +className);
-
-			Class c = Class.forName(className);
-
-			ApplicationHandler h = (ApplicationHandler) c.newInstance();
-
-			ServiceContext srvContext = serviceMan.createServiceContext("AppHandler");
-			srvContext.setLanguage(defaultConfig.getLanguage());
-			srvContext.setLogger(appHandLogger);
-			srvContext.setServletContext(servlet.getServletContext());
-
-			try
-			{
-				info("--- Starting handler --------------------------------------");
-
-				Object context = h.start(handler, srvContext);
-
-				srvContext.getResourceManager().close();
-				appHandlers.add(h);
-				serviceMan .registerContext(h.getContextName(), context);
-				scheduleMan.registerContext(h.getContextName(), context);
-                monitorManager.initMonitorsForApp(srvContext);
-
-				info("--- Handler started ---------------------------------------");
-			}
-			catch (Exception e)
-			{
-				Map<String,String> errors = new HashMap<String,String>();
-				String eS = "Raised exception while starting appl handler. Skipped.";
-				error(eS);
-				errors.put("Error", eS);
-				error("   Handler   : " +className);
-				errors.put("Handler", className);
-				error("   Exception : " +e);
-				errors.put("Exception",e.toString());
-				error("   Message   : " +e.getMessage());
-				errors.put("Message",e.getMessage());
-				error("   Stack     : " +Util.getStackTrace(e));
-				errors.put("Stack",Util.getStackTrace(e));
-				error(errors.toString());
-				// only set the error if we don't already have one
-				if (!serviceMan.isStartupError()) serviceMan.addStartupErrors(errors);
-				srvContext.getResourceManager().abort();
-			}
-		}
-	}
-
-	//---------------------------------------------------------------------------
-	//---
 	//--- 'services' element
 	//---
 	//---------------------------------------------------------------------------
@@ -312,9 +239,6 @@ public class JeevesEngine implements ApplicationContextAware
 			info("Stopping schedule manager...");
 			scheduleMan.exit();
 
-			info("Stopping handlers...");
-			stopHandlers();
-
 			info("=== System stopped ========================================");
 		}
 		catch (Exception e)
@@ -323,16 +247,6 @@ public class JeevesEngine implements ApplicationContextAware
 			error("  Exception : " +e);
 			error("  Message   : " +e.getMessage());
 			error("  Stack     : " +Util.getStackTrace(e));
-		}
-	}
-
-	//---------------------------------------------------------------------------
-	/** Stop handlers
-	  */
-
-	private void stopHandlers() throws Exception {
-		for (ApplicationHandler h : appHandlers) {
-			h.stop();
 		}
 	}
 

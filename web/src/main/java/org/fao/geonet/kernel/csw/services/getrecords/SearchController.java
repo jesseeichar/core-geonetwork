@@ -31,6 +31,7 @@ import jeeves.utils.Xml;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.Sort;
 import org.fao.geonet.GeonetContext;
+import org.fao.geonet.GeonetworkConfig;
 import org.fao.geonet.constants.Edit;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.csw.common.Csw;
@@ -64,8 +65,8 @@ import java.util.Set;
 public class SearchController {
     
 	private final CatalogSearcher _searcher;
-    public SearchController(File summaryConfig, LuceneConfig luceneConfig) {
-        _searcher = new CatalogSearcher(summaryConfig, luceneConfig);
+    public SearchController(GeonetworkConfig config) {
+        _searcher = new CatalogSearcher(config);
     }
 	
     public CatalogSearcher getSearcher() {

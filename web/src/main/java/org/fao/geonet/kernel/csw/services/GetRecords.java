@@ -30,6 +30,7 @@ import jeeves.utils.Xml;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.Sort;
 import org.fao.geonet.GeonetContext;
+import org.fao.geonet.GeonetworkConfig;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.csw.common.ConstraintLanguage;
 import org.fao.geonet.csw.common.Csw;
@@ -83,8 +84,8 @@ public class GetRecords extends AbstractOperation implements CatalogService {
      * @param summaryConfig
      * @param luceneConfig
      */
-	public GetRecords(File summaryConfig, LuceneConfig luceneConfig) {
-    	_searchController = new SearchController(summaryConfig, luceneConfig);
+	public GetRecords(GeonetworkConfig config) {
+        _searchController = new SearchController(config);
     }
 
     /**

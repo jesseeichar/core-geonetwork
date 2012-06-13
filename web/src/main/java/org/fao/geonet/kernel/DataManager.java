@@ -42,6 +42,7 @@ import jeeves.xlink.Processor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.fao.geonet.GeonetContext;
+import org.fao.geonet.GeonetworkConfig;
 import org.fao.geonet.constants.Edit;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.constants.Params;
@@ -88,6 +89,8 @@ import java.util.concurrent.Executors;
 public class DataManager {
     
 
+    private GeonetworkConfig geonetworkConfig;
+
     //--------------------------------------------------------------------------
 	//---
 	//--- Constructor
@@ -119,18 +122,18 @@ public class DataManager {
      * @param appPath
      * @throws Exception
      */
-	public DataManager(ServiceContext context, SvnManager svnManager, XmlSerializer xmlSerializer, SchemaManager scm, SearchManager sm, AccessManager am, Dbms dbms, SettingManager ss, String baseURL, String dataDir, String thesaurusDir, String appPath) throws Exception {
+	public DataManager(ServiceContext context, SvnManager svnManager, XmlSerializer xmlSerializer, SchemaManager scm, SearchManager sm, AccessManager am, Dbms dbms, SettingManager ss, GeonetworkConfig config) throws Exception {
 		searchMan = sm;
 		accessMan = am;
 		settingMan= ss;
 		schemaMan = scm;
 		editLib = new EditLib(schemaMan);
         servContext=context;
-
-		this.baseURL = baseURL;
-        this.dataDir = dataDir;
-        this.thesaurusDir = thesaurusDir;
-		this.appPath = appPath;
+        this.geonetworkConfig = config;
+		this.baseURL = config.getEnvConfig().getBaseUrl();
+        this.dataDir = config.getDataDirectories().getDataDir();
+        this.thesaurusDir = config.getDataDirectories().getCodelistDir();
+		this.appPath = config.getEnvConfig().getBaseUrl();
 
 		stylePath = context.getAppPath() + FS + Geonet.Path.STYLESHEETS + FS;
 
@@ -361,7 +364,7 @@ public class DataManager {
             context.setAsThreadLocal();
             try {
                 // poll context to see whether servlet is up yet
-                while (!context.isServletInitialized()) {
+                while (!geonetworkConfig.isRunning()) {
                     if(Log.isDebugEnabled(Geonet.DATA_MANAGER))
                         Log.debug(Geonet.DATA_MANAGER, "Waiting for servlet to finish initializing..");
                     Thread.sleep(10000); // sleep 10 seconds

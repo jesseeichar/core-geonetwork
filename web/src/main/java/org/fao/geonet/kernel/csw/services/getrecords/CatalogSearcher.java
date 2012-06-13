@@ -23,12 +23,24 @@
 
 package org.fao.geonet.kernel.csw.services.getrecords;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
+
 import jeeves.resources.dbms.Dbms;
 import jeeves.server.UserSession;
 import jeeves.server.context.ServiceContext;
 import jeeves.utils.Log;
 import jeeves.utils.Util;
 import jeeves.utils.Xml;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.FieldSelector;
@@ -50,6 +62,7 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.Version;
 import org.fao.geonet.GeonetContext;
+import org.fao.geonet.GeonetworkConfig;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.csw.common.Csw;
 import org.fao.geonet.csw.common.ResultType;
@@ -64,26 +77,14 @@ import org.fao.geonet.kernel.search.LuceneIndexField;
 import org.fao.geonet.kernel.search.LuceneSearcher;
 import org.fao.geonet.kernel.search.LuceneUtils;
 import org.fao.geonet.kernel.search.SearchManager;
+import org.fao.geonet.kernel.search.SummaryConfig;
 import org.fao.geonet.kernel.search.spatial.Pair;
 import org.jdom.Element;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
 
 //=============================================================================
 
 public class CatalogSearcher {
-	private Element _summaryConfig;
+	private SummaryConfig _summaryConfig;
 	private LuceneConfig	_luceneConfig;
 	private Set<String> _tokenizedFieldSet;
 	private Map<String, NumericField> _numericFieldSet;
@@ -94,22 +95,16 @@ public class CatalogSearcher {
 	private Sort          _sort;
 	private String        _lang;
 	
-	public CatalogSearcher(File summaryConfig, LuceneConfig luceneConfig) {
-		try {
-			if (summaryConfig != null)
-				_summaryConfig = Xml.loadStream(new FileInputStream(
-						summaryConfig));
-		} catch (Exception e) {
-			throw new RuntimeException(
-					"Error reading summary configuration file", e);
-		}
+	public CatalogSearcher(GeonetworkConfig config) {
 
-		_luceneConfig = luceneConfig;
-		_tokenizedFieldSet = luceneConfig.getTokenizedFields();
-		_numericFieldSet = luceneConfig.getNumericFields();
+		_luceneConfig = config.getLuceneConfig();
+		_tokenizedFieldSet = _luceneConfig.getTokenizedFields();
+		_numericFieldSet = _luceneConfig.getNumericFields();
 		
 		_selector = new FieldSelector() {
-			public final FieldSelectorResult accept(String name) {
+            private static final long serialVersionUID = 1L;
+
+            public final FieldSelectorResult accept(String name) {
 				if (name.equals("_id")) return FieldSelectorResult.LOAD;
 				else return FieldSelectorResult.NO_LOAD;
 			}

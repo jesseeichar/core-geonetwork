@@ -34,6 +34,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.servlet.ServletContext;
 
 import jeeves.JeevesJCS;
@@ -44,9 +46,10 @@ import jeeves.interfaces.ApplicationHandler;
 import jeeves.interfaces.Logger;
 import jeeves.resources.dbms.Dbms;
 import jeeves.server.ConfigurationOverrides;
-import jeeves.server.ServiceConfig;
 import jeeves.server.UserSession;
 import jeeves.server.context.ServiceContext;
+import jeeves.server.dispatchers.ServiceManager;
+import jeeves.utils.Log;
 import jeeves.utils.ProxyInfo;
 import jeeves.utils.Util;
 import jeeves.utils.Xml;
@@ -71,7 +74,6 @@ import org.fao.geonet.kernel.oaipmh.OaiPmhDispatcher;
 import org.fao.geonet.kernel.search.LuceneConfig;
 import org.fao.geonet.kernel.search.SearchManager;
 import org.fao.geonet.kernel.search.spatial.Pair;
-import org.fao.geonet.kernel.search.spatial.SpatialIndexWriter;
 import org.fao.geonet.kernel.setting.SettingInfo;
 import org.fao.geonet.kernel.setting.SettingManager;
 import org.fao.geonet.languages.IsoLanguagesMapper;
@@ -106,25 +108,45 @@ import com.vividsolutions.jts.geom.MultiPolygon;
  * This is the main class, it handles http connections and inits the system.
   */
 public class Geonetwork implements ApplicationHandler {
+
+    private static final String       SPATIAL_INDEX_FILENAME    = "spatialindex";
+    private static final String       IDS_ATTRIBUTE_NAME        = "id";
+
 	private Logger        		logger;
 	private String 				path;				
+    //----------------------------------------------
+    // -- Injected by spring in future
+    //----------------------------------------------
 	private SearchManager 		searchMan;
 	private HarvestManager 		harvestMan;
 	private ThesaurusManager 	thesaurusMan;
 	private MetadataNotifierControl metadataNotifierControl;
 	private ThreadPool        threadPool;
+	//----------------------------------------------
+
+	//----------------------------------------------
+    // -- NOT injected by spring
+    //----------------------------------------------
 	private String   FS         = File.separator;
 	private Element dbConfiguration;
-	private EnvironmentalConfig envConfig;
-    private GeonetworkConfig config;
+	
+    GeonetContext geonetworkContext = new GeonetContext();
+    //----------------------------------------------
 
-    private static final String       SPATIAL_INDEX_FILENAME    = "spatialindex";
-	private static final String       IDS_ATTRIBUTE_NAME        = "id";
+    //----------------------------------------------
+    // -- Injected by spring
+    //----------------------------------------------
+    private EnvironmentalConfig envConfig;
+    private GeonetworkConfig config;
+    private ServiceManager serviceMan;
+    //----------------------------------------------
 
 	@Autowired
-	public Geonetwork(EnvironmentalConfig envConfig, GeonetworkConfig config) {
+	public Geonetwork(EnvironmentalConfig envConfig, GeonetworkConfig config, 
+	        ServiceManager serviceMan) {
         this.config = config;
         this.envConfig = envConfig;
+        this.serviceMan = serviceMan;
     }
 	
 	//---------------------------------------------------------------------------
@@ -133,27 +155,24 @@ public class Geonetwork implements ApplicationHandler {
 	//---
 	//---------------------------------------------------------------------------
 
+	@Override
 	public String getContextName() { return Geonet.CONTEXT_NAME; }
-
-	//---------------------------------------------------------------------------
-	//---
-	//--- Start
-	//---
-	//---------------------------------------------------------------------------
+	@Override
+	public Object getContext() throws Exception {
+	    return geonetworkContext;
+	}
 
 	/**
      * Inits the engine, loading all needed data.
 	  */
-	@SuppressWarnings(value = "unchecked")
-	public Object start(ServiceContext context) throws Exception {
-		logger = context.getLogger();
+	@PostConstruct
+	public void init() throws Exception {
+	    ServiceContext context = serviceMan.createServiceContext(getContextName());
+		logger = Log.createLogger(Log.APPHAND);
 
-		path    = context.getAppPath();
-		String baseURL = context.getBaseUrl();
-		String webappName = baseURL.substring(1);
-		// TODO : if webappName is "". ie no context
+		path    = envConfig.getAppPath();
 		
-        ServletContext servletContext = context.getServletContext();
+        ServletContext servletContext = envConfig.getServletContext();
         
 		ServerLib sl = new ServerLib(servletContext, path);
 		String version = sl.getVersion();
@@ -168,8 +187,6 @@ public class Geonetwork implements ApplicationHandler {
 		String systemDataDir = dataDirectory.getSystemDataDir();
 		String thesauriDir = dataDirectory.getCodelistDir();
 		String luceneDir =  dataDirectory.getLuceneDir();
-		String dataDir =  dataDirectory.getDataDir();
-		String summaryConfigXmlFile = handlerConfig.getMandatoryValue(Geonet.Config.SUMMARY_CONFIG);
 		logger.info("Data directory: " + systemDataDir);
 
 		setProps(path);
@@ -295,11 +312,8 @@ public class Geonetwork implements ApplicationHandler {
 			throw new IllegalArgumentException("GeoTools datastore creation failed - check logs for more info/exceptions");
 		}
 
-		String htmlCacheDir = dataDirectory.getHtmlcacheDir();
-		
-		searchMan = new SearchManager(path, luceneDir, htmlCacheDir, thesauriDir, summaryConfigXmlFile, lc,
-		        config.isStatLogAsynch(), config.isStatLogSpatialObjects(), config.getStatLuceneTermsExclude(), 
-				dataStore, config.getMaxWritesInTransaction(), 
+		searchMan = new SearchManager(path, config, 
+				dataStore, 
 				new SettingInfo(settingMan), schemaMan, servletContext);
 
 		//------------------------------------------------------------------------
@@ -323,7 +337,7 @@ public class Geonetwork implements ApplicationHandler {
 			xmlSerializer = new XmlSerializerDb(settingMan);
 		}
 
-		DataManager dataMan = new DataManager(context, svnManager, xmlSerializer, schemaMan, searchMan, accessMan, dbms, settingMan, baseURL, dataDir, thesauriDir, path);
+		DataManager dataMan = new DataManager(context, svnManager, xmlSerializer, schemaMan, searchMan, accessMan, dbms, settingMan, config);
 
 
         /**
@@ -357,7 +371,7 @@ public class Geonetwork implements ApplicationHandler {
 		logger.info("  - Catalogue services for the web...");
 
 		CatalogConfiguration.loadCatalogConfig(path, Csw.CONFIG_FILE);
-		CatalogDispatcher catalogDis = new CatalogDispatcher(new File(path,summaryConfigXmlFile), lc);
+		CatalogDispatcher catalogDis = new CatalogDispatcher(config);
 
 		//------------------------------------------------------------------------
 		//--- initialize catalogue services for the web
@@ -376,36 +390,34 @@ public class Geonetwork implements ApplicationHandler {
 		//------------------------------------------------------------------------
 		//--- return application context
 
-		GeonetContext gnContext = new GeonetContext();
+		geonetworkContext.accessMan   = accessMan;
+		geonetworkContext.dataMan     = dataMan;
+		geonetworkContext.searchMan   = searchMan;
+		geonetworkContext.schemaMan   = schemaMan;
+		geonetworkContext.config      = config;
+		geonetworkContext.catalogDis  = catalogDis;
+		geonetworkContext.settingMan  = settingMan;
+		geonetworkContext.harvestMan  = harvestMan;
+		geonetworkContext.thesaurusMan= thesaurusMan;
+		geonetworkContext.oaipmhDis   = oaipmhDis;
+		geonetworkContext.app_context = app_context;
+        geonetworkContext.metadataNotifierMan = metadataNotifierMan;
+		geonetworkContext.threadPool  = threadPool;
+		geonetworkContext.xmlSerializer  = xmlSerializer;
+		geonetworkContext.svnManager  = svnManager;
+		geonetworkContext.statusActionsClass = statusActionsClass;
 
-		gnContext.accessMan   = accessMan;
-		gnContext.dataMan     = dataMan;
-		gnContext.searchMan   = searchMan;
-		gnContext.schemaMan   = schemaMan;
-		gnContext.config      = config;
-		gnContext.catalogDis  = catalogDis;
-		gnContext.settingMan  = settingMan;
-		gnContext.harvestMan  = harvestMan;
-		gnContext.thesaurusMan= thesaurusMan;
-		gnContext.oaipmhDis   = oaipmhDis;
-		gnContext.app_context = app_context;
-        gnContext.metadataNotifierMan = metadataNotifierMan;
-		gnContext.threadPool  = threadPool;
-		gnContext.xmlSerializer  = xmlSerializer;
-		gnContext.svnManager  = svnManager;
-		gnContext.statusActionsClass = statusActionsClass;
-
-		logger.info("Site ID is : " + gnContext.getSiteId());
+		logger.info("Site ID is : " + geonetworkContext.getSiteId());
 
         // Creates a default site logo, only if the logo image doesn't exists
         // This can happen if the application has been updated with a new version preserving the database and
         // images/logos folder is not copied from old application 
-        createSiteLogo(gnContext.getSiteId(), servletContext, context.getAppPath());
+        createSiteLogo(geonetworkContext.getSiteId(), servletContext, context.getAppPath());
 
         // Notify unregistered metadata at startup. Needed, for example, when the user enables the notifier config
         // to notify the existing metadata in database
         // TODO: Fix DataManager.getUnregisteredMetadata and uncomment next lines
-        metadataNotifierControl = new MetadataNotifierControl(context, gnContext);
+        metadataNotifierControl = new MetadataNotifierControl(context, geonetworkContext);
         metadataNotifierControl.runOnce();
 
 		//--- load proxy information from settings into Jeeves for observers such
@@ -420,7 +432,6 @@ public class Geonetwork implements ApplicationHandler {
 			pi.setProxyInfo(proxyHost, new Integer(proxyPort), username, password);
 		}
 
-		return gnContext;
 	}
 
     /**
@@ -721,7 +732,7 @@ public class Geonetwork implements ApplicationHandler {
 	//--- Stop
 	//---
 	//---------------------------------------------------------------------------
-
+	@PreDestroy
 	public void stop() {
 		logger.info("Stopping geonetwork...");
 		

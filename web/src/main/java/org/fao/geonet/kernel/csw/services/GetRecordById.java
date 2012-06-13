@@ -35,6 +35,7 @@ import jeeves.utils.Util;
 import jeeves.utils.Xml;
 import org.apache.commons.lang.StringUtils;
 import org.fao.geonet.GeonetContext;
+import org.fao.geonet.GeonetworkConfig;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.csw.common.Csw;
 import org.fao.geonet.csw.common.ElementSetName;
@@ -72,8 +73,8 @@ public class GetRecordById extends AbstractOperation implements CatalogService
 
     private SearchController _searchController;
 
-    public GetRecordById(File summaryConfig, LuceneConfig luceneConfig) {
-        _searchController = new SearchController(summaryConfig, luceneConfig);
+    public GetRecordById(GeonetworkConfig config) {
+        _searchController = new SearchController(config);
     }
 
 

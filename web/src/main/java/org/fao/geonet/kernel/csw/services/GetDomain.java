@@ -51,6 +51,7 @@ import org.fao.geonet.kernel.search.SearchManager;
 import org.fao.geonet.kernel.search.SummaryComparator;
 import org.fao.geonet.kernel.search.SummaryComparator.SortOption;
 import org.fao.geonet.kernel.search.SummaryComparator.Type;
+import org.fao.geonet.kernel.search.SummaryConfig;
 import org.fao.geonet.kernel.search.spatial.Pair;
 import org.jdom.Element;
 
@@ -213,7 +214,7 @@ public class GetDomain extends AbstractOperation implements CatalogService
 
 				Pair<TopDocs,Element> searchResults = LuceneSearcher.doSearchAndMakeSummary( 
 						maxRecords, 0, maxRecords, Integer.MAX_VALUE, 
-						context.getLanguage(), "results", new Element("summary"), 
+						context.getLanguage(), "results", new SummaryConfig(), 
 						reader, query, filter, sort, false,
 						false, false, false	// Scoring is useless for GetDomain operation
 				);

@@ -3,11 +3,13 @@ package org.fao.geonet;
 import jeeves.config.EnvironmentalConfig;
 
 import org.fao.geonet.kernel.search.LuceneConfig;
+import org.fao.geonet.kernel.search.SummaryConfig;
 import org.fao.geonet.kernel.search.spatial.SpatialIndexWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.context.Lifecycle;
 
-public class GeonetworkConfig {
+public class GeonetworkConfig implements Lifecycle {
     private String languageProfilesDir;
     private String licenseDir;
     private String preferredSchema;
@@ -20,12 +22,15 @@ public class GeonetworkConfig {
     private EnvironmentalConfig envConfig;
     private GeonetworkDataDirectory dataDirectories;
     private LuceneConfig luceneConfig;
+    private SummaryConfig summaryConfig;
+    private boolean started;
     
     @Autowired
     public GeonetworkConfig(
             EnvironmentalConfig envConfig, 
             GeonetworkDataDirectory dataDirectories,
-            LuceneConfig luceneConfig) {
+            LuceneConfig luceneConfig,
+            SummaryConfig summaryConfig) {
         this.envConfig = envConfig;
         this.dataDirectories = dataDirectories;
         this.luceneConfig = luceneConfig;
@@ -70,4 +75,21 @@ public class GeonetworkConfig {
     public EnvironmentalConfig getEnvConfig() { return envConfig; }
     public GeonetworkDataDirectory getDataDirectories() { return dataDirectories; }
     public LuceneConfig getLuceneConfig() { return luceneConfig; }
+    public SummaryConfig getSummaryConfig() { return summaryConfig;}
+
+    @Override
+    public void start() {
+        this.started = true;
+    }
+
+    @Override
+    public void stop() {
+        this.started = false;
+        
+    }
+
+    @Override
+    public boolean isRunning() {
+        return started;
+    }
 }

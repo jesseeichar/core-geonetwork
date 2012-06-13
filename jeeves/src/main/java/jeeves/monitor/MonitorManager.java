@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PreDestroy;
 import javax.servlet.ServletContext;
 
 import jeeves.config.EnvironmentalConfig;
@@ -293,6 +294,7 @@ public class MonitorManager {
         return resourceTracker;
     }
 
+    @PreDestroy
     public void shutdown() {
         resourceTracker.clean();
         jmxReporter.shutdown();
