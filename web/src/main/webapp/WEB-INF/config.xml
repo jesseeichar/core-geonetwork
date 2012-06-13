@@ -334,6 +334,8 @@
 	  <param name="summaryConfig" value="WEB-INF/config-summary.xml" />
     <param name="guiConfig" value="WEB-INF/config-gui.xml" />        
     <param name="luceneConfig" value="WEB-INF/config-lucene.xml" />        
+		<param name="jzkitConfig" value="JZkitApplicationContext.xml" />
+		<param name="metadataNotifierConfig" value="WEB-INF/config-notifier.xml" />
 
 		<!-- Preferred schema parameter is used on import
 			when a ZIP or MEF file is imported with more than one
@@ -345,8 +347,6 @@
 			ISO profil.
 		-->
 		<param name="preferredSchema" value="iso19139" />
-		<param name="jzkitConfig" value="JZkitApplicationContext.xml" />
-		<param name="metadataNotifierConfig" value="WEB-INF/config-notifier.xml" />
 
 		<!-- search statistics stuff -->
 		<!-- true to log into DB WKT of spatial objects involved in a search operation
@@ -379,7 +379,7 @@
 
 		<param name="useSubversion" value="true"/>
 
-		<param name="statusActionsClass" value="org.fao.geonet.services.metadata.DefaultStatusActions"/>
+		<param name="statusActionsClassName" value="org.fao.geonet.services.metadata.DefaultStatusActions"/>
 	</appHandler>
 
 	<!-- ====================================================================== -->

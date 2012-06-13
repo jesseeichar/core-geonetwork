@@ -26,6 +26,7 @@ package jeeves.server.dispatchers;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,8 @@ import java.util.Vector;
 
 import javax.servlet.http.HttpServletResponse;
 
+import jeeves.config.EnvironmentalConfig;
+import jeeves.config.GeneralConfig;
 import jeeves.constants.Jeeves;
 import jeeves.exceptions.JeevesException;
 import jeeves.exceptions.ServiceNotAllowedEx;
@@ -51,7 +54,6 @@ import jeeves.server.sources.ServiceRequest;
 import jeeves.server.sources.ServiceRequest.InputMethod;
 import jeeves.server.sources.ServiceRequest.OutputMethod;
 import jeeves.server.sources.http.HttpServiceRequest;
-import jeeves.server.sources.http.JeevesServlet;
 import jeeves.utils.BLOB;
 import jeeves.utils.BinaryFile;
 import jeeves.utils.Log;
@@ -86,13 +88,10 @@ public class ServiceManager implements ApplicationContextAware
     private MonitorManager monitorManager;
 
 	private SerialFactory   serialFact;
-    private String  appPath;
-    private String  baseUrl;
-    private String  uploadDir;
-    private int     maxUploadSize;
-    private JeevesServlet servlet;
     private boolean startupError = false;
-    private Map<String,String> startupErrors;
+    private Map<String,String> startupErrors = new HashMap<String, String>();
+    private EnvironmentalConfig envConfig;
+    private GeneralConfig generalConfig;
 
     //---------------------------------------------------------------------------
 	//---
@@ -109,11 +108,19 @@ public class ServiceManager implements ApplicationContextAware
     @Required
     @Autowired
 	public void setMonitorManager  (MonitorManager mm) { monitorManager  = mm; }
-    
+    @Required
+    @Autowired
+    public void setEnvConfig(EnvironmentalConfig envConfig) {this.envConfig = envConfig;}
+    @Required
+    @Autowired
+    public void setGeneralConfig(GeneralConfig generalConfig) { this.generalConfig = generalConfig; }
+    @Required
+    @Autowired
 	public void setSerialFactory(SerialFactory   s) { serialFact = s; }
-	public void setServlet(JeevesServlet serv) { servlet = serv; }
-    public void setStartupErrors(Map<String,String> errors)   { 
-        startupErrors = errors; startupError = true; 
+	
+    public void addStartupErrors(Map<String,String> errors)   { 
+        startupErrors.putAll(errors); 
+        startupError = true; 
         }
 	public boolean isStartupError() { return startupError; }
 
@@ -129,14 +136,14 @@ public class ServiceManager implements ApplicationContextAware
 	{
 		ServiceContext context = new ServiceContext(name, monitorManager, providManager, serialFact, profileManager, htContexts);
 
-		context.setBaseUrl(baseUrl);
+		context.setBaseUrl(envConfig.getBaseUrl());
 		context.setLanguage("?");
 		context.setUserSession(null);
 		context.setIpAddress("?");
-		context.setAppPath(appPath);
-		context.setUploadDir(uploadDir);
-        context.setMaxUploadSize(maxUploadSize);
-		context.setServlet(servlet);
+		context.setAppPath(envConfig.getAppPath());
+		context.setUploadDir(generalConfig.getUploadDir());
+        context.setMaxUploadSize(generalConfig.getMaxUploadSize());
+		context.setServletContext(envConfig.getServletContext());
 
 		return context;
 	}
@@ -149,20 +156,16 @@ public class ServiceManager implements ApplicationContextAware
 
 	public void dispatch(ServiceRequest req, UserSession session)
 	{
+	    
+		ServiceContext context = createServiceContext(req.getService());
 
-		ServiceContext context = new ServiceContext(req.getService(), monitorManager, providManager, serialFact, profileManager, htContexts);
-
-		context.setBaseUrl(baseUrl);
 		context.setLanguage(req.getLanguage());
 		context.setUserSession(session);
 		context.setIpAddress(req.getAddress());
-		context.setAppPath(appPath);
-		context.setUploadDir(uploadDir);
-        context.setMaxUploadSize(maxUploadSize);
 		context.setInputMethod(req.getInputMethod());
 		context.setOutputMethod(req.getOutputMethod());
 		context.setHeaders(req.getHeaders());
-		context.setServlet(servlet);
+		
 		if (startupError) context.setStartupErrors(startupErrors);
 
         context.setAsThreadLocal();
@@ -244,7 +247,7 @@ public class ServiceManager implements ApplicationContextAware
                         HttpServiceRequest req2 = (HttpServiceRequest) req;
 
                         req2.getHttpServletResponse().setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-                        req2.getHttpServletResponse().setHeader("Location", baseUrl +  "/srv/" +  req.getLanguage() + "/" + forward); 
+                        req2.getHttpServletResponse().setHeader("Location", envConfig.getBaseUrl() +  "/srv/" +  req.getLanguage() + "/" + forward); 
 
                         return;
                     } else {
@@ -428,7 +431,7 @@ public class ServiceManager implements ApplicationContextAware
 
 				//--- do an XSL transformation
 
-				styleSheet = appPath + Jeeves.Path.XSL + styleSheet;
+				styleSheet = envConfig.getAppPath() + Jeeves.Path.XSL + styleSheet;
 
 				if (!new File(styleSheet).exists())
 					error(" -> stylesheet not found on disk, aborting : " +styleSheet);
@@ -442,7 +445,7 @@ public class ServiceManager implements ApplicationContextAware
                         String file;
                         try {
                             //--- first we do the transformation
-                            file = Xml.transformFOP(uploadDir, rootElem, styleSheet);
+                            file = Xml.transformFOP(generalConfig.getUploadDir(), rootElem, styleSheet);
                         } finally {
                             timerContext.stop();
                         }
@@ -535,7 +538,7 @@ public class ServiceManager implements ApplicationContextAware
 			{
 				//--- do an XSL transformation
 
-				styleSheet = appPath + Jeeves.Path.XSL + styleSheet;
+				styleSheet = envConfig.getAppPath() + Jeeves.Path.XSL + styleSheet;
 
 				if (!new File(styleSheet).exists())
 					error("     -> stylesheet not found on disk, aborting : " +styleSheet);
@@ -618,7 +621,7 @@ public class ServiceManager implements ApplicationContextAware
 		{
 			//--- do an XSL transformation
 
-			styleSheet = appPath + Jeeves.Path.XSL + styleSheet;
+			styleSheet = envConfig.getAppPath() + Jeeves.Path.XSL + styleSheet;
 
 			info("     -> transforming with stylesheet : " +styleSheet);
 
@@ -695,10 +698,10 @@ public class ServiceManager implements ApplicationContextAware
 	{
 		root.addContent(new Element(Jeeves.Elem.LANGUAGE)    .setText(lang));
 		root.addContent(new Element(Jeeves.Elem.REQ_SERVICE) .setText(service));
-		root.addContent(new Element(Jeeves.Elem.BASE_URL)    .setText(baseUrl));
-		root.addContent(new Element(Jeeves.Elem.LOC_URL)     .setText(baseUrl +"/loc/"+ lang));
-		root.addContent(new Element(Jeeves.Elem.BASE_SERVICE).setText(baseUrl +"/"+ Jeeves.Prefix.SERVICE));
-		root.addContent(new Element(Jeeves.Elem.LOC_SERVICE) .setText(baseUrl +"/"+ Jeeves.Prefix.SERVICE +"/"+ lang));
+		root.addContent(new Element(Jeeves.Elem.BASE_URL)    .setText(envConfig.getBaseUrl()));
+		root.addContent(new Element(Jeeves.Elem.LOC_URL)     .setText(envConfig.getBaseUrl() +"/loc/"+ lang));
+		root.addContent(new Element(Jeeves.Elem.BASE_SERVICE).setText(envConfig.getBaseUrl() +"/"+ Jeeves.Prefix.SERVICE));
+		root.addContent(new Element(Jeeves.Elem.LOC_SERVICE) .setText(envConfig.getBaseUrl() +"/"+ Jeeves.Prefix.SERVICE +"/"+ lang));
 	}
 
 	//---------------------------------------------------------------------------

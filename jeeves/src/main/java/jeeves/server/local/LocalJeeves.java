@@ -1,10 +1,14 @@
 package jeeves.server.local;
 
+import java.io.File;
+
+import jeeves.config.EnvironmentalConfig;
 import jeeves.server.JeevesEngine;
 import jeeves.server.ProfileManager;
 import jeeves.server.UserSession;
 import jeeves.utils.Xml;
 import org.jdom.Element;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
  * Provides JVM-local running/invokation of Jeeves engine.
@@ -20,6 +24,7 @@ public class LocalJeeves
 {
 	static private JeevesEngine jeeves;
 	static private UserSession session;
+    private static FileSystemXmlApplicationContext springContext;
 
 
 	/**
@@ -86,11 +91,12 @@ public class LocalJeeves
 		try
 		{
 			p("exit...");
-			if (jeeves == null)
+			if (springContext == null)
 			{
 				return;
 			}
-			jeeves.destroy();
+			springContext.stop();
+			springContext.destroy();
 			p("exit OK");
 		} catch (Throwable t)
 		{
@@ -122,11 +128,18 @@ public class LocalJeeves
 			System.setProperty("javax.xml.transform.TransformerFactory",
 									 "net.sf.saxon.TransformerFactoryImpl");
 
-			// Init jeeves with proper config
-			jeeves = new JeevesEngine();
-			// null JeevesServlet arg because not running in servlet here
-			jeeves.init(appPath, configPath, baseUrl, null); 
+	        String[] contexts = { new File(configPath, "config-jeeves.xml").getAbsolutePath(),
+	                new File(configPath, "config.xml").getAbsolutePath() };
+	        EnvironmentalConfig envConfig = new EnvironmentalConfig(baseUrl, appPath);
+	        envConfig.setConfigPath(configPath);
+	        
+	        springContext = new FileSystemXmlApplicationContext(contexts, false);
 
+	        springContext.addBeanFactoryPostProcessor(envConfig);
+	        springContext.refresh();
+
+	        jeeves = springContext.getBean(JeevesEngine.class);
+	        
 			// Make session with all permissions
 			session = new UserSession();
 			session.authenticate("0", "local", "Local", "User", ProfileManager.ADMIN, "local@localhost");

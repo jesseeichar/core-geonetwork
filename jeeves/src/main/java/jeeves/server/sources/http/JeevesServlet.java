@@ -32,6 +32,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import jeeves.config.EnvironmentalConfig;
+import jeeves.config.GeneralConfig;
 import jeeves.exceptions.FileUploadTooBigEx;
 import jeeves.server.JeevesEngine;
 import jeeves.server.UserSession;
@@ -39,6 +41,8 @@ import jeeves.server.sources.ServiceRequest;
 import jeeves.server.sources.ServiceRequestFactory;
 import jeeves.utils.Log;
 import jeeves.utils.Util;
+
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 //=============================================================================
 
@@ -48,43 +52,50 @@ import jeeves.utils.Util;
 @SuppressWarnings("serial")
 public class JeevesServlet extends HttpServlet
 {
-	private JeevesEngine jeeves = new JeevesEngine();
-	private boolean initialized = false;
+	private FileSystemXmlApplicationContext springContext;
+    private JeevesEngine jeeves;
 
-	//---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
 	//---
 	//--- Init
 	//---
 	//---------------------------------------------------------------------------
 
-	public void init() throws ServletException
-	{
-		String appPath = getServletContext().getRealPath("/");
+    public void init() throws ServletException {
+        String appPath = getServletContext().getRealPath("/");
 
-		String baseUrl    = "";
-		
-    try {
-			// 2.5 servlet spec or later (eg. tomcat 6 and later)
-      baseUrl = getServletContext().getContextPath();
-    } catch (java.lang.NoSuchMethodError ex) {
-			// 2.4 or earlier servlet spec (eg. tomcat 5.5)
-			try { 
-				String resource = getServletContext().getResource("/").getPath(); 
-				baseUrl = resource.substring(resource.indexOf('/', 1), resource.length() - 1); 
-			} catch (java.net.MalformedURLException e) { // unlikely
-				baseUrl = getServletContext().getServletContextName(); 
-			}
+        String baseUrl = "";
+
+        try {
+            // 2.5 servlet spec or later (eg. tomcat 6 and later)
+            baseUrl = getServletContext().getContextPath();
+        } catch (java.lang.NoSuchMethodError ex) {
+            // 2.4 or earlier servlet spec (eg. tomcat 5.5)
+            try {
+                String resource = getServletContext().getResource("/").getPath();
+                baseUrl = resource.substring(resource.indexOf('/', 1), resource.length() - 1);
+            } catch (java.net.MalformedURLException e) { // unlikely
+                baseUrl = getServletContext().getServletContextName();
+            }
+        }
+
+        if (!appPath.endsWith(File.separator))
+            appPath += File.separator;
+
+        EnvironmentalConfig envConfig = new EnvironmentalConfig(baseUrl, appPath);
+        envConfig.setServletContext(getServletContext());
+        String configPath = envConfig.getConfigPath();
+
+        String[] contexts = { new File(configPath, "config-jeeves.xml").getAbsolutePath(),
+                new File(configPath, "config.xml").getAbsolutePath() };
+        this.springContext = new FileSystemXmlApplicationContext(contexts, false);
+
+        springContext.addBeanFactoryPostProcessor(envConfig);
+        springContext.refresh();
+        springContext.start();
+
+        this.jeeves = springContext.getBean(JeevesEngine.class);
     }
-		
-		if (!appPath.endsWith(File.separator))
-			appPath += File.separator;
-
-		String configPath = appPath + "WEB-INF" +
-                File.separator;
-
-		jeeves.init(appPath, configPath, baseUrl, this);
-		initialized = true;
-	}
 
 	//---------------------------------------------------------------------------
 	//---
@@ -94,7 +105,8 @@ public class JeevesServlet extends HttpServlet
 
 	public void destroy()
 	{
-		jeeves.destroy();
+        springContext.stop();
+        springContext.destroy();
 		super .destroy();
 	}
 
@@ -174,12 +186,12 @@ public class JeevesServlet extends HttpServlet
 		ServiceRequest srvReq = null;
 
 		//--- create request
-
+		GeneralConfig generalConfig = springContext.getBean(GeneralConfig.class);
 		try {
-			srvReq = ServiceRequestFactory.create(req, res, jeeves.getUploadDir(), jeeves.getMaxUploadSize());
+			srvReq = ServiceRequestFactory.create(req, res, generalConfig.getUploadDir(), generalConfig.getMaxUploadSize());
 		} catch (FileUploadTooBigEx e) {
 			StringBuffer sb = new StringBuffer();
-			sb.append("File upload too big - exceeds "+jeeves.getMaxUploadSize()+" Mb\n");
+			sb.append("File upload too big - exceeds "+generalConfig.getMaxUploadSize()+" Mb\n");
 			sb.append("Error : " +e.getClass().getName() +"\n");
 			res.sendError(400, sb.toString());
 
@@ -204,11 +216,8 @@ public class JeevesServlet extends HttpServlet
 		}
 
 		//--- execute request
-
 		jeeves.dispatch(srvReq, session);
 	}
-
-	public boolean isInitialized() { return initialized; }
 }
 
 //=============================================================================

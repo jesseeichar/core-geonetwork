@@ -15,6 +15,9 @@
 	<bean id="jeevesEngine"
 		class="jeeves.server.JeevesEngine">
 	</bean>
+	<bean id="serialFactory"
+		class="jeeves.utils.SerialFactory">
+	</bean>
 	<bean id="providerManager"
 		class="jeeves.server.resources.ProviderManager">
 	</bean>

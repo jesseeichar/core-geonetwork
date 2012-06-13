@@ -1,11 +1,11 @@
 package jeeves.config.springutil;
 
-import static org.mockito.Mockito.mock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,7 +16,6 @@ import jeeves.config.EnvironmentalConfig;
 import jeeves.constants.ConfigFile;
 import jeeves.constants.Jeeves;
 import jeeves.monitor.MonitorManager;
-import jeeves.server.ProfileManager;
 import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
 import jeeves.server.dispatchers.ErrorPage;
@@ -28,18 +27,20 @@ import jeeves.server.dispatchers.guiservices.Call;
 import jeeves.server.dispatchers.guiservices.GuiService;
 import jeeves.server.dispatchers.guiservices.XmlFile;
 import jeeves.server.resources.ProviderManager;
-import jeeves.server.resources.ResourceManager;
 
 import org.jdom.Element;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class ServiceBeanDefinitionParserTest {
     private final String appPath = ServiceBeanDefinitionParserTest.class.getResource(".").getFile();
-    private final String configPath = appPath;
     private final String baseUrl = "/test";
-    private final EnvironmentalConfig envConfig = new EnvironmentalConfig(baseUrl, appPath, configPath).freeze();
+    private EnvironmentalConfig envConfig;
+    
+    @Before
+    public void createConfig() { envConfig = new EnvironmentalConfig(baseUrl, appPath); }
 
     @SuppressWarnings("unchecked")
     @Test

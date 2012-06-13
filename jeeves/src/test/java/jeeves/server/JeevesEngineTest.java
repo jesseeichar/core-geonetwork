@@ -1,6 +1,7 @@
 package jeeves.server;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
@@ -20,15 +21,20 @@ import jeeves.server.sources.ServiceRequest.InputMethod;
 import jeeves.server.sources.ServiceRequest.OutputMethod;
 import jeeves.utils.Xml;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 public class JeevesEngineTest {
 
     private final String appPath = JeevesEngineTest.class.getResource(".").getFile();
-    private final String configPath = appPath;
     private final String baseUrl = "/test";
-    private final EnvironmentalConfig envConfig = new EnvironmentalConfig(baseUrl, appPath, configPath).freeze();
+    private EnvironmentalConfig envConfig;
+    
+    @Before
+    public void createConfig() {
+        envConfig = new EnvironmentalConfig(baseUrl, appPath);
+    }
 
     private FileSystemXmlApplicationContext createContext(String... extraContextFileUrls) {
         return createContext(envConfig, extraContextFileUrls);
@@ -82,7 +88,7 @@ public class JeevesEngineTest {
     public void testServletContext() throws Exception {
         ServletContext mockContext = mock(ServletContext.class);
         
-        EnvironmentalConfig envConfigWithContext = new EnvironmentalConfig(baseUrl, appPath, configPath);
+        EnvironmentalConfig envConfigWithContext = new EnvironmentalConfig(baseUrl, appPath);
         envConfigWithContext.setServletContext(mockContext);
         FileSystemXmlApplicationContext springContext = createContext(envConfigWithContext);
         

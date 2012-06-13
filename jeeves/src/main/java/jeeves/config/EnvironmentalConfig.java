@@ -1,8 +1,8 @@
 package jeeves.config;
 
+import java.io.File;
 import java.lang.reflect.Field;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 
 import org.springframework.beans.BeansException;
@@ -25,17 +25,15 @@ public class EnvironmentalConfig implements BeanDefinitionRegistryPostProcessor 
     private ServletContext servletContext;
     private String baseUrl;
     private String appPath;
-    private String configPath;
-    private boolean frozen = false;
+    private volatile String configPath;
     
     public EnvironmentalConfig() {
         // to allow spring to configure
     }
-    public EnvironmentalConfig(String baseUrl, String appPath, String configPath) {
+    public EnvironmentalConfig(String baseUrl, String appPath) {
         super();
         this.baseUrl = baseUrl;
         this.appPath = appPath;
-        this.configPath = configPath;
     }
     /**
      * get Optional servlet context.  May be null
@@ -47,13 +45,7 @@ public class EnvironmentalConfig implements BeanDefinitionRegistryPostProcessor 
      * Set servlet context, should only be configurator
      */
     public void setServletContext(ServletContext servletContext) {
-        checkState();
         this.servletContext = servletContext;
-    }
-    private void checkState() {
-        if(frozen) {
-            throw new IllegalStateException("Config has been frozen, you should not change it");
-        }
     }
     /**
      * base name of the webapp like /geonetwork
@@ -63,8 +55,6 @@ public class EnvironmentalConfig implements BeanDefinitionRegistryPostProcessor 
     }
     @Required
     public void setBaseUrl(String baseUrl) {
-        checkState();
-
         if (!baseUrl.startsWith("/") && baseUrl.length() != 0) {
             baseUrl = "/"+ baseUrl;
         }
@@ -79,20 +69,35 @@ public class EnvironmentalConfig implements BeanDefinitionRegistryPostProcessor 
     }
     @Required
     public void setAppPath(String appPath) {
-        checkState();
         this.appPath = appPath;
     }
     /**
      * Path to directory containing the configuration files
      */
     public String getConfigPath() {
+        if (configPath == null) {
+            synchronized (this) {
+                if (configPath == null) {
+                    this.configPath = appPath + "WEB-INF" + File.separator;
+                    if (servletContext != null) {
+                        String key = getWebappName() + ".config.dir";
+
+                        if (servletContext.getInitParameter(key) != null) {
+                            configPath = servletContext.getInitParameter(key);
+                        } else if (System.getProperty(key) != null) {
+                            configPath = System.getProperty(key);
+                        }
+                    }
+                }
+            }
+        }
         return configPath;
     }
     @Required
     public void setConfigPath(String configPath) {
-        checkState();
         this.configPath = configPath;
     }
+    public String getWebappName() { return baseUrl.substring(1); }
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
         // no action
@@ -100,7 +105,7 @@ public class EnvironmentalConfig implements BeanDefinitionRegistryPostProcessor 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-        beanDefinition.setBeanClass(getClass());
+        beanDefinition.setBeanClass(EnvironmentalConfig.class);
         MutablePropertyValues propertyValues = new MutablePropertyValues();
         for(Field field: getClass().getDeclaredFields()) {
             try {
@@ -114,10 +119,5 @@ public class EnvironmentalConfig implements BeanDefinitionRegistryPostProcessor 
         }
         beanDefinition.setPropertyValues(propertyValues);
         registry.registerBeanDefinition("envConfig", beanDefinition);
-    }
-    @PostConstruct
-    public EnvironmentalConfig freeze() {
-        frozen  = true;
-        return this;
     }
 }

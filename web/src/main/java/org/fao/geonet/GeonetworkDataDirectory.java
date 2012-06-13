@@ -7,7 +7,6 @@ import java.io.IOException;
 
 import javax.servlet.ServletContext;
 
-import jeeves.server.ServiceConfig;
 import jeeves.utils.BinaryFile;
 import jeeves.utils.Log;
 
@@ -31,6 +30,14 @@ public class GeonetworkDataDirectory {
 
 	private String systemDataDir;
 	private ServletContext servletContext;
+    private String luceneDir;
+    private String configDir;
+    private String codelistDir;
+    private String schemapluginsDir;
+    private String dataDir;
+    private String subversionPath;
+    private String resourcesDir;
+    private String htmlcacheDir;
 
 	/**
 	 * Check and create if needed GeoNetwork data directory.
@@ -52,13 +59,12 @@ public class GeonetworkDataDirectory {
 	 * </ul>
 	 * 
 	 */
-	public GeonetworkDataDirectory(String webappName, String path,
-			ServiceConfig handlerConfig, ServletContext servletContext) {
+	public GeonetworkDataDirectory(String webappName, String path, ServletContext servletContext) {
         if (Log.isDebugEnabled(Geonet.DATA_DIRECTORY))
             Log.debug(Geonet.DATA_DIRECTORY,
 				"Check and create if needed GeoNetwork data directory");
 		this.servletContext = servletContext;
-		setDataDirectory(webappName, path, handlerConfig);
+		setDataDirectory(webappName, path);
 	}
 
 	/**
@@ -72,14 +78,13 @@ public class GeonetworkDataDirectory {
 	 * directory 3) Is writable
 	 * 
 	 * Inspired by GeoServer mechanism.
-	 * @param handlerConfig TODO
 	 * @param servContext
 	 *            The servlet context.
 	 * 
 	 * @return String The absolute path to the data directory, or
 	 *         <code>null</code> if it could not be found.
 	 */
-	private static String lookupProperty(ServletContext servletContext, ServiceConfig handlerConfig, String key) {
+	private static String lookupProperty(ServletContext servletContext, String key) {
 
 		final String[] typeStrs = { "Java environment variable ",
 				"Servlet context parameter ", "Config.xml appHandler parameter", "System environment variable " };
@@ -101,9 +106,6 @@ public class GeonetworkDataDirectory {
 				break;
 			case 1:
 				value = servletContext == null ? null : servletContext.getInitParameter(key);
-				break;
-			case 2:
-				value = handlerConfig.getValue(key);
 				break;
 			case 3:
 //				Environment variable names used by the utilities in the Shell and Utilities 
@@ -129,17 +131,15 @@ public class GeonetworkDataDirectory {
 	/**
 	 * 
 	 */
-	private String setDataDirectory(String webappName, String path,
-			ServiceConfig handlerConfig) {
+	private String setDataDirectory(String webappName, String path) {
 
 		// System property defined according to webapp name
-		systemDataDir = GeonetworkDataDirectory.lookupProperty(servletContext,
-				handlerConfig, webappName + KEY_SUFFIX);
+		systemDataDir = GeonetworkDataDirectory.lookupProperty(servletContext, webappName + KEY_SUFFIX);
 
 		// GEONETWORK.dir is default
 		if (systemDataDir == null) {
 			systemDataDir = GeonetworkDataDirectory.lookupProperty(
-					servletContext, handlerConfig, GEONETWORK_DIR_KEY);
+					servletContext, GEONETWORK_DIR_KEY);
 		}
 		boolean useDefaultDataDir = false;
 		Log.warning(Geonet.DATA_DIRECTORY,
@@ -197,33 +197,29 @@ public class GeonetworkDataDirectory {
 		System.setProperty(webappName + KEY_SUFFIX + "", systemDataDir);
 
 		// Set subfolder data directory
-		setResourceDir(webappName, handlerConfig, systemDataDir, ".lucene" + KEY_SUFFIX,
+		this.luceneDir = setResourceDir(webappName, systemDataDir, ".lucene" + KEY_SUFFIX,
 				"index", Geonet.Config.LUCENE_DIR);
-		setResourceDir(webappName, handlerConfig, systemDataDir, ".config" + KEY_SUFFIX,
+		this.configDir = setResourceDir(webappName, systemDataDir, ".config" + KEY_SUFFIX,
 				"config", Geonet.Config.CONFIG_DIR);
-		setResourceDir(webappName, handlerConfig, systemDataDir,
+		this.codelistDir = setResourceDir(webappName, systemDataDir,
 				".codeList" + KEY_SUFFIX, "config" + File.separator + "codelist",
 				Geonet.Config.CODELIST_DIR);
-		setResourceDir(webappName, handlerConfig, systemDataDir, ".schema" + KEY_SUFFIX,
+		this.schemapluginsDir = setResourceDir(webappName, systemDataDir, ".schema" + KEY_SUFFIX,
 				"config" + File.separator + "schema_plugins",
 				Geonet.Config.SCHEMAPLUGINS_DIR);
-		setResourceDir(webappName, handlerConfig, systemDataDir, ".data" + KEY_SUFFIX,
+		this.dataDir = setResourceDir(webappName, systemDataDir, ".data" + KEY_SUFFIX,
 				"data" + File.separator + "metadata_data",
 				Geonet.Config.DATA_DIR);
-		setResourceDir(webappName, handlerConfig, systemDataDir, ".svn" + KEY_SUFFIX,
+		this.subversionPath = setResourceDir(webappName, systemDataDir, ".svn" + KEY_SUFFIX,
 				"data" + File.separator + "metadata_subversion",
 				Geonet.Config.SUBVERSION_PATH);
-		setResourceDir(webappName, handlerConfig, systemDataDir,
+		this.resourcesDir = setResourceDir(webappName, systemDataDir,
 				".resources" + KEY_SUFFIX, "data" + File.separator + "resources",
 				Geonet.Config.RESOURCES_DIR);
 
-		handlerConfig.setValue(Geonet.Config.HTMLCACHE_DIR,
-				handlerConfig.getValue(Geonet.Config.RESOURCES_DIR)
-						+ File.separator + "htmlcache");
+		this.htmlcacheDir = resourcesDir + File.separator + "htmlcache";
 
-		handlerConfig.setValue(Geonet.Config.SYSTEM_DATA_DIR, systemDataDir);
-
-		initDataDirectory(path, handlerConfig);
+		initDataDirectory(path);
 
 		return systemDataDir;
 	}
@@ -235,12 +231,11 @@ public class GeonetworkDataDirectory {
 	 * @param dataSystemDir
 	 * @param path
 	 */
-	private void initDataDirectory(String path, ServiceConfig handlerConfig) {
+	private void initDataDirectory(String path) {
 		Log.info(Geonet.DATA_DIRECTORY,
 				"   - Data directory initialization ...");
 
-		File codelistDir = new File(
-				handlerConfig.getValue(Geonet.Config.CODELIST_DIR));
+		File codelistDir = new File(this.codelistDir);
 		if (!codelistDir.exists()) {
 			Log.info(Geonet.DATA_DIRECTORY,
 					"     - Copying codelists directory ...");
@@ -255,8 +250,7 @@ public class GeonetworkDataDirectory {
 			}
 		}
 
-		String schemaCatPath = handlerConfig.getValue(Geonet.Config.CONFIG_DIR)
-				+ File.separator + Geonet.File.SCHEMA_PLUGINS_CATALOG;
+		String schemaCatPath = this.configDir + File.separator + Geonet.File.SCHEMA_PLUGINS_CATALOG;
 		File schemaCatFile = new File(schemaCatPath);
 		if (!schemaCatFile.exists()) {
 			Log.info(Geonet.DATA_DIRECTORY,
@@ -290,11 +284,9 @@ public class GeonetworkDataDirectory {
 	 * @param folder
 	 * @param handlerKey
 	 */
-	private void setResourceDir(String webappName, ServiceConfig handlerConfig,
-			String systemDataDir, String key, String folder, String handlerKey) {
+	private String setResourceDir(String webappName, String systemDataDir, String key, String folder, String handlerKey) {
 		String envKey = webappName + key;
-		String dir = GeonetworkDataDirectory.lookupProperty(
-				servletContext, handlerConfig, envKey);
+		String dir = GeonetworkDataDirectory.lookupProperty(servletContext, envKey);
 		if (dir == null) {
 			dir = systemDataDir + folder;
 			System.setProperty(envKey, dir);
@@ -305,7 +297,6 @@ public class GeonetworkDataDirectory {
 						+ " is relative path. Use absolute path instead.");
 			}
 		}
-		handlerConfig.setValue(handlerKey, dir);
 
 		// Create directory if it does not exist
 		File file = new File(dir);
@@ -314,6 +305,17 @@ public class GeonetworkDataDirectory {
 		}
 
 		Log.info(Geonet.DATA_DIRECTORY, "    - " + envKey + " is " + dir);
+		return dir;
 	}
 
+    public String getSystemDataDir() { return systemDataDir; }
+    public ServletContext getServletContext() { return servletContext; }
+    public String getLuceneDir() { return luceneDir; }
+    public String getConfigDir() { return configDir; }
+    public String getCodelistDir() { return codelistDir; }
+    public String getSchemapluginsDir() { return schemapluginsDir; }
+    public String getDataDir() { return dataDir; }
+    public String getSubversionPath() { return subversionPath; }
+    public String getResourcesDir() { return resourcesDir; }
+    public String getHtmlcacheDir() { return htmlcacheDir; }
 }

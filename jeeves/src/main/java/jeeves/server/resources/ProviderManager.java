@@ -116,14 +116,14 @@ public class ProviderManager implements ApplicationContextAware
                 error("   Stack     : " + Util.getStackTrace(e));
                 errorReport.put("Stack", Util.getStackTrace(e));
                 error(errorReport.toString());
-                serviceManager.setStartupErrors(errorReport);
+                serviceManager.addStartupErrors(errorReport);
             }
         }
         if (!resourceFound) {
             Map<String, String> errorReport = new HashMap<String, String>();
             errorReport.put("Error", "No database resources found to initialize");
             error(errorReport.toString());
-            serviceManager.setStartupErrors(errorReport);
+            serviceManager.addStartupErrors(errorReport);
         }
 
         

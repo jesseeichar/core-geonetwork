@@ -55,7 +55,6 @@ import jeeves.server.resources.ResourceManager;
 import jeeves.server.sources.ServiceRequest;
 import jeeves.server.sources.http.JeevesServlet;
 import jeeves.utils.Log;
-import jeeves.utils.SerialFactory;
 import jeeves.utils.TransformerFactoryFactory;
 import jeeves.utils.Util;
 import jeeves.utils.Xml;
@@ -85,8 +84,8 @@ public class JeevesEngine implements ApplicationContextAware
 	private MonitorManager monitorManager;
 	private ServiceManager  serviceMan;
 	
+	// TODO spring migration
 	private ScheduleManager scheduleMan = new ScheduleManager();
-	private SerialFactory   serialFact  = new SerialFactory();
 
 	private List<ApplicationHandler> appHandlers;
     
@@ -133,8 +132,15 @@ public class JeevesEngine implements ApplicationContextAware
     	}
     	if(in == null){
     		File f = new File(envConfig.getAppPath() + TRANSFORMER_PATH);
-    		in = new FileInputStream(f);
-    	}        
+    		if(f.exists()) {
+    		    in = new FileInputStream(f);
+    		}
+    	}
+    	
+    	if(in == null) {
+    	    warning("xsl Transformer not found");
+    	    return;
+    	}
         try {
             
             if(in != null) {
@@ -165,34 +171,6 @@ public class JeevesEngine implements ApplicationContextAware
             }
         }
     }
-
-
-	//---------------------------------------------------------------------------
-
-	@SuppressWarnings("unchecked")
-	private void loadConfigFile(ServletContext servletContext, String path, String file, ServiceManager serviceMan) throws Exception
-	{
-		file = path + file;
-
-		info("Loading : " + file);
-
-		Element configRoot = Xml.loadFile(file);
-
-		//--- init schedules
-
-		List<Element> schedList = configRoot.getChildren(ConfigFile.Child.SCHEDULES);
-
-		for(int i=0; i<schedList.size(); i++)
-			initSchedules(schedList.get(i));
-
-        //--- init monitoring
-
-        List<Element> monitorList = configRoot.getChildren(ConfigFile.Child.MONITORS);
-
-        for(int i=0; i<monitorList.size(); i++)
-            monitorManager.initMonitors(monitorList.get(i));
-
-	}
 
 	//---------------------------------------------------------------------------
 	//---
@@ -255,7 +233,7 @@ public class JeevesEngine implements ApplicationContextAware
 				errors.put("Stack",Util.getStackTrace(e));
 				error(errors.toString());
 				// only set the error if we don't already have one
-				if (!serviceMan.isStartupError()) serviceMan.setStartupErrors(errors);
+				if (!serviceMan.isStartupError()) serviceMan.addStartupErrors(errors);
 				srvContext.getResourceManager().abort();
 			}
 		}

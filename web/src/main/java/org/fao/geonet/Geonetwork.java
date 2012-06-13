@@ -36,13 +36,12 @@ import java.util.UUID;
 
 import javax.servlet.ServletContext;
 
-import com.yammer.metrics.core.MetricsRegistry;
 import jeeves.JeevesJCS;
 import jeeves.JeevesProxyInfo;
+import jeeves.config.EnvironmentalConfig;
 import jeeves.constants.Jeeves;
 import jeeves.interfaces.ApplicationHandler;
 import jeeves.interfaces.Logger;
-import jeeves.monitor.MonitorManager;
 import jeeves.resources.dbms.Dbms;
 import jeeves.server.ConfigurationOverrides;
 import jeeves.server.ServiceConfig;
@@ -115,8 +114,18 @@ public class Geonetwork implements ApplicationHandler {
 	private ThreadPool        threadPool;
 	private String   FS         = File.separator;
 	private Element dbConfiguration;
+	private String languageProfilesDir;
+	private String licenseDir;
+	private String preferredSchema;
+	private boolean statLogSpatialObjects;
+	private boolean statLogAsynch;
+	private String statLuceneTermsExclude = "";
+	private int maxWritesInTransaction = SpatialIndexWriter.MAX_WRITES_IN_TRANSACTION;
+	private boolean useSubversion;
+	private String statusActionsClassName;
+	private EnvironmentalConfig envConfig;
 
-	private static final String       SPATIAL_INDEX_FILENAME    = "spatialindex";
+    private static final String       SPATIAL_INDEX_FILENAME    = "spatialindex";
 	private static final String       IDS_ATTRIBUTE_NAME        = "id";
 
 	//---------------------------------------------------------------------------
@@ -137,7 +146,7 @@ public class Geonetwork implements ApplicationHandler {
      * Inits the engine, loading all needed data.
 	  */
 	@SuppressWarnings(value = "unchecked")
-	public Object start(Element config, ServiceContext context) throws Exception {
+	public Object start(ServiceContext context) throws Exception {
 		logger = context.getLogger();
 
 		path    = context.getAppPath();
@@ -153,30 +162,24 @@ public class Geonetwork implements ApplicationHandler {
 
 		logger.info("Initializing GeoNetwork " + version +  "." + subVersion +  " ...");
 
-		// Get main service config handler
-		ServiceConfig handlerConfig = new ServiceConfig(config.getChildren());
-		
 		// Init configuration directory
-		new GeonetworkDataDirectory(webappName, path, handlerConfig, context.getServletContext());
+		GeonetworkDataDirectory dataDirectory = 
+		        new GeonetworkDataDirectory(webappName, path, context.getServletContext());
 		
 		// Get config handler properties
-		String systemDataDir = handlerConfig.getMandatoryValue(Geonet.Config.SYSTEM_DATA_DIR);
-		String thesauriDir = handlerConfig.getMandatoryValue(Geonet.Config.CODELIST_DIR);
-		String luceneDir =  handlerConfig.getMandatoryValue(Geonet.Config.LUCENE_DIR);
-		String dataDir =  handlerConfig.getMandatoryValue(Geonet.Config.DATA_DIR);
+		String systemDataDir = dataDirectory.getSystemDataDir();
+		String thesauriDir = dataDirectory.getCodelistDir();
+		String luceneDir =  dataDirectory.getLuceneDir();
+		String dataDir =  dataDirectory.getDataDir();
 		String luceneConfigXmlFile = handlerConfig.getMandatoryValue(Geonet.Config.LUCENE_CONFIG);
 		String summaryConfigXmlFile = handlerConfig.getMandatoryValue(Geonet.Config.SUMMARY_CONFIG);
 		logger.info("Data directory: " + systemDataDir);
 
-		setProps(path, handlerConfig);
+		setProps(path);
 
 		// Status actions class - load it
-		String statusActionsClassName = handlerConfig.getMandatoryValue(Geonet.Config.STATUS_ACTIONS_CLASS); 
-		Class statusActionsClass = Class.forName(statusActionsClassName);
+		Class statusActionsClass = Class.forName(this.statusActionsClassName);
 
-        String languageProfilesDir = handlerConfig
-                .getMandatoryValue(Geonet.Config.LANGUAGE_PROFILES_DIR);
-		
 		JeevesJCS.setConfigFilename(path + "WEB-INF/classes/cache.ccf");
 
 		// force caches to be config'd so shutdown hook works correctly
@@ -267,25 +270,20 @@ public class Geonetwork implements ApplicationHandler {
 
 		logger.info("  - Schema manager...");
 
-		String schemaPluginsDir = handlerConfig.getMandatoryValue(Geonet.Config.SCHEMAPLUGINS_DIR);
+		String schemaPluginsDir = dataDirectory.getSchemapluginsDir();
 		String schemaCatalogueFile = systemDataDir + "config" + File.separator + Geonet.File.SCHEMA_PLUGINS_CATALOG;
 		logger.info("			- Schema plugins directory: "+schemaPluginsDir);
 		logger.info("			- Schema Catalog File     : "+schemaCatalogueFile);
-		SchemaManager schemaMan = SchemaManager.getInstance(path, schemaCatalogueFile, schemaPluginsDir, context.getLanguage(), handlerConfig.getMandatoryValue(Geonet.Config.PREFERRED_SCHEMA));
+		SchemaManager schemaMan = SchemaManager.getInstance(path, schemaCatalogueFile, schemaPluginsDir, context.getLanguage(), preferredSchema);
 
 		//------------------------------------------------------------------------
 		//--- initialize search and editing
 
 		logger.info("  - Search...");
 
-		boolean logSpatialObject = "true".equalsIgnoreCase(handlerConfig.getMandatoryValue(Geonet.Config.STAT_LOG_SPATIAL_OBJECTS));
-		boolean logAsynch = "true".equalsIgnoreCase(handlerConfig.getMandatoryValue(Geonet.Config.STAT_LOG_ASYNCH));
-		logger.info("  - Log spatial object: " + logSpatialObject);
-		logger.info("  - Log in asynch mode: " + logAsynch);
+		logger.info("  - Log spatial object: " + statLogSpatialObjects);
+		logger.info("  - Log in asynch mode: " + statLogAsynch);
         
-		String luceneTermsToExclude = "";
-		luceneTermsToExclude = handlerConfig.getMandatoryValue(Geonet.Config.STAT_LUCENE_TERMS_EXCLUDE);
-
 		LuceneConfig lc = new LuceneConfig(path, servletContext, luceneConfigXmlFile);
         logger.info("  - Lucene configuration is:");
         logger.info(lc.toString());
@@ -300,20 +298,10 @@ public class Geonetwork implements ApplicationHandler {
 			throw new IllegalArgumentException("GeoTools datastore creation failed - check logs for more info/exceptions");
 		}
 
-		String maxWritesInTransactionStr = handlerConfig.getMandatoryValue(Geonet.Config.MAX_WRITES_IN_TRANSACTION);
-		int maxWritesInTransaction = SpatialIndexWriter.MAX_WRITES_IN_TRANSACTION;
-		try {
-			maxWritesInTransaction = Integer.parseInt(maxWritesInTransactionStr);
-		} catch (NumberFormatException nfe) {
-			logger.error ("Invalid config parameter: maximum number of writes to spatial index in a transaction (maxWritesInTransaction), Using "+maxWritesInTransaction+" instead.");
-			nfe.printStackTrace();
-		}
-	
-		String htmlCacheDir = handlerConfig
-				.getMandatoryValue(Geonet.Config.HTMLCACHE_DIR);
+		String htmlCacheDir = dataDirectory.getHtmlcacheDir();
 		
 		searchMan = new SearchManager(path, luceneDir, htmlCacheDir, thesauriDir, summaryConfigXmlFile, lc,
-				logAsynch, logSpatialObject, luceneTermsToExclude, 
+				statLogAsynch, statLogSpatialObjects, statLuceneTermsExclude, 
 				dataStore, maxWritesInTransaction, 
 				new SettingInfo(settingMan), schemaMan, servletContext);
 
@@ -329,13 +317,10 @@ public class Geonetwork implements ApplicationHandler {
 
 		logger.info("  - Xml serializer and Data manager...");
 
-		String useSubversion = handlerConfig.getMandatoryValue(Geonet.Config.USE_SUBVERSION);
-
 		SvnManager svnManager = null;
 		XmlSerializer xmlSerializer = null;
-		if (useSubversion.equals("true")) {
-			String subversionPath = handlerConfig.getValue(Geonet.Config.SUBVERSION_PATH);
-			svnManager = new SvnManager(context, settingMan, subversionPath, dbms, created);
+		if (useSubversion) {
+			svnManager = new SvnManager(context, settingMan, dataDirectory.getSubversionPath(), dbms, created);
 			xmlSerializer = new XmlSerializerSvn(settingMan, svnManager);
 		} else {
 			xmlSerializer = new XmlSerializerDb(settingMan);
@@ -400,7 +385,7 @@ public class Geonetwork implements ApplicationHandler {
 		gnContext.dataMan     = dataMan;
 		gnContext.searchMan   = searchMan;
 		gnContext.schemaMan   = schemaMan;
-		gnContext.config      = handlerConfig;
+		gnContext.config      = this;
 		gnContext.catalogDis  = catalogDis;
 		gnContext.settingMan  = settingMan;
 		gnContext.harvestMan  = harvestMan;
@@ -440,25 +425,6 @@ public class Geonetwork implements ApplicationHandler {
 
 		return gnContext;
 	}
-
-    /**
-     *
-     * @param webappName
-     * @param handlerConfig
-     * @param dataDir
-     * @return
-     */
-    private String locateThesaurusDir(String webappName, ServiceConfig handlerConfig, String dataDir) {
-        String defaultThesaurusDir = handlerConfig.getValue(Geonet.Config.CODELIST_DIR, null);
-        String thesaurusSystemDir = System.getProperty(webappName + ".codeList.dir");
-        String thesauriDir = (thesaurusSystemDir != null ? thesaurusSystemDir :
-                                (defaultThesaurusDir != null ? defaultThesaurusDir : dataDir + "/codelist/")
-                                );
-        thesauriDir = new File(thesauriDir).getAbsoluteFile().getPath();
-        handlerConfig.setValue(Geonet.Config.CODELIST_DIR, thesauriDir);
-        System.setProperty(webappName + ".codeList.dir", thesauriDir);
-        return thesauriDir;
-    }
 
     /**
      * Parses a version number removing extra "-*" element and returning an integer. "2.7.0-SNAPSHOT" is returned as 270.
@@ -725,7 +691,7 @@ public class Geonetwork implements ApplicationHandler {
 	 * Set system properties to those required
 	 * @param path webapp path
 	 */
-	private void setProps(String path, ServiceConfig handlerConfig) {
+	private void setProps(String path) {
 
 		String webapp = path + "WEB-INF" + FS;
 
@@ -736,7 +702,7 @@ public class Geonetwork implements ApplicationHandler {
 		if (!catalogProp.equals("")) {
 			logger.info("Overriding "+Jeeves.XML_CATALOG_FILES+" property (was set to "+catalogProp+")");
 		} 
-		catalogProp = webapp + "oasis-catalog.xml;" + handlerConfig.getValue(Geonet.Config.CONFIG_DIR) + File.separator + "schemaplugin-uri-catalog.xml";
+		catalogProp = webapp + "oasis-catalog.xml;" + envConfig.getConfigDir() + File.separator + "schemaplugin-uri-catalog.xml";
 		System.setProperty(Jeeves.XML_CATALOG_FILES, catalogProp);
 		logger.info(Jeeves.XML_CATALOG_FILES+" property set to "+catalogProp);
 
@@ -834,4 +800,18 @@ public class Geonetwork implements ApplicationHandler {
 		return ids;
 	}
 
+	//---------------------------------------------------------------------------
+	// --  Spring settings
+    //---------------------------------------------------------------------------
+
+    public void setLanguageProfilesDir(String languageProfilesDir) { this.languageProfilesDir = languageProfilesDir; }
+    public void setLicenseDir(String licenseDir) { this.licenseDir = licenseDir; }
+    public void setPreferredSchema(String preferredSchema) { this.preferredSchema = preferredSchema; }
+    public void setStatLogSpatialObjects(boolean statLogSpatialObjects) { this.statLogSpatialObjects = statLogSpatialObjects; }
+    public void setStatLogAsynch(boolean statLogAsynch) { this.statLogAsynch = statLogAsynch; }
+    public void setStatLuceneTermsExclude(String statLuceneTermsExclude) { this.statLuceneTermsExclude = statLuceneTermsExclude; }
+    public void setMaxWritesInTransaction(int maxWritesInTransaction) { this.maxWritesInTransaction = maxWritesInTransaction; }
+    public void setUseSubversion(boolean useSubversion) { this.useSubversion = useSubversion; }
+    public void setStatusActionsClass(String statusActionsClass) { this.statusActionsClassName = statusActionsClass; }
+    public void setEnvConfig(EnvironmentalConfig envConfig) { this.envConfig = envConfig;}
 }
