@@ -37,6 +37,7 @@ import jeeves.utils.TransformerFactoryFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.fao.geonet.GeonetContext;
+import org.fao.geonet.GeonetworkDataDirectory;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.kernel.search.SearchManager;
 import org.jdom.Element;
@@ -72,8 +73,7 @@ public class GetInfo implements Service {
 		sm = gc.getSearchmanager();
 		dbms = (Dbms) context.getResourceManager().open(Geonet.Res.MAIN_DB);
 		
-		String luceneDir = gc.getHandlerConfig().getMandatoryValue(
-				Geonet.Config.LUCENE_DIR);
+		String luceneDir = gc.getHandlerConfig().getDataDirectories().getLuceneDir();
 		loadSystemInfo();
 		loadCatalogueInfo(gc);
 		loadIndexInfo(luceneDir);
@@ -109,12 +109,14 @@ public class GetInfo implements Service {
      * @param dataDir
      */
     private void loadCatalogueInfo(GeonetContext gc) {
-    	ServiceConfig sc = gc.getHandlerConfig();
-    	String[] props = {Geonet.Config.DATA_DIR, Geonet.Config.CODELIST_DIR, Geonet.Config.CONFIG_DIR, 
-    			Geonet.Config.SCHEMAPLUGINS_DIR, Geonet.Config.SUBVERSION_PATH, Geonet.Config.RESOURCES_DIR};
-    	for (String prop : props) {
-    		catProperties.put("data." + prop, sc.getValue(prop));
-		}
+    	GeonetworkDataDirectory sc = gc.getHandlerConfig().getDataDirectories();
+
+    	catProperties.put("data." + Geonet.Config.DATA_DIR, sc.getDataDir());
+    	catProperties.put("data." + Geonet.Config.CODELIST_DIR, sc.getCodelistDir());
+    	catProperties.put("data." + Geonet.Config.CONFIG_DIR, sc.getConfigDir());
+    	catProperties.put("data." + Geonet.Config.SCHEMAPLUGINS_DIR, sc.getSchemapluginsDir());
+    	catProperties.put("data." + Geonet.Config.SUBVERSION_PATH, sc.getSubversionPath());
+    	catProperties.put("data." + Geonet.Config.RESOURCES_DIR, sc.getResourcesDir());
     }
 
 

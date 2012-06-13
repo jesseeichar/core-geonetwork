@@ -44,27 +44,21 @@ import java.util.Set;
  *
  * @author heikki doeleman
  */
-public final class GeoNetworkAnalyzer extends GeoNetworkReusableAnalyzerBase {
+public final class GeoNetworkAnalyzer extends GeoNetworkReusableAnalyzerBase implements LocalizedAnalyzer {
  
     private Set<String> stopwords = new HashSet<String>();
     private boolean enablePositionIncrements = true;
     private boolean ignoreCase = true;
 
-    /**
-     * Creates this analyzer using no stopwords.
-     */
-    public GeoNetworkAnalyzer() {
-        super();
-    }
-
-    /**
-     * 
-     */
-    public GeoNetworkAnalyzer(Set<String> stopwords) {
-        super();
+    public void setStopwords(Set<String> stopwords) {
         this.stopwords = stopwords;
     }
-
+    public void setEnablePositionIncrements(boolean enablePositionIncrements) {
+        this.enablePositionIncrements = enablePositionIncrements;
+    }
+    public void setIgnoreCase(boolean ignoreCase) {
+        this.ignoreCase = ignoreCase;
+    }
     /**
      * Creates a new {@link TokenStreamComponents} instance for this analyzer.
      *

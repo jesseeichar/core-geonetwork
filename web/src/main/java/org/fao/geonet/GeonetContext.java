@@ -49,7 +49,7 @@ public class GeonetContext
 	/* package */ AccessManager     accessMan;
 	/* package */ SearchManager     searchMan;
 	/* package */ SchemaManager     schemaMan;
-	/* package */ Geonetwork     config;
+	/* package */ GeonetworkConfig     config;
 	/* package */ CatalogDispatcher catalogDis;
 	/* package */ SettingManager    settingMan;
 	/* package */ HarvestManager    harvestMan;
@@ -71,7 +71,7 @@ public class GeonetContext
 	public AccessManager     getAccessManager()     { return accessMan;    }
 	public SearchManager     getSearchmanager()     { return searchMan;    }
 	public SchemaManager     getSchemamanager()     { return schemaMan;    }
-	public Geonetwork        getHandlerConfig()     { return config;       }
+	public GeonetworkConfig  getHandlerConfig()     { return config;       }
 	public CatalogDispatcher getCatalogDispatcher() { return catalogDis;   }
 	public SettingManager    getSettingManager()    { return settingMan;   }
 	public HarvestManager    getHarvestManager()    { return harvestMan;   }

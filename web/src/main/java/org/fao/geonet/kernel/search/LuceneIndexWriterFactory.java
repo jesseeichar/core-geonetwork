@@ -142,7 +142,7 @@ public class LuceneIndexWriterFactory {
             }
             
             writer = new IndexWriter(FSDirectory.open(indexDir), SearchManager.getAnalyzer(locale, false), IndexWriter.MaxFieldLength.UNLIMITED);
-            writer.setRAMBufferSizeMB(_luceneConfig.getRAMBufferSize());
+            writer.setRAMBufferSizeMB(_luceneConfig.getRamBufferSizeMB());
             writer.setMergeFactor(_luceneConfig.getMergeFactor());
             _writers.put(locale, writer);
         }

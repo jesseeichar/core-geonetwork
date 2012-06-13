@@ -32,8 +32,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import jeeves.config.EnvironmentalConfig;
 import jeeves.config.GeneralConfig;
+import jeeves.config.springutil.JeevesApplicationContextLoader;
 import jeeves.exceptions.FileUploadTooBigEx;
 import jeeves.server.JeevesEngine;
 import jeeves.server.UserSession;
@@ -42,7 +42,7 @@ import jeeves.server.sources.ServiceRequestFactory;
 import jeeves.utils.Log;
 import jeeves.utils.Util;
 
-import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.context.support.AbstractXmlApplicationContext;
 
 //=============================================================================
 
@@ -52,7 +52,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 @SuppressWarnings("serial")
 public class JeevesServlet extends HttpServlet
 {
-	private FileSystemXmlApplicationContext springContext;
+	private AbstractXmlApplicationContext springContext;
     private JeevesEngine jeeves;
 
     //---------------------------------------------------------------------------
@@ -82,16 +82,7 @@ public class JeevesServlet extends HttpServlet
         if (!appPath.endsWith(File.separator))
             appPath += File.separator;
 
-        EnvironmentalConfig envConfig = new EnvironmentalConfig(baseUrl, appPath);
-        envConfig.setServletContext(getServletContext());
-        String configPath = envConfig.getConfigPath();
-
-        String[] contexts = { new File(configPath, "config-jeeves.xml").getAbsolutePath(),
-                new File(configPath, "config.xml").getAbsolutePath() };
-        this.springContext = new FileSystemXmlApplicationContext(contexts, false);
-
-        springContext.addBeanFactoryPostProcessor(envConfig);
-        springContext.refresh();
+        this.springContext = JeevesApplicationContextLoader.loadDefaults(appPath, baseUrl, getServletContext());
         springContext.start();
 
         this.jeeves = springContext.getBean(JeevesEngine.class);

@@ -7,10 +7,12 @@ import java.io.IOException;
 
 import javax.servlet.ServletContext;
 
+import jeeves.config.EnvironmentalConfig;
 import jeeves.utils.BinaryFile;
 import jeeves.utils.Log;
 
 import org.fao.geonet.constants.Geonet;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * The GeoNetwork data directory is the location on the file system where
@@ -59,12 +61,13 @@ public class GeonetworkDataDirectory {
 	 * </ul>
 	 * 
 	 */
-	public GeonetworkDataDirectory(String webappName, String path, ServletContext servletContext) {
+    @Autowired
+	public GeonetworkDataDirectory(EnvironmentalConfig envConfig) {
         if (Log.isDebugEnabled(Geonet.DATA_DIRECTORY))
             Log.debug(Geonet.DATA_DIRECTORY,
 				"Check and create if needed GeoNetwork data directory");
-		this.servletContext = servletContext;
-		setDataDirectory(webappName, path);
+		this.servletContext = envConfig.getServletContext();
+		setDataDirectory(envConfig.getWebappName(), envConfig.getAppPath());
 	}
 
 	/**

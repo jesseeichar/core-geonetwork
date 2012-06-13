@@ -75,7 +75,6 @@ import org.fao.geonet.csw.common.Csw;
 import org.fao.geonet.csw.common.exceptions.NoApplicableCodeEx;
 import org.fao.geonet.kernel.DataManager;
 import org.fao.geonet.kernel.SchemaManager;
-import org.fao.geonet.kernel.search.LuceneConfig.LuceneConfigNumericField;
 import org.fao.geonet.kernel.search.function.DocumentBoosting;
 import org.fao.geonet.kernel.search.spatial.ContainsFilter;
 import org.fao.geonet.kernel.search.spatial.CrossesFilter;
@@ -175,7 +174,9 @@ public class SearchManager {
     private static Analyzer createGeoNetworkAnalyzer(Set<String> stopwords) {
         if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
             Log.debug(Geonet.SEARCH_ENGINE, "Creating GeoNetworkAnalyzer");
-        return new GeoNetworkAnalyzer(stopwords);
+        GeoNetworkAnalyzer analyzer = new GeoNetworkAnalyzer();
+        analyzer.setStopwords(stopwords);
+        return analyzer;
     }
 
     /**
@@ -269,65 +270,6 @@ public class SearchManager {
         }        
 	}
 
-    /**
-     * Creates an analyzer based on its definition in the Lucene config.
-     *
-     * @param analyzerClassName Class name of analyzer to create
-     * @param field The Lucene field this analyzer is created for
-     * @param stopwords Set stop words if analyzer class name equal org.fao.geonet.kernel.search.GeoNetworkAnalyzer.
-     * @return
-     */
-    private Analyzer createAnalyzerFromLuceneConfig(String analyzerClassName, String field, Set<String> stopwords) {
-        Analyzer analyzer = null;
-        try {
-            if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
-                Log.debug(Geonet.SEARCH_ENGINE, "Creating analyzer defined in Lucene config:" + analyzerClassName);
-            // GNA analyzer
-            if(analyzerClassName.equals("org.fao.geonet.kernel.search.GeoNetworkAnalyzer")) {
-                analyzer = SearchManager.createGeoNetworkAnalyzer(stopwords);
-            }
-            // non-GNA analyzer
-            else {
-                try {
-                    @SuppressWarnings("unchecked")
-					Class<? extends Analyzer> analyzerClass = (Class<? extends Analyzer>) Class.forName(analyzerClassName);
-                    Class<?>[] clTypesArray = _luceneConfig.getAnalyzerParameterClass((field==null?"":field) + analyzerClassName);
-                    Object[] inParamsArray = _luceneConfig.getAnalyzerParameter((field==null?"":field) + analyzerClassName);
-                    try {
-                        if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
-                            Log.debug(Geonet.SEARCH_ENGINE, " Creating analyzer with parameter");
-                        Constructor<? extends Analyzer> c = analyzerClass.getConstructor(clTypesArray);
-                        analyzer = c.newInstance(inParamsArray);
-                    }
-                    catch (Exception x) {
-                        Log.warning(Geonet.SEARCH_ENGINE, "   Failed to create analyzer with parameter: " + x.getMessage());
-                        x.printStackTrace();
-                        // Try using a default constructor without parameter
-                        Log.warning(Geonet.SEARCH_ENGINE, "   Now trying without parameter");
-                        analyzer = analyzerClass.newInstance();
-                    }
-                }
-                catch (Exception y) {
-                    Log.warning(Geonet.SEARCH_ENGINE, "Failed to create analyzer as specified in lucene config, default analyzer will be used for field " + field + ". Exception message is: " + y.getMessage());
-                    y.printStackTrace();
-                    // abandon and continue with next field defined in lucene config
-                }
-            }
-        }
-        catch (Exception z) {
-            Log.warning(Geonet.SEARCH_ENGINE, " Error on analyzer initialization: " + z.getMessage() + ". Check your Lucene configuration. Hardcoded default analyzer will be used for field " + field);
-            z.printStackTrace();
-        }
-        finally {
-            // creation of analyzer has failed, default to GeoNetworkAnalyzer
-            if(analyzer == null) {
-                Log.warning(Geonet.SEARCH_ENGINE, "Creating analyzer has failed, defaulting to GeoNetworkAnalyzer");
-                analyzer = SearchManager.createGeoNetworkAnalyzer(stopwords);
-            }
-        }
-        return analyzer;
-    }
-
 	/**
 	 * Creates analyzers. An analyzer is created for each language that has a stopwords file, and a stopword-less
      * default analyzer is also created.
@@ -340,7 +282,7 @@ public class SearchManager {
 	public void createAnalyzer() {
         if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
             Log.debug(Geonet.SEARCH_ENGINE, "createAnalyzer start");
-		String defaultAnalyzerClass = _luceneConfig.getDefaultAnalyzerClass();
+		Analyzer defaultAnalyzerClass = _luceneConfig.getDefaultAnalyzer();
         if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
             Log.debug(Geonet.SEARCH_ENGINE, "defaultAnalyzer defined in Lucene config: " + defaultAnalyzerClass);
         // there is no default analyzer defined in lucene config
@@ -375,11 +317,11 @@ public class SearchManager {
 
                         // Configure per field analyzer and register them to language map of pfa
                         // ... for indexing
-                        configurePerFieldAnalyzerWrapper(defaultAnalyzerClass, _luceneConfig.getFieldSpecificAnalyzers(),
+                        configurePerFieldAnalyzerWrapper(defaultAnalyzerClass, _luceneConfig.getFieldSpecificAnalyzer(),
                                 analyzerMap, language, stopwordsForLanguage);
                         
                         // ... for searching
-                        configurePerFieldAnalyzerWrapper(defaultAnalyzerClass, _luceneConfig.getFieldSpecificSearchAnalyzers(),
+                        configurePerFieldAnalyzerWrapper(defaultAnalyzerClass, _luceneConfig.getFieldSpecificSearchAnalyzer(),
                                 searchAnalyzerMap, language, stopwordsForLanguage);
 
                     }
@@ -391,10 +333,10 @@ public class SearchManager {
             }
             
             // Configure default per field analyzer
-            _analyzer = configurePerFieldAnalyzerWrapper(defaultAnalyzerClass, _luceneConfig.getFieldSpecificAnalyzers(),
+            _analyzer = configurePerFieldAnalyzerWrapper(defaultAnalyzerClass, _luceneConfig.getFieldSpecificAnalyzer(),
                 null, null, null);
             
-            _searchAnalyzer = configurePerFieldAnalyzerWrapper(defaultAnalyzerClass, _luceneConfig.getFieldSpecificSearchAnalyzers(),
+            _searchAnalyzer = configurePerFieldAnalyzerWrapper(defaultAnalyzerClass, _luceneConfig.getFieldSpecificSearchAnalyzer(),
                 null, null, null);
         }
     }
@@ -411,15 +353,13 @@ public class SearchManager {
 	 * @return The per field analyzer wrapper
 	 */
 	private PerFieldAnalyzerWrapper configurePerFieldAnalyzerWrapper(
-			String defaultAnalyzerClass, Map<String, String> fieldAnalyzers,
+			Analyzer defaultAnalyzer, Map<String, Analyzer> fieldAnalyzers,
 			Map<String, Analyzer> referenceMap, String referenceKey,
 			Set<String> stopwordsForLanguage) {
 
 		// Create the default analyzer according to Lucene config
 		if (Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
-			Log.debug(Geonet.SEARCH_ENGINE, " Default analyzer class: " + defaultAnalyzerClass);
-		Analyzer defaultAnalyzer = createAnalyzerFromLuceneConfig(
-				defaultAnalyzerClass, null, stopwordsForLanguage);
+			Log.debug(Geonet.SEARCH_ENGINE, " Default analyzer class: " + defaultAnalyzer.getClass());
 		
 		
 		PerFieldAnalyzerWrapper pfa = new PerFieldAnalyzerWrapper(
@@ -428,14 +368,16 @@ public class SearchManager {
 		
 		// now handle the exceptions for each field to the default analyzer as
 		// defined in lucene config
-		for (Entry<String, String> e : fieldAnalyzers.entrySet()) {
+		for (Entry<String, Analyzer> e : fieldAnalyzers.entrySet()) {
 			String field = e.getKey();
-			String aClassName = e.getValue();
+			Analyzer analyzer = e.getValue();
+			if (analyzer instanceof LocalizedAnalyzer) {
+                LocalizedAnalyzer lAnalyzer = (LocalizedAnalyzer) analyzer;
+                lAnalyzer.setStopwords(stopwordsForLanguage);
+            }
 			if (Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
 				Log.debug(Geonet.SEARCH_ENGINE, " Add analyzer for field: "
-						+ field + "=" + aClassName);
-			Analyzer analyzer = createAnalyzerFromLuceneConfig(aClassName,
-					field, stopwordsForLanguage);
+						+ field + "=" + analyzer.getClass());
 			pfa.addAnalyzer(field, analyzer);
 		}
 		
@@ -486,7 +428,7 @@ public class SearchManager {
 
         _inspireEnabled = si.getInspireEnabled();
         createAnalyzer();
-        createDocumentBoost();
+        _documentBoostClass = _luceneConfig.getDocumentBoosting();
         
 		if (!_stylesheetsDir.isDirectory()) {
             throw new Exception("directory " + _stylesheetsDir + " not found");
@@ -519,44 +461,13 @@ public class SearchManager {
 	}
 
     /**
-     * TODO javadoc.
-     */
-	private void createDocumentBoost() {
-	    String className = _luceneConfig.getDocumentBoostClass();
-	    if (className != null) {
-    	    try {
-                @SuppressWarnings(value = "unchecked")
-    	        Class<? extends DocumentBoosting> clazz = (Class<? extends DocumentBoosting>) Class.forName(className);
-                Class<?>[] clTypesArray = _luceneConfig.getDocumentBoostParameterClass();
-                Object[] inParamsArray = _luceneConfig.getDocumentBoostParameter();
-                try {
-                    if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
-                        Log.debug(Geonet.SEARCH_ENGINE, " Creating document boost object with parameter");
-                    Constructor<? extends DocumentBoosting> c = clazz.getConstructor(clTypesArray);
-                    _documentBoostClass = c.newInstance(inParamsArray);
-                }
-                catch (Exception x) {
-                    Log.warning(Geonet.SEARCH_ENGINE, "   Failed to create document boost object with parameter: " + x.getMessage());
-                    x.printStackTrace();
-                    // Try using a default constructor without parameter
-                    Log.warning(Geonet.SEARCH_ENGINE, "   Now trying without parameter");
-                    _documentBoostClass = clazz.newInstance();
-                }
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /**
      * Reload Lucene configuration: update analyzer.
      * @param lc
      */
 	public void reloadLuceneConfiguration (LuceneConfig lc) {
 		_luceneConfig = lc;
 		createAnalyzer();
-		createDocumentBoost();
+		_documentBoostClass = lc.getDocumentBoosting();
 	}
 
 	public LuceneConfig getCurrentLuceneConfiguration () {
@@ -1408,7 +1319,7 @@ public class SearchManager {
                     Field f = new Field(name, string, store, index);
 
                     // Boost a particular field according to Lucene config. 
-                    Float boost = _luceneConfig.getFieldBoost(name);
+                    Float boost = _luceneConfig.getFieldBoosting().get(name);
                     if (boost != null) {
                         if(Log.isDebugEnabled(Geonet.INDEX_ENGINE))
                             Log.debug(Geonet.INDEX_ENGINE, "Boosting field: " + name + " with boost factor: " + boost);
@@ -1447,7 +1358,7 @@ public class SearchManager {
 	 * @return
 	 */
 	private void addNumericField(Document doc, String name, String string, Store store, boolean index) {
-		LuceneConfigNumericField fieldConfig = _luceneConfig.getNumericField(name);
+		LuceneConfig.NumericField fieldConfig = _luceneConfig.getNumericFields().get(name);
 		// string = cleanNumericField(string);
 		NumericField field = new NumericField(name, fieldConfig.getPrecisionStep(), store, index);
 		// TODO : reuse the numeric field for better performance

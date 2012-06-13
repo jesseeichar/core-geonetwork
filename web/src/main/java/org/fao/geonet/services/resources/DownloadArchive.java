@@ -313,8 +313,7 @@ public class DownloadArchive implements Service
             context.debug("path= " + path);
 
 		GeonetContext  gc = (GeonetContext) context.getHandlerContext(Geonet.CONTEXT_NAME);
-		ServiceConfig configHandler = gc.getHandlerConfig();
-		String licenseDir = configHandler.getValue(Geonet.Config.LICENSE_DIR);
+		String licenseDir = gc.getHandlerConfig().getLicenseDir();
         if(context.isDebug())
             context.debug("licenseDir= " + licenseDir);
 		if (licenseDir == null) return null;

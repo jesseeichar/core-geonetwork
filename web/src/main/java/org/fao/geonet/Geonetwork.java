@@ -96,6 +96,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.jdom.Element;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -114,20 +115,18 @@ public class Geonetwork implements ApplicationHandler {
 	private ThreadPool        threadPool;
 	private String   FS         = File.separator;
 	private Element dbConfiguration;
-	private String languageProfilesDir;
-	private String licenseDir;
-	private String preferredSchema;
-	private boolean statLogSpatialObjects;
-	private boolean statLogAsynch;
-	private String statLuceneTermsExclude = "";
-	private int maxWritesInTransaction = SpatialIndexWriter.MAX_WRITES_IN_TRANSACTION;
-	private boolean useSubversion;
-	private String statusActionsClassName;
 	private EnvironmentalConfig envConfig;
+    private GeonetworkConfig config;
 
     private static final String       SPATIAL_INDEX_FILENAME    = "spatialindex";
 	private static final String       IDS_ATTRIBUTE_NAME        = "id";
 
+	@Autowired
+	public Geonetwork(EnvironmentalConfig envConfig, GeonetworkConfig config) {
+        this.config = config;
+        this.envConfig = envConfig;
+    }
+	
 	//---------------------------------------------------------------------------
 	//---
 	//--- GetContextName
@@ -163,22 +162,20 @@ public class Geonetwork implements ApplicationHandler {
 		logger.info("Initializing GeoNetwork " + version +  "." + subVersion +  " ...");
 
 		// Init configuration directory
-		GeonetworkDataDirectory dataDirectory = 
-		        new GeonetworkDataDirectory(webappName, path, context.getServletContext());
+		GeonetworkDataDirectory dataDirectory = config.getDataDirectories();
 		
 		// Get config handler properties
 		String systemDataDir = dataDirectory.getSystemDataDir();
 		String thesauriDir = dataDirectory.getCodelistDir();
 		String luceneDir =  dataDirectory.getLuceneDir();
 		String dataDir =  dataDirectory.getDataDir();
-		String luceneConfigXmlFile = handlerConfig.getMandatoryValue(Geonet.Config.LUCENE_CONFIG);
 		String summaryConfigXmlFile = handlerConfig.getMandatoryValue(Geonet.Config.SUMMARY_CONFIG);
 		logger.info("Data directory: " + systemDataDir);
 
 		setProps(path);
 
 		// Status actions class - load it
-		Class statusActionsClass = Class.forName(this.statusActionsClassName);
+		Class statusActionsClass = Class.forName(config.getStatusActionsClassName());
 
 		JeevesJCS.setConfigFilename(path + "WEB-INF/classes/cache.ccf");
 
@@ -274,17 +271,17 @@ public class Geonetwork implements ApplicationHandler {
 		String schemaCatalogueFile = systemDataDir + "config" + File.separator + Geonet.File.SCHEMA_PLUGINS_CATALOG;
 		logger.info("			- Schema plugins directory: "+schemaPluginsDir);
 		logger.info("			- Schema Catalog File     : "+schemaCatalogueFile);
-		SchemaManager schemaMan = SchemaManager.getInstance(path, schemaCatalogueFile, schemaPluginsDir, context.getLanguage(), preferredSchema);
+		SchemaManager schemaMan = SchemaManager.getInstance(path, schemaCatalogueFile, schemaPluginsDir, context.getLanguage(), config.getPreferredSchema());
 
 		//------------------------------------------------------------------------
 		//--- initialize search and editing
 
 		logger.info("  - Search...");
 
-		logger.info("  - Log spatial object: " + statLogSpatialObjects);
-		logger.info("  - Log in asynch mode: " + statLogAsynch);
+		logger.info("  - Log spatial object: " + config.isStatLogSpatialObjects());
+		logger.info("  - Log in asynch mode: " + config.isStatLogAsynch());
         
-		LuceneConfig lc = new LuceneConfig(path, servletContext, luceneConfigXmlFile);
+		LuceneConfig lc = this.config.getLuceneConfig();
         logger.info("  - Lucene configuration is:");
         logger.info(lc.toString());
        
@@ -301,8 +298,8 @@ public class Geonetwork implements ApplicationHandler {
 		String htmlCacheDir = dataDirectory.getHtmlcacheDir();
 		
 		searchMan = new SearchManager(path, luceneDir, htmlCacheDir, thesauriDir, summaryConfigXmlFile, lc,
-				statLogAsynch, statLogSpatialObjects, statLuceneTermsExclude, 
-				dataStore, maxWritesInTransaction, 
+		        config.isStatLogAsynch(), config.isStatLogSpatialObjects(), config.getStatLuceneTermsExclude(), 
+				dataStore, config.getMaxWritesInTransaction(), 
 				new SettingInfo(settingMan), schemaMan, servletContext);
 
 		//------------------------------------------------------------------------
@@ -319,7 +316,7 @@ public class Geonetwork implements ApplicationHandler {
 
 		SvnManager svnManager = null;
 		XmlSerializer xmlSerializer = null;
-		if (useSubversion) {
+		if (config.isUseSubversion()) {
 			svnManager = new SvnManager(context, settingMan, dataDirectory.getSubversionPath(), dbms, created);
 			xmlSerializer = new XmlSerializerSvn(settingMan, svnManager);
 		} else {
@@ -337,7 +334,7 @@ public class Geonetwork implements ApplicationHandler {
         /**
          * Initialize language detector
          */
-        LanguageDetector.init(path + languageProfilesDir, context, dataMan);
+        LanguageDetector.init(path + config.getLanguageProfilesDir(), context, dataMan);
 
 		//------------------------------------------------------------------------
 		//--- Initialize thesaurus
@@ -385,7 +382,7 @@ public class Geonetwork implements ApplicationHandler {
 		gnContext.dataMan     = dataMan;
 		gnContext.searchMan   = searchMan;
 		gnContext.schemaMan   = schemaMan;
-		gnContext.config      = this;
+		gnContext.config      = config;
 		gnContext.catalogDis  = catalogDis;
 		gnContext.settingMan  = settingMan;
 		gnContext.harvestMan  = harvestMan;
@@ -702,7 +699,7 @@ public class Geonetwork implements ApplicationHandler {
 		if (!catalogProp.equals("")) {
 			logger.info("Overriding "+Jeeves.XML_CATALOG_FILES+" property (was set to "+catalogProp+")");
 		} 
-		catalogProp = webapp + "oasis-catalog.xml;" + envConfig.getConfigDir() + File.separator + "schemaplugin-uri-catalog.xml";
+		catalogProp = webapp + "oasis-catalog.xml;" + envConfig.getConfigPath() + File.separator + "schemaplugin-uri-catalog.xml";
 		System.setProperty(Jeeves.XML_CATALOG_FILES, catalogProp);
 		logger.info(Jeeves.XML_CATALOG_FILES+" property set to "+catalogProp);
 
@@ -799,19 +796,4 @@ public class Geonetwork implements ApplicationHandler {
 		logger.info("NOTE: Using shapefile for spatial index, this can be slow for larger catalogs");
 		return ids;
 	}
-
-	//---------------------------------------------------------------------------
-	// --  Spring settings
-    //---------------------------------------------------------------------------
-
-    public void setLanguageProfilesDir(String languageProfilesDir) { this.languageProfilesDir = languageProfilesDir; }
-    public void setLicenseDir(String licenseDir) { this.licenseDir = licenseDir; }
-    public void setPreferredSchema(String preferredSchema) { this.preferredSchema = preferredSchema; }
-    public void setStatLogSpatialObjects(boolean statLogSpatialObjects) { this.statLogSpatialObjects = statLogSpatialObjects; }
-    public void setStatLogAsynch(boolean statLogAsynch) { this.statLogAsynch = statLogAsynch; }
-    public void setStatLuceneTermsExclude(String statLuceneTermsExclude) { this.statLuceneTermsExclude = statLuceneTermsExclude; }
-    public void setMaxWritesInTransaction(int maxWritesInTransaction) { this.maxWritesInTransaction = maxWritesInTransaction; }
-    public void setUseSubversion(boolean useSubversion) { this.useSubversion = useSubversion; }
-    public void setStatusActionsClass(String statusActionsClass) { this.statusActionsClassName = statusActionsClass; }
-    public void setEnvConfig(EnvironmentalConfig envConfig) { this.envConfig = envConfig;}
 }

@@ -73,7 +73,7 @@ public class LuceneQueryBuilder {
     private static final String STRING_TOKENIZER_DELIMITER = " \n\r\t";
     private Set<String> _tokenizedFieldSet;
     private PerFieldAnalyzerWrapper _analyzer;
-    private Map<String, LuceneConfig.LuceneConfigNumericField> _numericFieldSet;
+    private Map<String, LuceneConfig.NumericField> _numericFieldSet;
     private String _language;
 
     // Lat long bounding box constants
@@ -105,7 +105,7 @@ public class LuceneQueryBuilder {
      * @param langCode language of search terms
      */
     public LuceneQueryBuilder(Set<String> tokenizedFieldSet,
-                              Map<String, LuceneConfig.LuceneConfigNumericField> numericFieldSet,
+                              Map<String, LuceneConfig.NumericField> numericFieldSet,
                               PerFieldAnalyzerWrapper analyzer, String langCode) {
         _tokenizedFieldSet = tokenizedFieldSet;
         _numericFieldSet = numericFieldSet;
@@ -999,7 +999,7 @@ public class LuceneQueryBuilder {
         if (from == null && to == null) {
             return;
         }
-        LuceneConfig.LuceneConfigNumericField type = _numericFieldSet.get(luceneIndexField);
+        LuceneConfig.NumericField type = _numericFieldSet.get(luceneIndexField);
         if (type == null) {
             addTextRangeQuery(query, from, to, luceneIndexField);
         }

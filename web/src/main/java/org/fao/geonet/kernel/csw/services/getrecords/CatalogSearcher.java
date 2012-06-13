@@ -59,7 +59,7 @@ import org.fao.geonet.csw.common.exceptions.NoApplicableCodeEx;
 import org.fao.geonet.kernel.AccessManager;
 import org.fao.geonet.kernel.search.DuplicateDocFilter;
 import org.fao.geonet.kernel.search.LuceneConfig;
-import org.fao.geonet.kernel.search.LuceneConfig.LuceneConfigNumericField;
+import org.fao.geonet.kernel.search.LuceneConfig.NumericField;
 import org.fao.geonet.kernel.search.LuceneIndexField;
 import org.fao.geonet.kernel.search.LuceneSearcher;
 import org.fao.geonet.kernel.search.LuceneUtils;
@@ -86,7 +86,7 @@ public class CatalogSearcher {
 	private Element _summaryConfig;
 	private LuceneConfig	_luceneConfig;
 	private Set<String> _tokenizedFieldSet;
-	private Map<String, LuceneConfigNumericField> _numericFieldSet;
+	private Map<String, NumericField> _numericFieldSet;
 	private FieldSelector _selector;
 	private Query         _query;
 	private volatile IndexReader   _reader;
@@ -105,7 +105,7 @@ public class CatalogSearcher {
 		}
 
 		_luceneConfig = luceneConfig;
-		_tokenizedFieldSet = luceneConfig.getTokenizedField();
+		_tokenizedFieldSet = luceneConfig.getTokenizedFields();
 		_numericFieldSet = luceneConfig.getNumericFields();
 		
 		_selector = new FieldSelector() {
@@ -117,7 +117,7 @@ public class CatalogSearcher {
 	}
 
 	public void reloadLuceneConfiguration(LuceneConfig lc) {
-		_tokenizedFieldSet = lc.getTokenizedField();
+		_tokenizedFieldSet = lc.getTokenizedFields();
 		_numericFieldSet = lc.getNumericFields();
 	}
 	

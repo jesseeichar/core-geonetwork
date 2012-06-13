@@ -1,5 +1,4 @@
 //==============================================================================
-//===	Copyright (C) 2001-2007 Food and Agriculture Organization of the
 //===	United Nations (FAO-UN), United Nations World Food Programme (WFP)
 //===	and United Nations Environment Programme (UNEP)
 //===
@@ -72,9 +71,10 @@ import org.fao.geonet.constants.Edit;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.exceptions.UnAuthorizedException;
 import org.fao.geonet.kernel.MdInfo;
-import org.fao.geonet.kernel.search.LuceneConfig.LuceneConfigNumericField;
+import org.fao.geonet.kernel.search.LuceneConfig.NumericField;
 import org.fao.geonet.kernel.search.SummaryComparator.SortOption;
 import org.fao.geonet.kernel.search.SummaryComparator.Type;
+import org.fao.geonet.kernel.search.function.QueryBoostFactory;
 import org.fao.geonet.kernel.search.log.SearcherLogger;
 import org.fao.geonet.kernel.search.lucenequeries.DateRangeQuery;
 import org.fao.geonet.kernel.search.spatial.Pair;
@@ -122,12 +122,12 @@ public class LuceneSearcher extends MetaSearcher {
 
 	private Set<String>	_tokenizedFieldSet;
 	private LuceneConfig _luceneConfig;
-	private String _boostQueryClass;
 	
 	/**
      * Filter geometry object WKT, used in the logger ugly way to store this object, as ChainedFilter API is a little bit cryptic to me...
 	 */
 	private String _geomWKT = null;
+    private QueryBoostFactory _boostQueryFactory;
 
     /**
      * constructor
@@ -151,8 +151,8 @@ public class LuceneSearcher extends MetaSearcher {
 
 		// build _tokenizedFieldSet
 		_luceneConfig = luceneConfig;
-		_boostQueryClass = _luceneConfig.getBoostQueryClass();
-		_tokenizedFieldSet = luceneConfig.getTokenizedField();
+		_boostQueryFactory = _luceneConfig.getQueryBoost();
+		_tokenizedFieldSet = luceneConfig.getTokenizedFields();
 	}
 
 	//
@@ -542,35 +542,10 @@ public class LuceneSearcher extends MetaSearcher {
 			}
 		    
 			// Boosting query
-			if (_boostQueryClass != null) {
-				try {
-                    if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
-                        Log.debug(Geonet.SEARCH_ENGINE, "Create boosting query:" + _boostQueryClass);
-					Class boostClass = Class.forName(_boostQueryClass);
-					Class[] clTypesArray = _luceneConfig.getBoostQueryParameterClass();				
-					Object[] inParamsArray = _luceneConfig.getBoostQueryParameter(); 
-
-					Class[] clTypesArrayAll = new Class[clTypesArray.length + 1];
-					clTypesArrayAll[0] = Class.forName("org.apache.lucene.search.Query");
-
-                    System.arraycopy(clTypesArray, 0, clTypesArrayAll, 1, clTypesArray.length);
-					Object[] inParamsArrayAll = new Object[inParamsArray.length + 1];
-					inParamsArrayAll[0] = _query;
-                    System.arraycopy(inParamsArray, 0, inParamsArrayAll, 1, inParamsArray.length);
-					try {
-                        if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
-                            Log.debug(Geonet.SEARCH_ENGINE, "Creating boost query with parameters:" + Arrays.toString(inParamsArrayAll));
-						Constructor c = boostClass.getConstructor(clTypesArrayAll);
-						_query = (Query) c.newInstance(inParamsArrayAll);
-					} catch (Exception e) {
-						Log.warning(Geonet.SEARCH_ENGINE, " Failed to create boosting query: " + e.getMessage() 
-								+ ". Check Lucene configuration");
-						e.printStackTrace();
-					}	
-				} catch (Exception e1) {
-					Log.warning(Geonet.SEARCH_ENGINE, " Error on boosting query initialization: " + e1.getMessage()
-							+ ". Check Lucene configuration");
-				}
+			if (_boostQueryFactory != null) {
+                if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
+                    Log.debug(Geonet.SEARCH_ENGINE, "Create boosting query:" + _boostQueryFactory);
+				_query = _boostQueryFactory.createBoost(_query);
 			}
 			
 		    // Use RegionsData rather than fetching from the DB everytime
@@ -800,7 +775,7 @@ public class LuceneSearcher extends MetaSearcher {
      */
     public static Query makeLocalisedQuery( Element xmlQuery, PerFieldAnalyzerWrapper analyzer,
                                             Set<String> tokenizedFieldSet,
-                                            Map<String, LuceneConfigNumericField> numericFieldSet, String langCode,
+                                            Map<String, NumericField> numericFieldSet, String langCode,
                                             boolean requestedLanguageOnly )
             throws Exception {
         Query returnValue = LuceneSearcher.makeQuery(xmlQuery, analyzer, tokenizedFieldSet, numericFieldSet);
@@ -827,7 +802,7 @@ public class LuceneSearcher extends MetaSearcher {
      */
 	@SuppressWarnings({"deprecation"})
     private static Query makeQuery(Element xmlQuery, PerFieldAnalyzerWrapper analyzer, Set<String> tokenizedFieldSet,
-                                  Map<String, LuceneConfigNumericField> numericFieldSet) throws Exception {
+                                  Map<String, NumericField> numericFieldSet) throws Exception {
         if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
             Log.debug(Geonet.SEARCH_ENGINE, "MakeQuery input XML:\n" + Xml.getString(xmlQuery));
 		String name = xmlQuery.getName();
@@ -879,7 +854,7 @@ public class LuceneSearcher extends MetaSearcher {
 			String  sInclusive = xmlQuery.getAttributeValue("inclusive");
 			boolean inclusive  = "true".equals(sInclusive);
 
-			LuceneConfigNumericField fieldConfig = numericFieldSet.get(fld);
+			NumericField fieldConfig = numericFieldSet.get(fld);
 			if (fieldConfig != null) {
 				returnValue = LuceneQueryBuilder.buildNumericRangeQueryForType(fld, lowerTxt, upperTxt, inclusive, inclusive, fieldConfig.getType());
 			} else {

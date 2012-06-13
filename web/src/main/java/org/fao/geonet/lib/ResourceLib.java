@@ -48,10 +48,8 @@ public class ResourceLib {
 	 * @return
 	 */
 	public String getDataDir(ServiceContext context) {
-		GeonetContext gc = (GeonetContext) context
-				.getHandlerContext(Geonet.CONTEXT_NAME);
-		String dataDir = gc.getHandlerConfig().getMandatoryValue(
-				Geonet.Config.DATA_DIR);
+		GeonetContext gc = (GeonetContext) context.getHandlerContext(Geonet.CONTEXT_NAME);
+		String dataDir = gc.getHandlerConfig().getDataDirectories().getDataDir();
 
 		return dataDir;
 	}

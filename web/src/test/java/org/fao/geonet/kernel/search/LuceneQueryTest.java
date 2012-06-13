@@ -3,12 +3,14 @@ package org.fao.geonet.kernel.search;
 import java.util.Map;
 import java.util.Set;
 
+import jeeves.config.springutil.JeevesApplicationContextLoader;
+
 import junit.framework.TestCase;
 
 import org.apache.lucene.analysis.KeywordAnalyzer;
 import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
 import org.apache.lucene.search.Query;
-import org.fao.geonet.kernel.search.LuceneConfig.LuceneConfigNumericField;
+import org.fao.geonet.kernel.search.LuceneConfig.NumericField;
 import org.jdom.DefaultJDOMFactory;
 import org.jdom.Element;
 import org.jdom.JDOMFactory;
@@ -23,7 +25,7 @@ import org.jdom.JDOMFactory;
 public class LuceneQueryTest extends TestCase {
 
 	private Set<String> _tokenizedFieldSet;
-	private Map<String, LuceneConfigNumericField> _numericFieldSet;
+	private Map<String, NumericField> _numericFieldSet;
 	private PerFieldAnalyzerWrapper _analyzer;
 
 	public LuceneQueryTest(String name) throws Exception {
@@ -35,9 +37,9 @@ public class LuceneQueryTest extends TestCase {
         _analyzer.addAnalyzer("operatesOn", new GeoNetworkAnalyzer());
         _analyzer.addAnalyzer("subject", new KeywordAnalyzer());
 
-        LuceneConfig lc = new LuceneConfig("src/main/webapp/", null, "WEB-INF/config-lucene.xml");
+        LuceneConfig lc = JeevesApplicationContextLoader.load(null, "src/main/webapp/", "WEB-INF/config-lucene.xml").getBean(LuceneConfig.class);
     	
-		_tokenizedFieldSet = lc.getTokenizedField();
+		_tokenizedFieldSet = lc.getTokenizedFields();
 		_numericFieldSet = lc.getNumericFields();
 	}
 

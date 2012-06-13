@@ -64,10 +64,8 @@ public class Importer {
 		final DataManager dm = gc.getDataManager();
 
 		// Load preferred schema and set to iso19139 by default
-		final String preferredSchema = (gc.getHandlerConfig()
-				.getMandatoryValue("preferredSchema") != null ? gc
-				.getHandlerConfig().getMandatoryValue("preferredSchema")
-				: "iso19139");
+        final String preferredSchema = (gc.getHandlerConfig().getPreferredSchema() != null ? gc.getHandlerConfig().getPreferredSchema()
+                : "iso19139");
 
 		final Dbms dbms = (Dbms) context.getResourceManager().open(
 				Geonet.Res.MAIN_DB);

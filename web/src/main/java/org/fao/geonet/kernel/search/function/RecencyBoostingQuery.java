@@ -98,4 +98,18 @@ public class RecencyBoostingQuery extends CustomScoreQuery {
 			throws IOException {
 		return new RecencyBooster(r);
 	}
+	
+	public static class RecencyBoostingQueryFactory implements QueryBoostFactory {
+	    private double multiplier;
+	    private int maxDaysAgo;
+	    private String dayField;
+        public void setMultiplier(double multiplier) { this.multiplier = multiplier; }
+        public void setMaxDaysAgo(int maxDaysAgo) { this.maxDaysAgo = maxDaysAgo; }
+        public void setDayField(String dayField) { this.dayField = dayField; }
+        @Override
+        public CustomScoreQuery createBoost(Query query) {
+            return new RecencyBoostingQuery(query, multiplier, maxDaysAgo, dayField);
+            
+        }
+	}
 }

@@ -30,6 +30,7 @@ import jeeves.server.resources.ProviderManager;
 
 import org.jdom.Element;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -140,4 +141,11 @@ public class ServiceBeanDefinitionParserTest {
 
     }
 
+    @Test @Ignore
+    public void exp() {
+        String configFile = ServiceBeanDefinitionParserTest.class.getResource("exp.xml").toExternalForm();
+        FileSystemXmlApplicationContext springContext = new FileSystemXmlApplicationContext(configFile);
+        List<List<String>> lists = (List<List<String>>) springContext.getBean("lists");
+        lists.size();
+    }
 }

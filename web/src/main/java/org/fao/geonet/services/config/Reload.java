@@ -35,8 +35,6 @@ import org.fao.geonet.kernel.search.LuceneConfig;
 import org.fao.geonet.kernel.search.SearchManager;
 import org.jdom.Element;
 
-import javax.servlet.ServletContext;
-
 public class Reload implements Service {
 
 	public void init(String appPath, ServiceConfig params) throws Exception {
@@ -47,15 +45,10 @@ public class Reload implements Service {
 		String status = "true";
 		GeonetContext gc = (GeonetContext) context
 				.getHandlerContext(Geonet.CONTEXT_NAME);
-		ServiceConfig handlerConfig = gc.getHandlerConfig();
-		String luceneConfigXmlFile = handlerConfig
-				.getMandatoryValue(Geonet.Config.LUCENE_CONFIG);
-		String path = context.getAppPath();
 
-        ServletContext servletContext = context.getServletContext();
-
-		LuceneConfig lc = new LuceneConfig(path, servletContext, luceneConfigXmlFile);
-
+		LuceneConfig lc = gc.getHandlerConfig().getLuceneConfig();
+		lc.reload();
+		
 		// Update related services to Lucene config
 		// SearchManager
 		SearchManager sm = gc.getSearchmanager();
