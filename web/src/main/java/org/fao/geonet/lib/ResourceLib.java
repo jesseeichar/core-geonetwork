@@ -49,7 +49,7 @@ public class ResourceLib {
 	 */
 	public String getDataDir(ServiceContext context) {
 		GeonetContext gc = (GeonetContext) context.getHandlerContext(Geonet.CONTEXT_NAME);
-		String dataDir = gc.getHandlerConfig().getDataDirectories().getDataDir();
+		String dataDir = gc.getGeonetworkConfig().getDataDirectories().getDataDir();
 
 		return dataDir;
 	}

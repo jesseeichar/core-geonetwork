@@ -67,8 +67,8 @@ public class CatalogDispatcher
 	public CatalogDispatcher(GeonetworkConfig config)
 	{
 		register(new DescribeRecord());
-		register(new GetCapabilities());
-		register(new GetDomain());
+		register(new GetCapabilities(config.getCswCatalogConfig()));
+		register(new GetDomain(config.getCswCatalogConfig()));
 		register(new GetRecordById(config));
 		register(new GetRecords(config));
 		register(new Harvest());

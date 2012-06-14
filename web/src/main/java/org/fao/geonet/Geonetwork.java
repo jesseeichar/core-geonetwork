@@ -65,7 +65,6 @@ import org.fao.geonet.kernel.ThesaurusManager;
 import org.fao.geonet.kernel.XmlSerializer;
 import org.fao.geonet.kernel.XmlSerializerDb;
 import org.fao.geonet.kernel.XmlSerializerSvn;
-import org.fao.geonet.kernel.csw.CatalogConfiguration;
 import org.fao.geonet.kernel.csw.CatalogDispatcher;
 import org.fao.geonet.kernel.csw.CswHarvesterResponseExecutionService;
 import org.fao.geonet.kernel.harvest.HarvestManager;
@@ -362,7 +361,6 @@ public class Geonetwork implements ApplicationHandler {
 
 		logger.info("  - Catalogue services for the web...");
 
-		CatalogConfiguration.loadCatalogConfig(path, Csw.CONFIG_FILE);
 		CatalogDispatcher catalogDis = new CatalogDispatcher(config);
 
 		//------------------------------------------------------------------------

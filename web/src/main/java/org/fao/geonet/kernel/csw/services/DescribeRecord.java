@@ -23,21 +23,6 @@
 
 package org.fao.geonet.kernel.csw.services;
 
-import jeeves.server.context.ServiceContext;
-import jeeves.utils.Util;
-import jeeves.utils.Xml;
-import org.fao.geonet.constants.Geonet;
-import org.fao.geonet.csw.common.Csw;
-import org.fao.geonet.csw.common.exceptions.CatalogException;
-import org.fao.geonet.csw.common.exceptions.InvalidParameterValueEx;
-import org.fao.geonet.csw.common.exceptions.NoApplicableCodeEx;
-import org.fao.geonet.kernel.csw.CatalogConfiguration;
-import org.fao.geonet.kernel.csw.CatalogService;
-import org.jdom.Attribute;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.Namespace;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,10 +31,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import jeeves.server.context.ServiceContext;
+import jeeves.utils.Util;
+import jeeves.utils.Xml;
+
+import org.fao.geonet.GeonetContext;
+import org.fao.geonet.GeonetworkConfig;
+import org.fao.geonet.constants.Geonet;
+import org.fao.geonet.csw.common.Csw;
+import org.fao.geonet.csw.common.exceptions.CatalogException;
+import org.fao.geonet.csw.common.exceptions.InvalidParameterValueEx;
+import org.fao.geonet.csw.common.exceptions.NoApplicableCodeEx;
+import org.fao.geonet.kernel.csw.CswCatalogConfig;
+import org.fao.geonet.kernel.csw.CatalogService;
+import org.jdom.Attribute;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.Namespace;
+
 //=============================================================================
 
 public class DescribeRecord extends AbstractOperation implements CatalogService
 {
+    private CswCatalogConfig cswCatalogConfig;
+
     //---------------------------------------------------------------------------
     //---
     //--- Constructor
@@ -73,6 +78,9 @@ public class DescribeRecord extends AbstractOperation implements CatalogService
 	checkService(request);
 	checkVersion(request);
 
+	GeonetworkConfig config = context.getHandlerContext(GeonetContext.class).getGeonetworkConfig();
+	this.cswCatalogConfig = config.getCswCatalogConfig();
+	
 	String outputFormat   = request.getAttributeValue("outputFormat");
 	String schemaLanguage = request.getAttributeValue("schemaLanguage");
 
@@ -166,7 +174,7 @@ public class DescribeRecord extends AbstractOperation implements CatalogService
 
 		// Handle outputFormat parameter
 		if (parameterName.equalsIgnoreCase("outputformat")) {
-			Set<String> formats = CatalogConfiguration
+			Set<String> formats = cswCatalogConfig.getDescribeRecord()
 					.getDescribeRecordOutputFormat();
 			List<Element> values = createValuesElement(formats);
             if (listOfValues != null) {
@@ -176,7 +184,7 @@ public class DescribeRecord extends AbstractOperation implements CatalogService
 
 		// Handle namespace parameter
 		if (parameterName.equalsIgnoreCase("namespace")) {
-			Set<Namespace> namespaces = CatalogConfiguration
+			Set<Namespace> namespaces = cswCatalogConfig.getDescribeRecord()
 					.getDescribeRecordNamespaces();
 			List<Element> values = createValuesElementNS(namespaces);
             if (listOfValues != null) {
@@ -186,8 +194,8 @@ public class DescribeRecord extends AbstractOperation implements CatalogService
 
 		// Handle typename parameter
 		if (parameterName.equalsIgnoreCase("typename")) {
-			Set<String> typenames = CatalogConfiguration
-					.getDescribeRecordTypename().keySet();
+			Set<String> typenames = cswCatalogConfig.getDescribeRecord()
+					.getDescribeRecordTypenames().keySet();
 			List<Element> values = createValuesElement(typenames);
             if (listOfValues != null) {
                 listOfValues.addContent(values);
@@ -212,17 +220,17 @@ public class DescribeRecord extends AbstractOperation implements CatalogService
 	HashMap<String, Element> scElements = new HashMap<String, Element>();
 	
 	if (typeName == null) {
-		Set<String> schemaFiles = new HashSet<String>(CatalogConfiguration
-					.getDescribeRecordTypename().values());
+		Set<String> schemaFiles = new HashSet<String>(cswCatalogConfig.getDescribeRecord()
+					.getDescribeRecordTypenames().values());
 		for (String schema : schemaFiles) {			
 			String tname = schema.substring(0, schema.indexOf("."));
 			currentSC = loadSchemaComponent(context, tname, schema);
 			scElements.put(tname, currentSC);
 		}
 	} else {
-		if (CatalogConfiguration.getDescribeRecordTypename().containsKey(typeName)) {
+		if (cswCatalogConfig.getDescribeRecord().getDescribeRecordTypenames().containsKey(typeName)) {
 			scElements.put(typeName, loadSchemaComponent(context, typeName,
-					CatalogConfiguration.getDescribeRecordTypename().get(typeName)));
+			        cswCatalogConfig.getDescribeRecord().getDescribeRecordTypenames().get(typeName)));
 		}
 //		  CSW 2.0.2 testsuite csw:csw-2.0.2-DescribeRecord-tc3.1:
 //		  "The response to a DescribeRecord request that contains an unknown TypeName

@@ -23,10 +23,19 @@
 
 package org.fao.geonet.kernel.csw.services;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.StringTokenizer;
+
 import jeeves.resources.dbms.Dbms;
 import jeeves.server.context.ServiceContext;
 import jeeves.utils.Log;
 import jeeves.utils.Xml;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.Sort;
 import org.fao.geonet.GeonetContext;
@@ -41,26 +50,16 @@ import org.fao.geonet.csw.common.exceptions.CatalogException;
 import org.fao.geonet.csw.common.exceptions.InvalidParameterValueEx;
 import org.fao.geonet.csw.common.exceptions.MissingParameterValueEx;
 import org.fao.geonet.csw.common.exceptions.NoApplicableCodeEx;
-import org.fao.geonet.kernel.csw.CatalogConfiguration;
 import org.fao.geonet.kernel.csw.CatalogService;
+import org.fao.geonet.kernel.csw.CswCatalogConfig;
 import org.fao.geonet.kernel.csw.services.getrecords.FieldMapper;
 import org.fao.geonet.kernel.csw.services.getrecords.SearchController;
-import org.fao.geonet.kernel.search.LuceneConfig;
 import org.fao.geonet.kernel.search.LuceneSearcher;
 import org.fao.geonet.kernel.search.spatial.Pair;
 import org.fao.geonet.util.ISODate;
 import org.jdom.Attribute;
 import org.jdom.Element;
 import org.springframework.util.CollectionUtils;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.StringTokenizer;
 
 /**
  * See OGC 07-006 and OGC 07-045.
@@ -80,12 +79,18 @@ public class GetRecords extends AbstractOperation implements CatalogService {
 
 	private SearchController _searchController;
 
+    private FieldMapper fieldMapper;
+
+    private CswCatalogConfig cswConfig;
+
     /**
      * @param summaryConfig
      * @param luceneConfig
      */
 	public GetRecords(GeonetworkConfig config) {
         _searchController = new SearchController(config);
+        this.cswConfig = config.getCswCatalogConfig();
+        this.fieldMapper = new FieldMapper(config.getCswCatalogConfig());
     }
 
     /**
@@ -423,8 +428,8 @@ public class GetRecords extends AbstractOperation implements CatalogService {
     	
     	// Handle outputFormat parameter
 		if (parameterName.equalsIgnoreCase("outputformat")) {
-			Set<String> formats = CatalogConfiguration
-					.getGetRecordsOutputFormat();
+			Set<String> formats = 
+			        cswConfig.getRecords().getGetRecordsOutputFormat();
 			List<Element> values = createValuesElement(formats);
             if (listOfValues != null) {
                 listOfValues.addContent(values);
@@ -433,7 +438,7 @@ public class GetRecords extends AbstractOperation implements CatalogService {
     	
 		// Handle outputSchema parameter
 		if (parameterName.equalsIgnoreCase("outputSchema")) {
-			Set<String> namespacesUri = CatalogConfiguration
+			Set<String> namespacesUri = cswConfig.getRecords()
 					.getGetRecordsOutputSchema();
 			List<Element> values = createValuesElement(namespacesUri);
             if (listOfValues != null) {
@@ -443,7 +448,7 @@ public class GetRecords extends AbstractOperation implements CatalogService {
 
 		// Handle typenames parameter
 		if (parameterName.equalsIgnoreCase("typenames")) {
-			Set<String> typenames = CatalogConfiguration
+			Set<String> typenames = cswConfig.getRecords()
 					.getGetRecordsTypenames();
 			List<Element> values = createValuesElement(typenames);
             if (listOfValues != null) {
@@ -709,7 +714,7 @@ public class GetRecords extends AbstractOperation implements CatalogService {
             String order = el.getChildText("SortOrder", Csw.NAMESPACE_OGC);
 
             // Map CSW search field to Lucene for sorting. And if not mapped assumes the field is a Lucene field.
-            String luceneField = FieldMapper.map(field);
+            String luceneField = fieldMapper.map(field);
             if (luceneField != null) {
                 sortFields.add(Pair.read(luceneField, "DESC".equals(order)));
             }

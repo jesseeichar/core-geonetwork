@@ -113,7 +113,7 @@ public class GroupsPopularity implements Service {
 		chart.setBackgroundPaint(Color.decode("#E7EDF5"));
 		String chartFilename = "popubygroup_" + System.currentTimeMillis() + ".png";
 		
-		File statFolder = new File(gc.getHandlerConfig().getDataDirectories().getResourcesDir()
+		File statFolder = new File(gc.getGeonetworkConfig().getDataDirectories().getResourcesDir()
 		        + File.separator + "images" + File.separator + "statTmp");
 		if (!statFolder.exists()) {
 			statFolder.mkdirs();

@@ -73,7 +73,7 @@ public class GetInfo implements Service {
 		sm = gc.getSearchmanager();
 		dbms = (Dbms) context.getResourceManager().open(Geonet.Res.MAIN_DB);
 		
-		String luceneDir = gc.getHandlerConfig().getDataDirectories().getLuceneDir();
+		String luceneDir = gc.getGeonetworkConfig().getDataDirectories().getLuceneDir();
 		loadSystemInfo();
 		loadCatalogueInfo(gc);
 		loadIndexInfo(luceneDir);
@@ -109,7 +109,7 @@ public class GetInfo implements Service {
      * @param dataDir
      */
     private void loadCatalogueInfo(GeonetContext gc) {
-    	GeonetworkDataDirectory sc = gc.getHandlerConfig().getDataDirectories();
+    	GeonetworkDataDirectory sc = gc.getGeonetworkConfig().getDataDirectories();
 
     	catProperties.put("data." + Geonet.Config.DATA_DIR, sc.getDataDir());
     	catProperties.put("data." + Geonet.Config.CODELIST_DIR, sc.getCodelistDir());

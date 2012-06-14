@@ -192,7 +192,7 @@ public class RequestsByDate implements Service {
 		// build tmp path from Jeeves context
 		String chartFilename = getFileName();
 
-		File statFolder = new File(gc.getHandlerConfig().getDataDirectories().getResourcesDir()
+		File statFolder = new File(gc.getGeonetworkConfig().getDataDirectories().getResourcesDir()
 		        + File.separator + "images" + File.separator + "statTmp");
 		if (!statFolder.exists()) {
 			statFolder.mkdirs();

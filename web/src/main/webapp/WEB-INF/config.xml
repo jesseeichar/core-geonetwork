@@ -27,6 +27,9 @@
  	<!-- import database migration configuration beans -->
  	<import resource="config-db-migration.xml"/>
 	
+ 	<!-- import CSW Configuration -->
+ 	<import resource="config-csw.xml"/>
+	
 	<bean id="geonetworkDataDirectory" class="org.fao.geonet.GeonetworkDataDirectory"></bean>
 	<bean id="jeevesGeneralConfig" class="jeeves.config.GeneralConfig"
 		p:uploadDir="test-uploads">

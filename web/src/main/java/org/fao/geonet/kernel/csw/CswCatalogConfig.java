@@ -10,7 +10,7 @@ import java.util.Set;
 import org.fao.geonet.csw.common.Csw;
 import org.jdom.Namespace;
 
-public class CatalogConfig {
+public class CswCatalogConfig {
     private GetCapabilities capabilities;
     private GetDomain domain;
     private GetRecords records;
@@ -54,6 +54,12 @@ public class CatalogConfig {
         private Set<String> getRecordsTypenames = new HashSet<String>();
         private Set<String> getRecordsRangeFields = new HashSet<String>();
         
+        public Set<String> getTypeMapping(String type) {
+            if (type.equals(Csw.ISO_QUERYABLES))
+                return isoQueryables;
+            else
+                return additionalQueryables;
+        }
         public Map<String, String> getFieldMapping() { return fieldMapping; }
         public Map<String, Map<String, String>> getFieldMappingXPath() { return fieldMappingXPath; }
         public Set<String> getIsoQueryables() { return isoQueryables; }

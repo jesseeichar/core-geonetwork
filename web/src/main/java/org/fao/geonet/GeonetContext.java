@@ -23,20 +23,19 @@
 
 package org.fao.geonet;
 
-import jeeves.server.ServiceConfig;
 import org.fao.geonet.kernel.AccessManager;
 import org.fao.geonet.kernel.DataManager;
-import org.fao.geonet.kernel.SvnManager;
-import org.fao.geonet.kernel.XmlSerializer;
 import org.fao.geonet.kernel.SchemaManager;
+import org.fao.geonet.kernel.SvnManager;
 import org.fao.geonet.kernel.ThesaurusManager;
+import org.fao.geonet.kernel.XmlSerializer;
 import org.fao.geonet.kernel.csw.CatalogDispatcher;
 import org.fao.geonet.kernel.harvest.HarvestManager;
 import org.fao.geonet.kernel.oaipmh.OaiPmhDispatcher;
 import org.fao.geonet.kernel.search.SearchManager;
 import org.fao.geonet.kernel.setting.SettingManager;
-import org.fao.geonet.util.ThreadPool;
 import org.fao.geonet.notifier.MetadataNotifierManager;
+import org.fao.geonet.util.ThreadPool;
 import org.springframework.context.ApplicationContext;
 
 //=============================================================================
@@ -56,9 +55,9 @@ public class GeonetContext
 	/* package */ ThesaurusManager  thesaurusMan;
 	/* package */ OaiPmhDispatcher  oaipmhDis;
 	/* package */ ApplicationContext app_context;
-  /* package */ MetadataNotifierManager metadataNotifierMan;
+    /* package */ MetadataNotifierManager metadataNotifierMan;
 	/* package */ ThreadPool        threadPool;
-	Class statusActionsClass;
+	/* package */ Class<?> statusActionsClass;
 
 
     //---------------------------------------------------------------------------
@@ -71,7 +70,7 @@ public class GeonetContext
 	public AccessManager     getAccessManager()     { return accessMan;    }
 	public SearchManager     getSearchmanager()     { return searchMan;    }
 	public SchemaManager     getSchemamanager()     { return schemaMan;    }
-	public GeonetworkConfig  getHandlerConfig()     { return config;       }
+	public GeonetworkConfig  getGeonetworkConfig()  { return config;       }
 	public CatalogDispatcher getCatalogDispatcher() { return catalogDis;   }
 	public SettingManager    getSettingManager()    { return settingMan;   }
 	public HarvestManager    getHarvestManager()    { return harvestMan;   }

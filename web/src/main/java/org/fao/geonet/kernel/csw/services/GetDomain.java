@@ -41,9 +41,9 @@ import org.fao.geonet.csw.common.Csw;
 import org.fao.geonet.csw.common.exceptions.CatalogException;
 import org.fao.geonet.csw.common.exceptions.NoApplicableCodeEx;
 import org.fao.geonet.csw.common.exceptions.OperationNotSupportedEx;
-import org.fao.geonet.kernel.csw.CatalogConfiguration;
 import org.fao.geonet.kernel.csw.CatalogDispatcher;
 import org.fao.geonet.kernel.csw.CatalogService;
+import org.fao.geonet.kernel.csw.CswCatalogConfig;
 import org.fao.geonet.kernel.csw.services.getrecords.CatalogSearcher;
 import org.fao.geonet.kernel.search.LuceneSearcher;
 import org.fao.geonet.kernel.search.LuceneUtils;
@@ -69,13 +69,17 @@ import java.util.TreeSet;
 
 public class GetDomain extends AbstractOperation implements CatalogService
 {
-	//---------------------------------------------------------------------------
+	private CswCatalogConfig cswConfig;
+
+    //---------------------------------------------------------------------------
 	//---
 	//--- Constructor
 	//---
 	//---------------------------------------------------------------------------
 
-	public GetDomain() {}
+	public GetDomain(CswCatalogConfig config) {
+	    this.cswConfig = config;
+	}
 
 	//---------------------------------------------------------------------------
 	//---
@@ -104,7 +108,7 @@ public class GetDomain extends AbstractOperation implements CatalogService
 		if (propertyNames != null) {
 			List<Element> domainValues;
 			try {
-				domainValues = handlePropertyName(propertyNames, context, false, CatalogConfiguration.getMaxNumberOfRecordsForPropertyNames(), cswServiceSpecificConstraint);
+				domainValues = handlePropertyName(propertyNames, context, false, cswConfig.getDomain().getMaxNumberOfRecordsForPropertyNames(), cswServiceSpecificConstraint);
 			} catch (Exception e) {
 	            Log.error(Geonet.CSW, "Error getting domain value for specified PropertyName : " + e);
 	            throw new NoApplicableCodeEx(
@@ -160,6 +164,7 @@ public class GetDomain extends AbstractOperation implements CatalogService
 	public static List<Element> handlePropertyName(String[] propertyNames,
 			ServiceContext context, boolean freq, int maxRecords, String cswServiceSpecificConstraint) throws Exception {
 		 
+	    CswCatalogConfig cswConfig = context.getHandlerContext(GeonetContext.class).getGeonetworkConfig().getCswCatalogConfig();
 		List<Element> domainValuesList = null;
 
         if(Log.isDebugEnabled(Geonet.CSW))
@@ -222,7 +227,7 @@ public class GetDomain extends AbstractOperation implements CatalogService
 			
 				try {
 					// Get mapped lucene field in CSW configuration
-					String indexField = CatalogConfiguration.getFieldMapping().get(
+					String indexField = cswConfig.getRecords().getFieldMapping().get(
 							property.toLowerCase());
 					if (indexField != null)
 						property = indexField;
@@ -233,7 +238,7 @@ public class GetDomain extends AbstractOperation implements CatalogService
 						continue;
 					
 					boolean isRange = false;
-					if (CatalogConfiguration.getGetRecordsRangeFields().contains(
+					if (cswConfig.getRecords().getGetRecordsRangeFields().contains(
 							property))
 						isRange = true;
 					

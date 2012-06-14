@@ -2,6 +2,7 @@ package org.fao.geonet;
 
 import jeeves.config.EnvironmentalConfig;
 
+import org.fao.geonet.kernel.csw.CswCatalogConfig;
 import org.fao.geonet.kernel.search.LuceneConfig;
 import org.fao.geonet.kernel.search.SummaryConfig;
 import org.fao.geonet.kernel.search.spatial.SpatialIndexWriter;
@@ -27,6 +28,7 @@ public class GeonetworkConfig implements Lifecycle {
     private GeonetworkDataDirectory dataDirectories;
     private LuceneConfig luceneConfig;
     private SummaryConfig summaryConfig;
+    private CswCatalogConfig cswCatalogConfig;
     // ------------------------------------------------------------------------------
     
     private boolean started;
@@ -36,10 +38,13 @@ public class GeonetworkConfig implements Lifecycle {
             EnvironmentalConfig envConfig, 
             GeonetworkDataDirectory dataDirectories,
             LuceneConfig luceneConfig,
-            SummaryConfig summaryConfig) {
+            SummaryConfig summaryConfig,
+            CswCatalogConfig cswCatalogConfig) {
         this.envConfig = envConfig;
         this.dataDirectories = dataDirectories;
         this.luceneConfig = luceneConfig;
+        this.summaryConfig = summaryConfig;
+        this.cswCatalogConfig = cswCatalogConfig;
     }
     
     public String getLanguageProfilesDir() { return languageProfilesDir;}
@@ -82,6 +87,7 @@ public class GeonetworkConfig implements Lifecycle {
     public GeonetworkDataDirectory getDataDirectories() { return dataDirectories; }
     public LuceneConfig getLuceneConfig() { return luceneConfig; }
     public SummaryConfig getSummaryConfig() { return summaryConfig;}
+    public CswCatalogConfig getCswCatalogConfig() { return cswCatalogConfig; }
 
     @Override
     public void start() {

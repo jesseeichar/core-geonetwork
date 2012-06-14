@@ -46,7 +46,7 @@ public class Reload implements Service {
 		GeonetContext gc = (GeonetContext) context
 				.getHandlerContext(Geonet.CONTEXT_NAME);
 
-		LuceneConfig lc = gc.getHandlerConfig().getLuceneConfig();
+		LuceneConfig lc = gc.getGeonetworkConfig().getLuceneConfig();
 		lc.reload();
 		
 		// Update related services to Lucene config

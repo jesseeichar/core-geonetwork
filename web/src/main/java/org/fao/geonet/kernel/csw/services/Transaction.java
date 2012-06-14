@@ -23,11 +23,22 @@
 
 package org.fao.geonet.kernel.csw.services;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import jeeves.resources.dbms.Dbms;
 import jeeves.server.UserSession;
 import jeeves.server.context.ServiceContext;
 import jeeves.utils.Log;
 import jeeves.utils.Util;
+
 import org.fao.geonet.GeonetContext;
 import org.fao.geonet.GeonetworkConfig;
 import org.fao.geonet.constants.Edit;
@@ -44,7 +55,6 @@ import org.fao.geonet.kernel.csw.CatalogService;
 import org.fao.geonet.kernel.csw.services.getrecords.FieldMapper;
 import org.fao.geonet.kernel.csw.services.getrecords.SearchController;
 import org.fao.geonet.kernel.schema.MetadataSchema;
-import org.fao.geonet.kernel.search.LuceneConfig;
 import org.fao.geonet.kernel.search.spatial.Pair;
 import org.fao.geonet.kernel.setting.SettingManager;
 import org.jaxen.SimpleNamespaceContext;
@@ -53,10 +63,6 @@ import org.jaxen.jdom.JDOMXPath;
 import org.jdom.Attribute;
 import org.jdom.Element;
 import org.jdom.Namespace;
-
-import java.io.File;
-import java.sql.SQLException;
-import java.util.*;
 
 //=============================================================================
 
@@ -73,9 +79,11 @@ public class Transaction extends AbstractOperation implements CatalogService
 	//---------------------------------------------------------------------------
 
    private SearchController _searchController;
+    private FieldMapper _fieldMapper;
 
 	public Transaction(GeonetworkConfig config) {
         _searchController = new SearchController(config);
+        this._fieldMapper = new FieldMapper(config.getCswCatalogConfig());
     }
 
 
@@ -394,7 +402,7 @@ public class Transaction extends AbstractOperation implements CatalogService
 
                     // Get XPath for queriable name, i provided in propertyName.
                     // Otherwise assume propertyName contains full XPath to property to update
-                    String xpathProperty = FieldMapper.mapXPath(propertyName, schemaId);
+                    String xpathProperty = _fieldMapper.mapXPath(propertyName, schemaId);
                     if (xpathProperty == null) {
                         xpathProperty = propertyName;
                     }

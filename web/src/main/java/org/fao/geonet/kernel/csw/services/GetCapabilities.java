@@ -36,7 +36,7 @@ import org.fao.geonet.csw.common.Csw;
 import org.fao.geonet.csw.common.exceptions.CatalogException;
 import org.fao.geonet.csw.common.exceptions.NoApplicableCodeEx;
 import org.fao.geonet.csw.common.exceptions.VersionNegotiationFailedEx;
-import org.fao.geonet.kernel.csw.CatalogConfiguration;
+import org.fao.geonet.kernel.csw.CswCatalogConfig;
 import org.fao.geonet.kernel.csw.CatalogService;
 import org.fao.geonet.kernel.csw.domain.CswCapabilitiesInfo;
 import org.fao.geonet.kernel.csw.services.getrecords.FieldMapper;
@@ -57,13 +57,19 @@ import java.util.Set;
 
 public class GetCapabilities extends AbstractOperation implements CatalogService
 {
-	//---------------------------------------------------------------------------
+	private FieldMapper fieldMapper;
+    private CswCatalogConfig cswConfig;
+
+    //---------------------------------------------------------------------------
 	//---
 	//--- Constructor
 	//---
 	//---------------------------------------------------------------------------
 
-	public GetCapabilities() {}
+	public GetCapabilities(CswCatalogConfig cswCatalogConfig) {
+	    this.fieldMapper = new FieldMapper(cswCatalogConfig);
+	    this.cswConfig = cswCatalogConfig;
+	}
 
 	//---------------------------------------------------------------------------
 	//---
@@ -397,7 +403,7 @@ public class GetCapabilities extends AbstractOperation implements CatalogService
 		List<Element> values;
 		String[] properties = {"keyword"};
 		try {
-			values = GetDomain.handlePropertyName(properties, context, true, CatalogConfiguration.getMaxNumberOfRecordsForKeywords(), cswServiceSpecificContraint);
+			values = GetDomain.handlePropertyName(properties, context, true, cswConfig.getCapabilities().getMaxNumberOfRecordsForKeywords(), cswServiceSpecificContraint);
 		} catch (Exception e) {
             Log.error(Geonet.CSW, "Error getting domain value for specified PropertyName : " + e);
 			// If GetDomain operation failed, just add nothing to the capabilities document template.            
@@ -413,7 +419,7 @@ public class GetCapabilities extends AbstractOperation implements CatalogService
                 keyword.setText(v.getText());
                 k.addContent(keyword);
                 cpt++;
-                if (cpt == CatalogConfiguration.getNumberOfKeywords()) {
+                if (cpt == cswConfig.getCapabilities().getNumberOfKeywords()) {
                     break;
                 }
             }
@@ -448,7 +454,7 @@ public class GetCapabilities extends AbstractOperation implements CatalogService
 		Element parameter = new Element("Parameter", Csw.NAMESPACE_OWS)
 			.setAttribute("name", "typeName");
 		
-		Set<String> typenames = CatalogConfiguration.getDescribeRecordTypename().keySet();
+		Set<String> typenames = cswConfig.getDescribeRecord().getDescribeRecordTypenames().keySet();
 		for (String typename : typenames) {
 			parameter.addContent(new Element("Value", Csw.NAMESPACE_OWS)
 				.setText(typename));
@@ -465,8 +471,7 @@ public class GetCapabilities extends AbstractOperation implements CatalogService
 	//---------------------------------------------------------------------------
 
 	private void fillGetRecordsParams(Element op) {
-		Set<String> isoQueryableMap = FieldMapper
-				.getPropertiesByType(Csw.ISO_QUERYABLES);
+		Set<String> isoQueryableMap = fieldMapper.getPropertiesByType(Csw.ISO_QUERYABLES);
 		Element isoConstraint = new Element("Constraint", Csw.NAMESPACE_OWS)
 				.setAttribute("name", Csw.ISO_QUERYABLES);
 		
@@ -475,8 +480,7 @@ public class GetCapabilities extends AbstractOperation implements CatalogService
 					.setText(params));
 		}
 
-		Set<String> additionalQueryableMap = FieldMapper
-				.getPropertiesByType(Csw.ADDITIONAL_QUERYABLES);
+		Set<String> additionalQueryableMap = fieldMapper.getPropertiesByType(Csw.ADDITIONAL_QUERYABLES);
 		Element additionalConstraint = new Element("Constraint",
 				Csw.NAMESPACE_OWS).setAttribute("name",
 				Csw.ADDITIONAL_QUERYABLES);

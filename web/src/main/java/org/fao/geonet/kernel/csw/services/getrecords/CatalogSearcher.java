@@ -70,6 +70,7 @@ import org.fao.geonet.csw.common.exceptions.CatalogException;
 import org.fao.geonet.csw.common.exceptions.InvalidParameterValueEx;
 import org.fao.geonet.csw.common.exceptions.NoApplicableCodeEx;
 import org.fao.geonet.kernel.AccessManager;
+import org.fao.geonet.kernel.csw.CswCatalogConfig;
 import org.fao.geonet.kernel.search.DuplicateDocFilter;
 import org.fao.geonet.kernel.search.LuceneConfig;
 import org.fao.geonet.kernel.search.LuceneConfig.NumericField;
@@ -94,10 +95,12 @@ public class CatalogSearcher {
 	private CachingWrapperFilter _filter;
 	private Sort          _sort;
 	private String        _lang;
+    private CswCatalogConfig _catalogConfig;
 	
 	public CatalogSearcher(GeonetworkConfig config) {
 
 		_luceneConfig = config.getLuceneConfig();
+		_catalogConfig = config.getCswCatalogConfig();
 		_tokenizedFieldSet = _luceneConfig.getTokenizedFields();
 		_numericFieldSet = _luceneConfig.getNumericFields();
 		
@@ -332,7 +335,7 @@ public class CatalogSearcher {
 			if (field.equals(""))
 				field = "any";
 
-			String mapped = FieldMapper.map(field);
+			String mapped = new FieldMapper(_catalogConfig).map(field);
 
 			if (mapped != null)
 				elem.setAttribute("fld", mapped);
@@ -509,7 +512,7 @@ public class CatalogSearcher {
 			String id = doc.get("_id");
 			ResultItem ri = new ResultItem(id);
 			results.add(ri);
-			for (String field : FieldMapper.getMappedFields()) {
+			for (String field : new FieldMapper(_catalogConfig).getMappedFields()) {
 				String value = doc.get(field);
 				if (value != null) {
 					ri.add(field, value);
