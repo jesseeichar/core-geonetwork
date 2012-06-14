@@ -29,7 +29,9 @@ import jeeves.server.resources.ProviderManager;
 import jeeves.server.resources.ResourceManager;
 import jeeves.utils.SerialFactory;
 
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 
 //=============================================================================
 
@@ -46,8 +48,9 @@ public class BasicContext
 	private   String baseUrl;
 	private   String appPath;
 
-	private Hashtable<String, Object> htContexts;
-    private MonitorManager monitorManager;
+	private final Map<String, Object> idToContextMap;
+	private final Map<Class<?>, Object> classToContextMap = new HashMap<Class<?>, Object>();
+    private final MonitorManager monitorManager;
 
     //--------------------------------------------------------------------------
 	//---
@@ -62,7 +65,11 @@ public class BasicContext
         this.monitorManager = mm;
 		provMan    = pm;
 		serialFact = sf;
-		htContexts = contexts;
+		idToContextMap = contexts;
+		
+		for (Object context : idToContextMap.values()) {
+            classToContextMap.put(context.getClass(), context);
+        }
 	}
 
 	//--------------------------------------------------------------------------
@@ -89,10 +96,19 @@ public class BasicContext
 
 	//--------------------------------------------------------------------------
 
-	public Object getHandlerContext(String contextName)
-	{
-		return htContexts.get(contextName);
+	public Object getHandlerContext(String contextName) {
+		return idToContextMap.get(contextName);
 	}
+
+	/**
+	 * Get the first handler of the desired class
+	 * 
+	 * @param class1 the classOfContext
+	 * @return
+	 */
+    public <T> T getHandlerContext(Class<T> classOfContext) {
+        return classOfContext.cast(classToContextMap.get(classOfContext));
+    }
 
 	//--------------------------------------------------------------------------
 

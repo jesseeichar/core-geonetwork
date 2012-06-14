@@ -36,11 +36,12 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         addPropertyValue(builder, element, ConfigFile.Service.Attr.MATCH);
         addPropertyValue(builder, element, ConfigFile.Service.Attr.SHEET);
         addPropertyValue(builder, element, ConfigFile.Service.Attr.CACHE);
+        String packageName = element.getAttribute(ConfigFile.Service.Attr.PACKAGE);
 
         ManagedList<BeanDefinition> classes = new ManagedList<BeanDefinition>();
         NodeList children = element.getElementsByTagName(ConfigFile.Service.Child.SERVICECLASS);
         for(int i = 0; i < children.getLength(); i++) { 
-            classes.add(parseServiceClass((Element) children.item(i)));
+            classes.add(parseServiceClass((Element) children.item(i), packageName));
         }
         if (!classes.isEmpty()) {
             builder.addPropertyValue(ConfigFile.Service.Child.SERVICECLASS, classes);
@@ -49,7 +50,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         ManagedList<BeanDefinition> outputs = new ManagedList<BeanDefinition>();
         children = element.getElementsByTagName(ConfigFile.Service.Child.OUTPUT);
         for(int i = 0; i < children.getLength(); i++) { 
-            outputs.add(parseServiceOutput((Element) children.item(i)));
+            outputs.add(parseServiceOutput((Element) children.item(i), packageName));
         }
         if (!outputs.isEmpty()) {
             builder.addPropertyValue(ConfigFile.Service.Child.OUTPUT, outputs);
@@ -58,19 +59,32 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         ManagedList<BeanDefinition> errors = new ManagedList<BeanDefinition>();
         children = element.getElementsByTagName(ConfigFile.Service.Child.ERROR);
         for(int i = 0; i < children.getLength(); i++) { 
-            errors.add(parseServiceError((Element) children.item(i)));
+            errors.add(parseServiceError((Element) children.item(i), packageName));
         }
         if (!errors.isEmpty()) {
             builder.addPropertyValue(ConfigFile.Service.Child.ERROR, errors);
         }
     }
 
-    private BeanDefinition parseServiceClass(Element element) {
+    private BeanDefinition parseServiceClass(Element element, String packageName) {
         BeanDefinitionBuilder builder = newBuilder(ServiceConfigBean.class);
-        addPropertyValue(builder, element, ConfigFile.Class.Attr.NAME, true);
-        
+        String serviceNameAtt = ConfigFile.Class.Attr.NAME;
+        setServiceName(element, packageName, builder, serviceNameAtt);
+
         parseParam(element, builder);
         return builder.getBeanDefinition();
+    }
+
+    private void setServiceName(Element element, String packageName, BeanDefinitionBuilder builder, String serviceNameAtt) {
+        if(element.hasAttribute(serviceNameAtt)) {
+            String name = element.getAttribute(serviceNameAtt);
+            if(name.startsWith(".")) {
+                name = packageName+name;
+            }
+            builder.addPropertyValue(serviceNameAtt, name);
+        } else {
+            error(element, serviceNameAtt);
+        }
     }
 
     private void parseParam(Element element, BeanDefinitionBuilder builder) {
@@ -90,7 +104,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         }
     }
 
-    private BeanDefinition parseServiceOutput(Element element) {
+    private BeanDefinition parseServiceOutput(Element element, String packageName) {
         BeanDefinitionBuilder builder = newBuilder(OutputPage.class);
         addPropertyValue(builder, element, ConfigFile.Output.Attr.SHEET);
         addPropertyValue(builder, element, ConfigFile.Output.Attr.BLOB);
@@ -99,11 +113,11 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         addPropertyValue(builder, element, ConfigFile.Output.Attr.FORWARD);
         addPropertyValue(builder, element, ConfigFile.Output.Attr.TEST);
 
-        parseGuiServices(builder, element);
+        parseGuiServices(builder, element, packageName);
         return builder.getBeanDefinition();
     }
 
-    private BeanDefinition parseServiceError(Element element) {
+    private BeanDefinition parseServiceError(Element element, String packageName) {
         BeanDefinitionBuilder builder = newBuilder(ErrorPage.class);
         
         addPropertyValue(builder, element, ConfigFile.Error.Attr.SHEET);
@@ -111,7 +125,7 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         addPropertyValue(builder, element, ConfigFile.Error.Attr.CONTENT_TYPE);
         addPropertyValue(builder, element, ConfigFile.Error.Attr.TEST);
         
-        parseGuiServices(builder, element);
+        parseGuiServices(builder, element, packageName);
         
         return builder.getBeanDefinition();
         
@@ -121,19 +135,22 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         addPropertyValue(builder, element, name, false);
     }
     private void addPropertyValue(BeanDefinitionBuilder builder, Element element, String name, String propName, boolean required) {
-        
         if (element.hasAttribute(name)) {
             String value = element.getAttribute(name);
             builder.addPropertyValue(propName, value);
         } else if (required) {
-            throw new BeanInitializationException("Property "+name+" of "+element.getLocalName()+" is a required element");
+            error(element, name);
         }
+    }
+
+    private void error(Element element, String name) {
+        throw new BeanInitializationException("Property "+name+" of "+element.getLocalName()+" is a required element");
     }
     private void addPropertyValue(BeanDefinitionBuilder builder, Element element, String name, boolean required) {
         addPropertyValue(builder, element, name, name, required);
     }
 
-    private void parseGuiServices(BeanDefinitionBuilder builder, Element element) {
+    private void parseGuiServices(BeanDefinitionBuilder builder, Element element, String packageName) {
         NodeList nodeList = element.getChildNodes();
         ManagedList<BeanDefinition> guiServices = new ManagedList<BeanDefinition>();
         for(int i = 0; i < nodeList.getLength(); i++) {
@@ -142,13 +159,13 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
                 Element elem = (Element) node;
                 if (elem.getLocalName().equals(ConfigFile.Output.Child.CALL) ||
                         elem.getLocalName().equals(ConfigFile.Output.Child.XML))
-                guiServices.add(parseGuiService(elem));
+                guiServices.add(parseGuiService(elem, packageName));
             }
         }
 
         builder.addPropertyValue("guiServices", guiServices);
     }
-    private BeanDefinition parseGuiService(Element elem) {
+    private BeanDefinition parseGuiService(Element elem, String packageName) {
         if (ConfigFile.Output.Child.XML.equals(elem.getLocalName())) {
             BeanDefinitionBuilder builder = newBuilder(XmlFile.class);
             addPropertyValue(builder, elem, ConfigFile.Xml.Attr.NAME);
@@ -162,8 +179,9 @@ public class ServiceBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
 
         if (ConfigFile.Output.Child.CALL.equals(elem.getLocalName())) {
             BeanDefinitionBuilder builder = newBuilder(Call.class);
+            setServiceName(elem, packageName, builder, ConfigFile.Call.Attr.CLASS);
+
             addPropertyValue(builder, elem, ConfigFile.Call.Attr.NAME);
-            addPropertyValue(builder, elem, ConfigFile.Call.Attr.CLASS);
             parseParam(elem, builder);
             return builder.getBeanDefinition();
         }

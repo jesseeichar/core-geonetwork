@@ -19,6 +19,7 @@ public class JeevesApplicationContextLoader {
         envConfig.setServletContext(servletContext);
 
         FileSystemXmlApplicationContext springContext = new FileSystemXmlApplicationContext(configurationFiles, false);
+        springContext.setValidating(false);
 
         springContext.addBeanFactoryPostProcessor(envConfig);
         springContext.refresh();
@@ -36,7 +37,7 @@ public class JeevesApplicationContextLoader {
                 new File(configPath, "config.xml").toURI().toString() 
         };
         FileSystemXmlApplicationContext springContext = new FileSystemXmlApplicationContext(contexts, false);
-
+        springContext.setValidating(false);
         springContext.addBeanFactoryPostProcessor(envConfig);
         springContext.refresh();
 

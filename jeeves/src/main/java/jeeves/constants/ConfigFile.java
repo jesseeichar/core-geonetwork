@@ -323,6 +323,7 @@ public class ConfigFile
 			public static final String MATCH = "match";
 			public static final String SHEET = "sheet";
 			public static final String CACHE = "cache";
+			public static final String PACKAGE = "package";
 
 			public final class Type
 			{

@@ -23,6 +23,11 @@
 
 package jeeves.server.context;
 
+import java.util.Hashtable;
+import java.util.Map;
+
+import javax.servlet.ServletContext;
+
 import jeeves.interfaces.Logger;
 import jeeves.monitor.MonitorManager;
 import jeeves.server.ProfileManager;
@@ -30,14 +35,8 @@ import jeeves.server.UserSession;
 import jeeves.server.resources.ProviderManager;
 import jeeves.server.sources.ServiceRequest.InputMethod;
 import jeeves.server.sources.ServiceRequest.OutputMethod;
-import jeeves.server.sources.http.JeevesServlet;
 import jeeves.utils.Log;
 import jeeves.utils.SerialFactory;
-
-import java.util.Hashtable;
-import java.util.Map;
-
-import javax.servlet.ServletContext;
 
 //=============================================================================
 
@@ -173,7 +172,6 @@ public class ServiceContext extends BasicContext
     public ServletContext getServletContext() {
         return servletContext;
     }
-
 }
 
 //=============================================================================

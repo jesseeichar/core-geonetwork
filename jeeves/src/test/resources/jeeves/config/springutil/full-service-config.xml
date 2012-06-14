@@ -18,9 +18,10 @@
 	 			name="test.service"
 				match="service"
 				sheet="param-transform.xsl"
-				cache="false">
+				cache="false"
+				package="jeeves.config.springutil">
 		<serviceClass
-				name="jeeves.config.springutil.TestService">
+				name=".TestService">
 			<param name="p1" value="v1"/>
 			<param name="p2" value="v2"/>
 		</serviceClass>
@@ -39,7 +40,7 @@
 				testCondition="correctError"
 				contentType="text"
 				statusCode="500">
-			<call name="errorService" serviceClass="jeeves.config.springutil.TestService">
+			<call name="errorService" serviceClass=".TestService">
 				<param name="ep1" value = "ev1"/>
 			</call>
 			<xml file="error.xml" name="sources" localized="false" base="erloc" language="eng"/>
