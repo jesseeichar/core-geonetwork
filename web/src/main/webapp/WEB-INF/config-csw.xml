@@ -4,6 +4,7 @@
 	xmlns:p="http://www.springframework.org/schema/p"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<bean id="cswCatalogConfig" class="org.fao.geonet.kernel.csw.CswCatalogConfig"/>
 	<bean id="getCapabilities" class="org.fao.geonet.kernel.csw.CswCatalogConfig$GetCapabilities"
 		p:maxNumberOfRecordsForKeywords="10"
 		p:numberOfKeywords="1000"/>

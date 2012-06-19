@@ -34,6 +34,7 @@ import java.util.Vector;
 
 import javax.servlet.http.HttpServletResponse;
 
+import jeeves.config.DefaultConfig;
 import jeeves.config.EnvironmentalConfig;
 import jeeves.config.GeneralConfig;
 import jeeves.constants.Jeeves;
@@ -41,6 +42,7 @@ import jeeves.exceptions.JeevesException;
 import jeeves.exceptions.ServiceNotAllowedEx;
 import jeeves.exceptions.ServiceNotFoundEx;
 import jeeves.exceptions.ServiceNotMatchedEx;
+import jeeves.interfaces.ApplicationHandler;
 import jeeves.monitor.MonitorManager;
 import jeeves.monitor.timer.ServiceManagerGuiServicesTimer;
 import jeeves.monitor.timer.ServiceManagerServicesTimer;
@@ -64,10 +66,12 @@ import jeeves.utils.Xml;
 
 import org.jdom.Element;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.Lifecycle;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -75,11 +79,10 @@ import com.yammer.metrics.core.TimerContext;
 
 //=============================================================================
 
-public class ServiceManager implements ApplicationContextAware
+public class ServiceManager implements ApplicationContextAware, Lifecycle
 {
 	private Multimap<String, ServiceInfo> htServices = HashMultimap.create();
-	private Hashtable<String, Object> htContexts = 
-		new Hashtable<String, Object>();
+	private Hashtable<String, Object> htContexts = new Hashtable<String, Object>();
 	private Vector<ErrorPage> vErrorPipe = new Vector<ErrorPage>();
 	private Vector<GuiService> vDefaultGui = new Vector<GuiService>();
 
@@ -92,6 +95,8 @@ public class ServiceManager implements ApplicationContextAware
     private Map<String,String> startupErrors = new HashMap<String, String>();
     private EnvironmentalConfig envConfig;
     private GeneralConfig generalConfig;
+    private DefaultConfig defaultConfig;
+	private ApplicationContext applicationContext;
 
     //---------------------------------------------------------------------------
 	//---
@@ -116,6 +121,9 @@ public class ServiceManager implements ApplicationContextAware
     public void setGeneralConfig(GeneralConfig generalConfig) { this.generalConfig = generalConfig; }
     @Required
     @Autowired
+    public void setDefaultConfig(DefaultConfig defaultConfig) { this.defaultConfig = defaultConfig; }
+    @Required
+    @Autowired
 	public void setSerialFactory(SerialFactory   s) { serialFact = s; }
 	
     public void addStartupErrors(Map<String,String> errors)   { 
@@ -137,7 +145,7 @@ public class ServiceManager implements ApplicationContextAware
 		ServiceContext context = new ServiceContext(name, monitorManager, providManager, serialFact, profileManager, htContexts);
 
 		context.setBaseUrl(envConfig.getBaseUrl());
-		context.setLanguage("?");
+		context.setLanguage(defaultConfig.getLanguage());
 		context.setUserSession(null);
 		context.setIpAddress("?");
 		context.setAppPath(envConfig.getAppPath());
@@ -727,13 +735,38 @@ public class ServiceManager implements ApplicationContextAware
 
 	@Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+    }
+	@Override
+	public void start() {
+		// Now all app handlers are configured so we can get them and services are ready we can configure then
+		htServices.clear();
         Map<String, ServiceInfo> definitions = applicationContext.getBeansOfType(ServiceInfo.class);
-        
         for (ServiceInfo info : definitions.values()) {
             htServices.put(info.getName(), info);
         }
-        
-    }
+
+		htContexts.clear();
+        Map<String, ApplicationHandler> contexts = applicationContext.getBeansOfType(ApplicationHandler.class);
+        for (ApplicationHandler info : contexts.values()) {
+            try {
+				htContexts.put(info.getContextName(), info.getContext());
+			} catch (Exception e) {
+				throw new BeanInitializationException(info.getContextName()+" throw an exception when obtaining its context object", e);
+			}
+        }
+
+		
+	}
+	@Override
+	public void stop() {
+		htServices.clear();
+		htContexts.clear();
+	}
+	@Override
+	public boolean isRunning() {
+		return !htContexts.isEmpty();
+	}
 }
 
 //=============================================================================

@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.fao.geonet.csw.common.Csw;
 import org.jdom.Namespace;
+import org.springframework.beans.factory.annotation.Required;
 
 public class CswCatalogConfig {
     private GetCapabilities capabilities;
@@ -102,11 +103,13 @@ public class CswCatalogConfig {
     public static class GetRecordParameter {
         String name;
         String field;
-        String type;
-        boolean range;
-        List<XPath> xpaths;
+        String type = Csw.ISO_QUERYABLES;
+        boolean range = false;
+        List<XPath> xpaths = Collections.emptyList();
         
+        @Required
         public void setName(String name) { this.name = name; }
+        @Required
         public void setField(String field) { this.field = field; }
         public void setType(String type) { this.type = type; }
         public void setRange(boolean range) { this.range = range; }

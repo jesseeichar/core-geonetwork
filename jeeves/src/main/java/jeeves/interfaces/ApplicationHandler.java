@@ -29,7 +29,6 @@ package jeeves.interfaces;
 public interface ApplicationHandler
 {
 	public String getContextName();
-	// TODO get rid of this class in favor of spring only 
 	public Object getContext() throws Exception;
 }
 

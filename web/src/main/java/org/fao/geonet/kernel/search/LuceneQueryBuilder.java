@@ -41,6 +41,7 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TermRangeQuery;
 import org.apache.lucene.search.WildcardQuery;
 import org.fao.geonet.constants.Geonet;
+import org.fao.geonet.kernel.search.LuceneConfig.NumericField;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1023,9 +1024,15 @@ public class LuceneQueryBuilder {
     private void addNumericRangeQuery(BooleanQuery query, String min, String max, boolean minInclusive,
                                       boolean maxExclusive, String luceneIndexField, boolean required) {
         if (min != null && max != null) {
-            String type = _numericFieldSet.get(luceneIndexField).getType();
+            NumericField numericField = _numericFieldSet.get(luceneIndexField);
+            Query rangeQuery;
+			if (numericField != null) {
+				String type = numericField.getType();
+				rangeQuery = buildNumericRangeQueryForType(luceneIndexField, min, max, minInclusive, maxExclusive, type);
+            } else {
+            	rangeQuery = new TermRangeQuery(luceneIndexField, min, max, minInclusive, !maxExclusive);
+            }
 
-            NumericRangeQuery rangeQuery = buildNumericRangeQueryForType(luceneIndexField, min, max, minInclusive, maxExclusive, type);
 
             BooleanClause.Occur denoOccur = LuceneUtils.convertRequiredAndProhibitedToOccur(required, false);
             BooleanClause rangeClause = new BooleanClause(rangeQuery, denoOccur);

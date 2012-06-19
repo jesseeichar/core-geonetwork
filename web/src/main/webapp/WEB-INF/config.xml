@@ -12,8 +12,9 @@
         http://geonetwork-opensource.org/jeeves-spring-namespace
         http://geonetwork-opensource.org/jeeves-spring-namespace/jeeves-spring-namespace.xsd"> 
  
- <!-- Import database you want to use -->
- 	<import resource="config-h2-database.xml"/>
+    <!-- Import database you want to use -->
+ 	<!-- <import resource="config-h2-database.xml"/> -->
+ 	<import resource="config-postgis-database.xml"/>
  	
  	<!-- import profile access rights -->
  	<import resource="user-profiles.xml"/>

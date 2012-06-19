@@ -9,8 +9,8 @@
 		http://www.springframework.org/schema/context
         http://www.springframework.org/schema/context/spring-context-3.0.xsd"> 
  
- 	<import resource="config.xml"/>
  	<context:annotation-config/>
+	
 	<!-- services -->
 	<bean id="jeevesEngine"
 		class="jeeves.server.JeevesEngine">

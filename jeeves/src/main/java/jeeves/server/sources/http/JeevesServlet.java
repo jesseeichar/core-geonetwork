@@ -23,7 +23,6 @@
 
 package jeeves.server.sources.http;
 
-import java.io.File;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -33,7 +32,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import jeeves.config.GeneralConfig;
-import jeeves.config.springutil.JeevesApplicationContextLoader;
 import jeeves.exceptions.FileUploadTooBigEx;
 import jeeves.server.JeevesEngine;
 import jeeves.server.UserSession;
@@ -42,7 +40,8 @@ import jeeves.server.sources.ServiceRequestFactory;
 import jeeves.utils.Log;
 import jeeves.utils.Util;
 
-import org.springframework.context.support.AbstractXmlApplicationContext;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 //=============================================================================
 
@@ -52,9 +51,6 @@ import org.springframework.context.support.AbstractXmlApplicationContext;
 @SuppressWarnings("serial")
 public class JeevesServlet extends HttpServlet
 {
-	private AbstractXmlApplicationContext springContext;
-    private JeevesEngine jeeves;
-
     //---------------------------------------------------------------------------
 	//---
 	//--- Init
@@ -62,30 +58,7 @@ public class JeevesServlet extends HttpServlet
 	//---------------------------------------------------------------------------
 
     public void init() throws ServletException {
-        String appPath = getServletContext().getRealPath("/");
 
-        String baseUrl = "";
-
-        try {
-            // 2.5 servlet spec or later (eg. tomcat 6 and later)
-            baseUrl = getServletContext().getContextPath();
-        } catch (java.lang.NoSuchMethodError ex) {
-            // 2.4 or earlier servlet spec (eg. tomcat 5.5)
-            try {
-                String resource = getServletContext().getResource("/").getPath();
-                baseUrl = resource.substring(resource.indexOf('/', 1), resource.length() - 1);
-            } catch (java.net.MalformedURLException e) { // unlikely
-                baseUrl = getServletContext().getServletContextName();
-            }
-        }
-
-        if (!appPath.endsWith(File.separator))
-            appPath += File.separator;
-
-        this.springContext = JeevesApplicationContextLoader.loadDefaults(appPath, baseUrl, getServletContext());
-        springContext.start();
-
-        this.jeeves = springContext.getBean(JeevesEngine.class);
     }
 
 	//---------------------------------------------------------------------------
@@ -96,9 +69,7 @@ public class JeevesServlet extends HttpServlet
 
 	public void destroy()
 	{
-        springContext.stop();
-        springContext.destroy();
-		super .destroy();
+		super.destroy();
 	}
 
 	//---------------------------------------------------------------------------
@@ -130,6 +101,8 @@ public class JeevesServlet extends HttpServlet
 
 	private void execute(HttpServletRequest req, HttpServletResponse res) throws IOException
 	{
+		WebApplicationContext springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext());
+		
 		String ip = req.getRemoteAddr();
 		// if we do have the optional x-forwarded-for request header then
 		// use whatever is in it to record ip address of client
@@ -207,6 +180,7 @@ public class JeevesServlet extends HttpServlet
 		}
 
 		//--- execute request
+		JeevesEngine jeeves = springContext.getBean(JeevesEngine.class);
 		jeeves.dispatch(srvReq, session);
 	}
 }

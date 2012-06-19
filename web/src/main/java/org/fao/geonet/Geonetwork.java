@@ -166,7 +166,7 @@ public class Geonetwork implements ApplicationHandler {
 	@PostConstruct
 	public void init() throws Exception {
 	    ServiceContext context = serviceMan.createServiceContext(getContextName());
-		logger = Log.createLogger(Log.APPHAND);
+		logger = Log.createLogger(Geonet.GEONETWORK);
 
 		path    = envConfig.getAppPath();
 		
@@ -591,19 +591,8 @@ public class Geonetwork implements ApplicationHandler {
 		if (!Lib.db.touch(dbms)) {
 			logger.info("      " + dbURL + " is an empty database (Metadata table not found).");
 
-			for(DbConfigFile file : dbConfiguration.create) {
-			    String filePath = path + file.path;
-			    logger.info("         - SQL create file:" + filePath + " prefix:" + file.filePrefix + " ...");
-                // Do we need to remove object before creating the database ?
-    			Lib.db.removeObjects(servletContext, dbms, path, filePath, file.filePrefix);
-    			Lib.db.createSchema(servletContext, dbms, path, filePath, file.filePrefix);
-			}
-			
-	        for(DbConfigFile file : dbConfiguration.data) {
-                String filePath = path + file.path;
-                logger.info("         - SQL data file:" + filePath + " prefix:" + file.filePrefix + " ...");
-                Lib.db.insertData(servletContext, dbms, path, filePath, file.filePrefix);
-	        }
+			dbConfiguration.createDatabase(servletContext, dbms, path);
+			dbConfiguration.addData(servletContext, dbms, path);
 	        dbms.commit();
             
 			// Copy logo

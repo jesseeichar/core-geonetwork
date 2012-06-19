@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.PreDestroy;
@@ -45,7 +46,6 @@ import jeeves.config.EnvironmentalConfig;
 import jeeves.config.GeneralConfig;
 import jeeves.constants.ConfigFile;
 import jeeves.interfaces.ApplicationHandler;
-import jeeves.interfaces.Logger;
 import jeeves.monitor.MonitorManager;
 import jeeves.server.dispatchers.ServiceManager;
 import jeeves.server.resources.ResourceManager;
@@ -81,7 +81,7 @@ public class JeevesEngine implements ApplicationContextAware
 	// TODO spring migration
 	private ScheduleManager scheduleMan = new ScheduleManager();
 
-	private List<ApplicationHandler> appHandlers;
+	private Collection<ApplicationHandler> appHandlers;
     
     // default for testing
     ResourceManager getResourceManager() {
@@ -103,7 +103,10 @@ public class JeevesEngine implements ApplicationContextAware
         this.generalConfig = generalConfig;
         this.defaultConfig = defaultConfig;
         
-        PropertyConfigurator.configure(envConfig.getConfigPath() +"/log4j.cfg");
+        File log4jConfigFile = new File(envConfig.getConfigPath(), "log4j.cfg");
+        if(log4jConfigFile.exists()) {
+        	PropertyConfigurator.configure(log4jConfigFile.getPath());
+        }
         setupXSLTTransformerFactory();
     }
 
@@ -298,12 +301,7 @@ public class JeevesEngine implements ApplicationContextAware
 
 	@Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        Collection<ApplicationHandler> apps = applicationContext.getBeansOfType(ApplicationHandler.class).values();
-        
-        for (ApplicationHandler applicationHandler : apps) {
-            appHandlers.add(applicationHandler);
-        }
-        
+		appHandlers = applicationContext.getBeansOfType(ApplicationHandler.class).values();
     }
 }
 

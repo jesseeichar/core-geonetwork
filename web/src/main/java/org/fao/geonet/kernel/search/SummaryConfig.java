@@ -100,8 +100,11 @@ public class SummaryConfig {
 
     private Map<String, Map<String, Integer>> prepareSummaryMaps(String resultType) throws Exception {
         Map<String, Map<String, Integer>> summaryMaps = new HashMap<String, Map<String, Integer>>();
-        for (String key : configurations.get(resultType).keySet()) {
-            summaryMaps.put(key, new HashMap<String, Integer>());
+        Map<String, Item> map = configurations.get(resultType);
+        if(map != null) {
+			for (String key : map.keySet()) {
+	            summaryMaps.put(key, new HashMap<String, Integer>());
+	        }
         }
         return summaryMaps;
     }
