@@ -25,7 +25,7 @@ class MigrateConfiguration {
           for (f <- Option(new File(configDir).listFiles()).flatten) {
             if (f.isFile() && f.getName().startsWith("config") || EXTRA_MIGRATION_FILES.contains(f.getName())) {
               FileUtils.copyFile(f, new File(backupDir, f.getName()));
-              f.delete();
+              f.delete
             }
           }
 
@@ -33,16 +33,13 @@ class MigrateConfiguration {
           FileUtils.copyInputStreamToFile(configJeeves, new File(configDir, "config-jeeves"));
 
           var migrationInput = List[Elem]()
-          for (f <- Option(new File(configDir).listFiles()).flatten) {
+          for (f <- Option(backupDir.listFiles()).flatten) {
             Log.info("Adding " + f + " to migration input");
             val data = XML.loadFile(f);
 
             migrationInput ::= <file name={ f.getName() }>{ data }</file>
           }
-          val migratedData = new RuleTransformer(
-            BeansConfigTransformer, 
-            CentralConfigTransformer,
-            ServiceConfigTransformer)(<root>{ migrationInput }</root>)
+          val migratedData = new RuleTransformer(CentralConfigTransformer)(<root>{ migrationInput }</root>)
           println(migratedData)
           //					for(Element n : (List<Element>) Xml.selectNodes(migratedData, "file") ){
           //						val file = new File(configPath, n.getAttributeValue("name"));
