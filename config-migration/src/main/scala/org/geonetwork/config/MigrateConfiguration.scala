@@ -6,6 +6,7 @@ import org.apache.log4j.Logger
 import org.apache.commons.io.FileUtils
 import scala.xml._
 import org.apache.commons.io.IOUtils
+import scala.xml.transform.RewriteRule
 
 class MigrateConfiguration {
   val Log = Logger.getLogger("jeeves")
@@ -37,10 +38,12 @@ class MigrateConfiguration {
             Log.info("Adding " + f + " to migration input");
             val data = XML.loadFile(f);
 
-            migrationInput ::= <file name={ f.getName() }>{ data }</file>
+            migrationInput ::= <configFile name={ f.getName() }>{ data.child }</configFile>
           }
-          val migratedData = new RuleTransformer(CentralConfigTransformer)(<root>{ migrationInput }</root>)
-          println(migratedData)
+          val migratedData = migrationInput flatMap ConfigTransformer.transformFile
+          val prunedData = migratedData map (n => new RuleTransformer(PruneTransformer).apply(n)) 
+          val pp = new scala.xml.PrettyPrinter(140, 2)
+          prunedData.find(n => (n \ "@name").text == "config.xml") foreach {n => println(pp format n)}
           //					for(Element n : (List<Element>) Xml.selectNodes(migratedData, "file") ){
           //						val file = new File(configPath, n.getAttributeValue("name"));
           //						FileUtils.write(file, Xml.getString(n));
@@ -59,3 +62,10 @@ class MigrateConfiguration {
   }
 }
 
+object PruneTransformer extends RewriteRule {
+  override def transform(n: Node) = n match {
+    case n:Elem => 
+      n.copy(attributes = n.attributes.filter(att => att.value.text.trim != "")) :: Nil
+    case n => n :: Nil
+  }
+}
