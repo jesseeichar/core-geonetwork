@@ -66,6 +66,9 @@ public class DefaultConfig {
     public void setErrorPages(List<ErrorPage> errorPages) {
         this.errorPages = errorPages;
     }
+    public void setGuiServices(List<GuiService> guiServices) {
+		this.guiServices = guiServices;
+	}
     public void setCall(List<Call> calls) {
         this.guiServices.addAll(calls);
     }

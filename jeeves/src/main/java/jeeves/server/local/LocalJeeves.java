@@ -1,6 +1,6 @@
 package jeeves.server.local;
 
-import jeeves.config.springutil.JeevesApplicationContextLoader;
+import jeeves.config.springutil.JeevesApplicationContextLoaderUtil;
 import jeeves.server.JeevesEngine;
 import jeeves.server.ProfileManager;
 import jeeves.server.UserSession;
@@ -127,7 +127,7 @@ public class LocalJeeves
 			System.setProperty("javax.xml.transform.TransformerFactory",
 									 "net.sf.saxon.TransformerFactoryImpl");
 
-	        springContext = JeevesApplicationContextLoader.loadDefaults(appPath, baseUrl, configPath);
+	        springContext = JeevesApplicationContextLoaderUtil.loadDefaults(appPath, baseUrl, configPath);
 	        jeeves = springContext.getBean(JeevesEngine.class);
 	        
 	        springContext.start();

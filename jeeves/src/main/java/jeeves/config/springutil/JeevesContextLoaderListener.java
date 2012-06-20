@@ -39,7 +39,7 @@ public class JeevesContextLoaderListener extends ContextLoaderListener {
       if (!appPath.endsWith(File.separator))
           appPath += File.separator;
 
-      JeevesApplicationContextLoader.addEnvConfig(appPath, baseUrl, servletContext, applicationContext);
+      JeevesApplicationContextLoaderUtil.addEnvConfig(appPath, baseUrl, servletContext, applicationContext);
 	}
 	
 	@Override

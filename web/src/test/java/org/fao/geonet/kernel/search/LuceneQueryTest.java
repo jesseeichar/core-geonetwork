@@ -3,7 +3,7 @@ package org.fao.geonet.kernel.search;
 import java.util.Map;
 import java.util.Set;
 
-import jeeves.config.springutil.JeevesApplicationContextLoader;
+import jeeves.config.springutil.JeevesApplicationContextLoaderUtil;
 
 import junit.framework.TestCase;
 
@@ -37,7 +37,7 @@ public class LuceneQueryTest extends TestCase {
         _analyzer.addAnalyzer("operatesOn", new GeoNetworkAnalyzer());
         _analyzer.addAnalyzer("subject", new KeywordAnalyzer());
 
-        LuceneConfig lc = JeevesApplicationContextLoader.load(null, "src/main/webapp/", "WEB-INF/config-lucene.xml").getBean(LuceneConfig.class);
+        LuceneConfig lc = JeevesApplicationContextLoaderUtil.load(null, "src/main/webapp/", "WEB-INF/config-lucene.xml").getBean(LuceneConfig.class);
     	
 		_tokenizedFieldSet = lc.getTokenizedFields();
 		_numericFieldSet = lc.getNumericFields();
