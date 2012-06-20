@@ -10,6 +10,11 @@ object ConfigTransformer {
     case _ => n.child flatMap transform
   }
 
+  def transformResource(n: Node) = {
+    val file = transformFile(<configFile name={(n \ "config" \ "url").text.drop(5).takeWhile(_ != ':')}>{n}</configFile>)
+    val atts = file.attributes append new UnprefixedAttribute("enabled", n \ "@enabled" text, Null)
+    file.copy(attributes = atts)
+  }
   def transformFile(n: Node) = {
     val name = (n \ "@name").text
     <configFile name={ name }>
@@ -41,32 +46,25 @@ object ConfigTransformer {
       <property name="guiServices">
         <list>{
           val guiElems = n \ "gui" \ "_"
-          guiElems map {
-            case e if e.label == "call" =>
-              <bean class="jeeves.server.dispatchers.guiservices.Call" name={ e \\ "@name" text } serviceClass={ e \\ "@class" text }>
-                { e \\ "params" }
-              </bean>
-            case e if e.label == "xml" =>
-              <bean class="jeeves.server.dispatchers.guiservices.XmlFile"/>
-          }
+          guiElems map guiservice
         }</list>
       </property>
       <property name="errorPages">
         <list>{
           val errors = n \ "error" \ "_"
-          errors map {
-            case e if e.label == "call" =>
-              <bean class="jeeves.server.dispatchers.guiservices.Call" name={ e \\ "@name" text } serviceClass={ e \\ "@class" text }>
-                { e \\ "params" }
-              </bean>
-            case e if e.label == "xml" =>
-              <bean class="jeeves.server.dispatchers.guiservices.XmlFile" name={ e \\ "@name" text } file={ e \\ "@file" text } localized={ e \\ "@localized" text } 
-              	    language={ e \\ "@language" text } defaultLang={ e \\ "@defaultLang" text } base={ e \\ "@base" text }/>
-          }
+          errors map guiservice
         }</list>
       </property>
     </bean>
+  }
 
+  private def guiservice(n: Node) = n match {
+    case e if e.label == "call" =>
+      <bean name={ e \\ "@name" text } serviceClass={ e \\ "@class" text } class="jeeves.server.dispatchers.guiservices.Call">
+        { e \\ "params" }
+      </bean>
+    case e if e.label == "xml" =>
+      <bean name={ e \\ "@name" text } file={ e \\ "@file" text } localized={ e \\ "@localized" text } language={ e \\ "@language" text } defaultLang={ e \\ "@defaultLang" text } base={ e \\ "@base" text } class="jeeves.server.dispatchers.guiservices.XmlFile"/>
   }
 }
 

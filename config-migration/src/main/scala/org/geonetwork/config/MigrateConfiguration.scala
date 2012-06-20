@@ -40,10 +40,33 @@ class MigrateConfiguration {
 
             migrationInput ::= <configFile name={ f.getName() }>{ data.child }</configFile>
           }
+          
+          def isConfigXml(n:Node) = n.attribute("name").exists(_.text == "config.xml")
+          def importElem(n:Node) = <import resource={n.attribute("name").getOrElse(throw new Error("Unable to find name of resource "+n))}/>
           val migratedData = migrationInput flatMap ConfigTransformer.transformFile
-          val prunedData = migratedData map (n => new RuleTransformer(PruneTransformer).apply(n)) 
+          val resources = migrationInput flatMap (_ \ "resources" \ "resource") flatMap ConfigTransformer.transformResource
+
+          val configXmlWithImports = migratedData map {
+            case file if !isConfigXml(file) => file
+            case configXml:Elem =>
+              val fileImports = migratedData filterNot isConfigXml map importElem
+              val resourceImports = Comment("Uncomment import to use resource") +: (resources map {
+                case r if r.attribute("enabled").exists(_.text == "true") => 
+                  importElem(r)
+                case r =>
+                  val text = importElem(r).toString
+                  val v = Comment(text)
+                  v
+              })
+              
+              val imports = fileImports ++ resourceImports
+              
+              configXml.copy(child = imports ++ configXml.child)
+          }
+          
+          val prunedData = (configXmlWithImports ++ resources) map (n => new RuleTransformer(PruneTransformer).apply(n)) 
           val pp = new scala.xml.PrettyPrinter(140, 2)
-          prunedData.find(n => (n \ "@name").text == "config.xml") foreach {n => println(pp format n)}
+          prunedData.find(isConfigXml) foreach {n => println(pp format n)}
           //					for(Element n : (List<Element>) Xml.selectNodes(migratedData, "file") ){
           //						val file = new File(configPath, n.getAttributeValue("name"));
           //						FileUtils.write(file, Xml.getString(n));
