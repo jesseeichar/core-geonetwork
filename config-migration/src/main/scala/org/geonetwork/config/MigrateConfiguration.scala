@@ -31,7 +31,7 @@ class MigrateConfiguration {
           }
 
           Log.info("Copying config-jeeves template");
-          FileUtils.copyInputStreamToFile(configJeeves, new File(configDir, "config-jeeves"));
+          FileUtils.copyInputStreamToFile(configJeeves, new File(configDir, "config-jeeves.xml"));
 
           var migrationInput = List[Elem]()
           for (f <- Option(backupDir.listFiles()).flatten) {
@@ -43,7 +43,7 @@ class MigrateConfiguration {
           
           def isConfigXml(n:Node) = n.attribute("name").exists(_.text == "config.xml")
           def importElem(n:Node) = <import resource={n.attribute("name").getOrElse(throw new Error("Unable to find name of resource "+n))}/>
-          val migratedData = migrationInput flatMap ConfigTransformer.transformFile
+          val migratedData = migrationInput flatMap (n => ConfigTransformer.transformFile(n))
           val resources = migrationInput flatMap (_ \ "resources" \ "resource") flatMap ConfigTransformer.transformResource
 
           val configXmlWithImports = migratedData map {
@@ -61,16 +61,18 @@ class MigrateConfiguration {
               
               val imports = fileImports ++ resourceImports
               
-              configXml.copy(child = imports ++ configXml.child)
+              new RuleTransformer(new ConfigXmlTransformer(imports))(configXml)
           }
           
           val prunedData = (configXmlWithImports ++ resources) map (n => new RuleTransformer(PruneTransformer).apply(n)) 
           val pp = new scala.xml.PrettyPrinter(140, 2)
-          prunedData foreach {n => println(pp format n)}
-          //					for(Element n : (List<Element>) Xml.selectNodes(migratedData, "file") ){
-          //						val file = new File(configPath, n.getAttributeValue("name"));
-          //						FileUtils.write(file, Xml.getString(n));
-          //					}
+          prunedData foreach {
+            n => 
+              val xmlString = pp formatNodes n.child
+              val filename = (n attribute "name").get.text
+              println(filename+"\n"+xmlString)
+              FileUtils.write(new File(configDir, filename), xmlString)
+          }
         } catch {
           case e =>
             Log.error("Attempted to migrate configuration to spring dependency injection configuration and failed:", e);
@@ -91,4 +93,11 @@ object PruneTransformer extends RewriteRule {
       n.copy(attributes = n.attributes.filter(att => att.value.text.trim != "")) :: Nil
     case n => n :: Nil
   }
+}
+
+class ConfigXmlTransformer(imports:Seq[Node]) extends RewriteRule {
+	override def transform(n: Node) = n match {
+	case n:Elem if n.label == "beans" => n.copy(child = imports ++ n.child) :: Nil
+	case n => n :: Nil
+	}
 }
