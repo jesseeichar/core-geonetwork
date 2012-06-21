@@ -8,6 +8,7 @@ object ConfigTransformer {
     case "general" => generalDef(n)
     case "default" => defaultDef(n)
     case "appHandler" => appHandler(n)
+    case "services" => n.child map(service((n attribute "package").text))
     case _ => n.child flatMap transform
   }
 
@@ -125,6 +126,42 @@ object ConfigTransformer {
          with PostgisDataStoreFactory and maxWritesInTransaction set to 1 -->
         <property name="maxWritesInTransaction" value={params("maxWritesInTransaction")}/>
     </bean>
+  }
+  private def service(basePackage:String)(n:Node) = {
+    val classElem = (n \ "class").head
+    val output = (n \ "output").head
+    val error = (n \ "error").head
+    <j:service id={(n attribute "name" get).text} 
+				match={(n attribute "match" get).text}
+				sheet={(n attribute "sheet" get).text}
+				cache={(n attribute "cache" get).text}
+				package={basePackage}>
+		<serviceClass
+				name={(classElem attribute "name" get).text}>
+			<param name="p1" value="v1"/>
+			<param name="p2" value="v2"/>
+		</serviceClass>
+		<output sheet="output-transform.xsl"
+				testCondition="a"
+				contentType="application/pdf"
+				forward="service2"
+				file="true"
+				blob="false">
+			<xml file="output.xml" name="sources" localized="true" base="loc" language="fre"/>
+			<call name="outputService" serviceClass="jeeves.config.springutil.TestService">
+				<param name="op1" value = "ov1"/>
+			</call>
+		</output>
+		<error sheet="error-transform.xsl"
+				testCondition="correctError"
+				contentType="text"
+				statusCode="500">
+			<call name="errorService" serviceClass=".TestService">
+				<param name="ep1" value = "ev1"/>
+			</call>
+			<xml file="error.xml" name="sources" localized="false" base="erloc" language="eng"/>
+		</error>
+	</j:service>
   }
   private def guiservice(n: Node) = n match {
     case e if e.label == "call" =>
