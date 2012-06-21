@@ -4,21 +4,24 @@ import scala.xml.transform.RewriteRule
 import scala.xml._
 
 object ConfigTransformer {
+  implicit def addAtt(n: Node) = new {
+    def att(name:String) = (n attribute "package").map(_.text).getOrElse("")
+  }
   private def transform(n: Node): Seq[Node] = n.label match {
     case "general" => generalDef(n)
     case "default" => defaultDef(n)
     case "appHandler" => appHandler(n)
-    case "services" => n.child map(service((n attribute "package").text))
+    case "services" => n.child map(ServiceTransformer.service(n att "package"))
     case _ => n.child flatMap transform
   }
 
   def transformResource(n: Node) = {
     val file = transformFile(<configFile name={(n \ "config" \ "url").text.drop(5).takeWhile(_ != ':')}>{n}</configFile>, resource)
-    val atts = file.attributes append new UnprefixedAttribute("enabled", n \ "@enabled" text, Null)
+    val atts = file.attributes append new UnprefixedAttribute("enabled", n att "enabled", Null)
     file.copy(attributes = atts)
   }
   def transformFile(n: Node, transformer:Node => Seq[Node] = transform) = {
-    val name = n.attribute("name").get.text
+    val name = n att "name"
     <configFile name={ name }>
       <beans xmlns="http://www.springframework.org/schema/beans" 
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -74,12 +77,12 @@ object ConfigTransformer {
   private def appHandler(n: Node) = {
     val params = (n \ "param" map {
       p =>
-        (p attribute "name" get).text -> (p attribute "value" get).text
+        (p att "name") -> (p att "value")
     }).toMap
     
     appHandlerId += 1
     val apphandlerId = "appHandler_"+appHandlerId
-    <bean id={apphandlerId} class={n attribute "class" get}/>
+    <bean id={apphandlerId} class={n att "class"}/>
     <bean id={apphandlerId+"_Config"} class="org.fao.geonet.GeonetworkConfig"
         p:languageProfilesDir={params("languageProfilesDir")}
         p:licenseDir={params("licenseDir")}
@@ -127,49 +130,22 @@ object ConfigTransformer {
         <property name="maxWritesInTransaction" value={params("maxWritesInTransaction")}/>
     </bean>
   }
-  private def service(basePackage:String)(n:Node) = {
-    val classElem = (n \ "class").head
-    val output = (n \ "output").head
-    val error = (n \ "error").head
-    <j:service id={(n attribute "name" get).text} 
-				match={(n attribute "match" get).text}
-				sheet={(n attribute "sheet" get).text}
-				cache={(n attribute "cache" get).text}
-				package={basePackage}>
-		<serviceClass
-				name={(classElem attribute "name" get).text}>
-			<param name="p1" value="v1"/>
-			<param name="p2" value="v2"/>
-		</serviceClass>
-		<output sheet="output-transform.xsl"
-				testCondition="a"
-				contentType="application/pdf"
-				forward="service2"
-				file="true"
-				blob="false">
-			<xml file="output.xml" name="sources" localized="true" base="loc" language="fre"/>
-			<call name="outputService" serviceClass="jeeves.config.springutil.TestService">
-				<param name="op1" value = "ov1"/>
-			</call>
-		</output>
-		<error sheet="error-transform.xsl"
-				testCondition="correctError"
-				contentType="text"
-				statusCode="500">
-			<call name="errorService" serviceClass=".TestService">
-				<param name="ep1" value = "ev1"/>
-			</call>
-			<xml file="error.xml" name="sources" localized="false" base="erloc" language="eng"/>
-		</error>
-	</j:service>
-  }
+  
   private def guiservice(n: Node) = n match {
     case e if e.label == "call" =>
-      <bean name={ e \\ "@name" text } serviceClass={ e \\ "@class" text } class="jeeves.server.dispatchers.guiservices.Call">
-        { e \\ "params" }
-      </bean>
+      <bean name={ e att "name" } serviceClass={ e att "class"} class="jeeves.server.dispatchers.guiservices.Call">
+        { val params = e \ "param" 
+          if(params.nonEmpty) {
+            <property name="param"><list>{
+        	  params map {p =>
+        	    <bean class="jeeves.server.dispatchers.Param" p:name={p att "name"} p:value={p att "value"}/>
+        	  }
+        	}</list></property>
+          }
+        }</bean>
     case e if e.label == "xml" =>
-      <bean name={ e \\ "@name" text } file={ e \\ "@file" text } localized={ e \\ "@localized" text } language={ e \\ "@language" text } defaultLang={ e \\ "@defaultLang" text } base={ e \\ "@base" text } class="jeeves.server.dispatchers.guiservices.XmlFile"/>
+      <bean name={ e att "name"} file={ e att "file" } localized={ e att "localized" } language={ e att "language" } defaultLang={ e att "defaultLang" } base={ e att "base" } class="jeeves.server.dispatchers.guiservices.XmlFile"/>
   }
+  
 }
 
