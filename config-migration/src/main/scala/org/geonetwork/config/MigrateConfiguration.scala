@@ -66,7 +66,7 @@ class MigrateConfiguration {
           
           val prunedData = (configXmlWithImports ++ resources) map (n => new RuleTransformer(PruneTransformer).apply(n)) 
           val pp = new scala.xml.PrettyPrinter(140, 2)
-          prunedData.find(isConfigXml) foreach {n => println(pp format n)}
+          prunedData foreach {n => println(pp format n)}
           //					for(Element n : (List<Element>) Xml.selectNodes(migratedData, "file") ){
           //						val file = new File(configPath, n.getAttributeValue("name"));
           //						FileUtils.write(file, Xml.getString(n));

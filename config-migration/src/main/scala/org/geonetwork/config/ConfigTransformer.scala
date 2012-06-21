@@ -7,6 +7,7 @@ object ConfigTransformer {
   private def transform(n: Node): Seq[Node] = n.label match {
     case "general" => generalDef(n)
     case "default" => defaultDef(n)
+    case "resource" => resource(n)
     case _ => n.child flatMap transform
   }
 
@@ -16,7 +17,7 @@ object ConfigTransformer {
     file.copy(attributes = atts)
   }
   def transformFile(n: Node) = {
-    val name = (n \ "@name").text
+    val name = n.attribute("name").get.text
     <configFile name={ name }>
       <beans xmlns="http://www.springframework.org/schema/beans" 
     		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -58,6 +59,16 @@ object ConfigTransformer {
     </bean>
   }
 
+  private def resource(n: Node) = {
+    <bean id={(n \ "name").text.trim} class={(n \ "provider").text.trim}>
+		<constructor-arg>
+			<map>{
+			  for(param <- n \ "config" \ "_") yield
+				<entry key={param.label} value={param.text.trim}/>
+			}</map>
+		</constructor-arg>
+	</bean>
+  }
   private def guiservice(n: Node) = n match {
     case e if e.label == "call" =>
       <bean name={ e \\ "@name" text } serviceClass={ e \\ "@class" text } class="jeeves.server.dispatchers.guiservices.Call">
