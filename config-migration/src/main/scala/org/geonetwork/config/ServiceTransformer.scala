@@ -3,7 +3,6 @@ package org.geonetwork.config
 import xml._
 
 object ServiceTransformer {
-  import ConfigTransformer.addAtt
   def service(basePackage:String)(n:Node) = {
     
     <j:service id={n att "name"} 

@@ -4,14 +4,14 @@ import scala.xml.transform.RewriteRule
 import scala.xml._
 
 object ConfigTransformer {
-  implicit def addAtt(n: Node) = new {
-    def att(name:String) = (n attribute "package").map(_.text).getOrElse("")
-  }
+  
   private def transform(n: Node): Seq[Node] = n.label match {
     case "general" => generalDef(n)
     case "default" => defaultDef(n)
     case "appHandler" => appHandler(n)
     case "services" => n.child map(ServiceTransformer.service(n att "package"))
+    case "operations" if n \ "operation" exists (_ att "name" equalsIgnoreCase "GetCapabilities") =>
+      CswTransformer(n).transform
     case _ => n.child flatMap transform
   }
 
@@ -78,7 +78,7 @@ object ConfigTransformer {
     val params = (n \ "param" map {
       p =>
         (p att "name") -> (p att "value")
-    }).toMap
+    }).toMap.withDefaultValue("")
     
     appHandlerId += 1
     val apphandlerId = "appHandler_"+appHandlerId
