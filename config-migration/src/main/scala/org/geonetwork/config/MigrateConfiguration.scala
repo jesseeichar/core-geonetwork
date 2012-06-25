@@ -24,7 +24,7 @@ class MigrateConfiguration {
 
           Log.info("backing up previous configuration files to: " + backupDir);
           for (f <- Option(new File(configDir).listFiles()).flatten) {
-            if (f.isFile() && f.getName().startsWith("config") || EXTRA_MIGRATION_FILES.contains(f.getName())) {
+            if (f.isFile() && !f.getName.startsWith("config-override") && f.getName().startsWith("config") || EXTRA_MIGRATION_FILES.contains(f.getName())) {
               FileUtils.copyFile(f, new File(backupDir, f.getName()));
               f.delete
             }
@@ -38,7 +38,7 @@ class MigrateConfiguration {
             Log.info("Adding " + f + " to migration input");
             val data = XML.loadFile(f);
 
-            migrationInput ::= <configFile name={ f.getName() }>{ data.child }</configFile>
+            migrationInput ::= <configFile name={ f.getName() }>{ data }</configFile>
           }
           
           def isConfigXml(n:Node) = n.attribute("name").exists(_.text == "config.xml")

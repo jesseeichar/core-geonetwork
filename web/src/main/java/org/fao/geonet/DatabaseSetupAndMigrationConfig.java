@@ -39,6 +39,8 @@ public class DatabaseSetupAndMigrationConfig {
     public static class DbConfigFile {
         String path;
         String filePrefix;
+        String fileType = "file";
+        public void setFileType(String fileType) { this.fileType = fileType; }
         public void setPath(String path) { this.path = path; }
         public void setFilePrefix(String filePrefix) { this.filePrefix = filePrefix; }
 		@Override

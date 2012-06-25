@@ -12,7 +12,10 @@ object ConfigTransformer {
     case "services" => n.child map(ServiceTransformer.service(n att "package"))
     case "operations" if n \ "operation" exists (_ att "name" equalsIgnoreCase "GetCapabilities") =>
       CswTransformer(n).transform
-    case _ => n.child flatMap transform
+    case "db" => 
+      DbMigrationTransformer(n).transform
+    case _ =>
+     n.child flatMap transform 
   }
 
   def transformResource(n: Node) = {
