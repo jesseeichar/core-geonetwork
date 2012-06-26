@@ -36,6 +36,8 @@ class MigrateConfigTest {
 		  val configData = xml.XML.loadFile(f)
 		  assertTrue("There should not be empty configuration files in "+f.getName, configData.child.collect{case e:xml.Elem => e}nonEmpty)
 		  f.getName match {
+		  	case "config.xml" => 
+		  	  assertTrue(childrenByAtt(configData, 'import, 'resource, "JZkitApplicationContext.xml").nonEmpty)
 		    case "config-csw.xml" => assertCsw(configData)
 		    case "config-db.xml" => assertDb(configData)
 		    case "config-lucene.xml" => assertLucene(configData)

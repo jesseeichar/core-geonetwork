@@ -57,7 +57,10 @@ class MigrateConfiguration {
                   v
               })
               
-              val imports = fileImports ++ resourceImports
+              val jzkitImport = migrationInput \\ "appHandler" \ "param" filter (p => (p att "name") == "jzkitConfig") map {
+                p => <import resource={p att "value"}/>
+              }
+              val imports = fileImports ++ resourceImports ++ jzkitImport
               
               new RuleTransformer(new ConfigXmlTransformer(imports))(configXml)
           }
