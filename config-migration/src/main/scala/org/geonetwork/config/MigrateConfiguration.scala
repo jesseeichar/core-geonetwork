@@ -2,14 +2,12 @@ package org.geonetwork.config
 
 import scala.xml.transform.RuleTransformer
 import java.io.File
-import org.apache.log4j.Logger
 import org.apache.commons.io.FileUtils
 import scala.xml._
 import org.apache.commons.io.IOUtils
 import scala.xml.transform.RewriteRule
 
 class MigrateConfiguration {
-  val Log = Logger.getLogger("jeeves")
   val EXTRA_MIGRATION_FILES = Set(
     "user-profiles.xml",
     "geoserver-nodes.xml")
@@ -68,10 +66,9 @@ class MigrateConfiguration {
           val pp = new scala.xml.PrettyPrinter(140, 2)
           prunedData foreach {
             n => 
-              val xmlString = pp formatNodes n.child
+              val xmlString = """<?xml version="1.0" encoding="UTF-8"?>"""+(pp formatNodes n.child)
               val filename = (n attribute "name").get.text
-              println(filename+"\n"+xmlString)
-              FileUtils.write(new File(configDir, filename), xmlString)
+              FileUtils.write(new File(configDir, filename), xmlString, "UTF-8")
           }
         } catch {
           case e =>

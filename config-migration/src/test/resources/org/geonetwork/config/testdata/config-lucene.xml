@@ -40,14 +40,11 @@
             * RecencyBoostingQuery will promote recently modified documents
     -->
 
-    <!--  
-      <boostQuery name="org.fao.geonet.kernel.search.function.RecencyBoostingQuery">
-      <Param name="multiplier" type="double" value="2.0"/>
-      <Param name="maxDaysAgo" type="int" value="365"/>
-      <Param name="dayField" type="java.lang.String" value="_changeDate"/>
+      <boostQuery name="org.fao.geonet.kernel.search.function.RecencyBoostingQueryFactory">
+      	<Param name="multiplier" type="double" value="2.0"/>
+      	<Param name="maxDaysAgo" type="int" value="365"/>
+      	<Param name="dayField" type="java.lang.String" value="_changeDate"/>
       </boostQuery>
-     -->
-    
 
     <!-- 
       List of fields to dump when using q service. Fields must be stored in the index.
@@ -175,6 +172,7 @@
       need to add those synonyms for search if users search for Londres, it will match.
       We only need synonym expansion during indexing or during searching, not both.
     -->
+     <Field name="inspirerelated" analyzer="org.apache.lucene.analysis.KeywordAnalyzer"/>
   </fieldSpecificSearchAnalyzer>
   
   <!-- Document boosting configuration. 
@@ -215,18 +213,14 @@
     "The boost factor values you should use depend on what you’re trying to achieve; 
     you’ll need to do some experimentation and
     tuning to achieve the desired effect." source: Lucene In Action 
-    
+    -->
   <boostDocument name="org.fao.geonet.kernel.search.function.ImportantDocument">
-    <!- - Example to promote series and not promote records part of a series - ->
+    <!-- Example to promote series and not promote records part of a series -->
     <Param name="fields" type="java.lang.String" value="type,parentUuid"/>
     <Param name="values" type="java.lang.String" value="series,NOTNULL"/>
     <Param name="boosts" type="java.lang.String" value=".1F,-.3F"/>
-    <!- - Example to promote series and service and records with keyword containing elevation
-    <Param name="fields" type="java.lang.String" value="type,type,keyword"/>
-    <Param name="values" type="java.lang.String" value="series,service,Elevation"/>
-    <Param name="boosts" type="java.lang.String" value=".1F,-.3F,.4F"/>- ->
   </boostDocument>
-  -->
+  
 
   <!-- All Lucene fields that are tokenized must be kept here because it
        is impossible unfortunately from Lucene API to work out which fields are

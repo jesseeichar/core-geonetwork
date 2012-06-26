@@ -38,6 +38,7 @@ class MigrateConfigTest {
 		  f.getName match {
 		    case "config-csw.xml" => assertCsw(configData)
 		    case "config-db.xml" => assertDb(configData)
+		    case "config-lucene.xml" => assertLucene(configData)
 		    case _ => ()
 		  }
 		}
@@ -78,4 +79,40 @@ class MigrateConfigTest {
 	    assertTrue("Expected 1 -> 2 files but got "+files.size+" in "+(n att "version"), files.size == 1 || files.size  == 2)
 	  }
 	}
+	
+	def assertLucene(configData: Elem) {
+	  println(configData)
+	  val configBean = childrenByAtt(configData, 'bean, 'class, "org.fao.geonet.kernel.search.LuceneConfig")
+	  val indexBean = childrenByAtt(configData, 'bean, 'class, "org.fao.geonet.kernel.search.LuceneConfig$Index")
+	  val searchBean = childrenByAtt(configData, 'bean, 'class, "org.fao.geonet.kernel.search.LuceneConfig$Search")
+	  assertEquals(1, configBean size) 
+	  assertEquals(1, indexBean size) 
+	  assertEquals(1, searchBean size)
+	  
+	  val analyzerBean = childrenByAtt(configData, 'bean, 'id, "geonetworkAnalyzer")
+	  assertEquals(1, analyzerBean size)
+	  val defaultAnalyzer = childrenByAtt(configBean, 'property, 'name, "defaultAnalyzer")
+	  assertTrue(defaultAnalyzer.nonEmpty && defaultAnalyzer.exists(p => (p att "ref") == "geonetworkAnalyzer"))
+	  
+	  assertTrue(childrenByAtt(configBean, 'property, 'name, "fieldSpecificAnalyzer").nonEmpty)
+	  assertTrue(childrenByAtt(configBean, 'property, 'name, "fieldSpecificSearchAnalyzer").nonEmpty)
+	  assertTrue(childrenByAtt(configBean, 'property, 'name, "documentBoosting") \ "bean" nonEmpty)
+	  assertTrue(childrenByAtt(configBean, 'property, 'name, "fieldBoosting") \ "map" \ "entry" nonEmpty)
+	  assertTrue(childrenByAtt(configBean, 'property, 'name, "numericFields") \ "_" \ "value" nonEmpty)
+	  assertTrue(childrenByAtt(configBean, 'property, 'name, "tokenizedFields") \ "_" \ "value" nonEmpty)
+
+	  assertTrue(childrenByAtt(indexBean, 'property, 'name, "ramBufferSizeMB").nonEmpty)
+	  assertTrue(childrenByAtt(indexBean, 'property, 'name, "mergeFactor").nonEmpty)
+	  assertTrue(childrenByAtt(indexBean, 'property, 'name, "luceneVersion").nonEmpty)
+
+	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "trackDocScores").nonEmpty)
+	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "trackMaxScore").nonEmpty)
+	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "docsScoredInOrder").nonEmpty)
+	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "dumpFields").nonEmpty)
+	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "dumpFields") \ "map" \ "entry" nonEmpty)
+	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "queryBoost") \\ "boostQueryClass" nonEmpty)
+	}
+	
+	def childrenByAtt(e: NodeSeq, childName:Symbol, attName: Symbol, attValue: String) =
+	  e \ childName.name filter (n => (n att attName.name) == attValue)
 }

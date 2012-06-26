@@ -12,8 +12,8 @@ object ConfigTransformer {
     case "services" => n.child map(ServiceTransformer.service(n att "package"))
     case "operations" if n \ "operation" exists (_ att "name" equalsIgnoreCase "GetCapabilities") =>
       CswTransformer(n).transform
-    case "db" => 
-      DbMigrationTransformer(n).transform
+    case "db" =>  DbMigrationTransformer(n).transform
+    case "config" if (n \ "index" nonEmpty) && (n \ "search" nonEmpty) =>  LuceneMigrationTransformer(n).transform
     case _ =>
      n.child flatMap transform 
   }
