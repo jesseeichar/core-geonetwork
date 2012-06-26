@@ -98,19 +98,34 @@ class MigrateConfigTest {
 	  assertTrue(childrenByAtt(configBean, 'property, 'name, "fieldSpecificSearchAnalyzer").nonEmpty)
 	  assertTrue(childrenByAtt(configBean, 'property, 'name, "documentBoosting") \ "bean" nonEmpty)
 	  assertTrue(childrenByAtt(configBean, 'property, 'name, "fieldBoosting") \ "map" \ "entry" nonEmpty)
-	  assertTrue(childrenByAtt(configBean, 'property, 'name, "numericFields") \ "_" \ "value" nonEmpty)
+	  assertTrue(childrenByAtt(configBean, 'property, 'name, "numericFields") \ "_" \ "bean" nonEmpty)
 	  assertTrue(childrenByAtt(configBean, 'property, 'name, "tokenizedFields") \ "_" \ "value" nonEmpty)
 
-	  assertTrue(childrenByAtt(indexBean, 'property, 'name, "ramBufferSizeMB").nonEmpty)
-	  assertTrue(childrenByAtt(indexBean, 'property, 'name, "mergeFactor").nonEmpty)
-	  assertTrue(childrenByAtt(indexBean, 'property, 'name, "luceneVersion").nonEmpty)
+	  def assertExistsAndHasValue(n: NodeSeq, tagName: Symbol, attName: Symbol, attValue: String) {
+		val children = childrenByAtt(n, tagName, attName, attValue)
+        assertTrue(children.nonEmpty)
+        assertTrue(children \\ "@value" nonEmpty)
+	  }
 
-	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "trackDocScores").nonEmpty)
-	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "trackMaxScore").nonEmpty)
-	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "docsScoredInOrder").nonEmpty)
+	  assertExistsAndHasValue(indexBean, 'property, 'name, "ramBufferSizeMB")
+	  assertExistsAndHasValue(indexBean, 'property, 'name, "mergeFactor")
+	  assertExistsAndHasValue(indexBean, 'property, 'name, "luceneVersion")
+
+	  assertExistsAndHasValue(searchBean, 'property, 'name, "trackDocScores")
+	  assertExistsAndHasValue(searchBean, 'property, 'name, "trackMaxScore")
+	  assertExistsAndHasValue(searchBean, 'property, 'name, "docsScoredInOrder")
+
 	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "dumpFields").nonEmpty)
 	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "dumpFields") \ "map" \ "entry" nonEmpty)
-	  assertTrue(childrenByAtt(searchBean, 'property, 'name, "queryBoost") \\ "boostQueryClass" nonEmpty)
+	  
+	  val queryBoost = childrenByAtt(searchBean, 'property, 'name, "queryBoost")
+	  assertExistsAndHasValue(queryBoost \ "bean", 'property, 'name, "boostQueryClass")
+	  
+	  childrenByAtt(queryBoost \ "bean", 'property, 'name, "params") \\ "entry" foreach {
+	    e =>
+	      assertTrue("key attribute missing in: "+e, (e att "key").trim.nonEmpty )
+	      assertTrue("value attribute missing in: "+e, (e att "value").trim.nonEmpty)
+	  }
 	}
 	
 	def childrenByAtt(e: NodeSeq, childName:Symbol, attName: Symbol, attValue: String) =

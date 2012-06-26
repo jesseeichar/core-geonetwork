@@ -95,6 +95,7 @@ object PruneTransformer extends RewriteRule {
 class ConfigXmlTransformer(imports:Seq[Node]) extends RewriteRule {
 	override def transform(n: Node) = n match {
 	case n:Elem if n.label == "beans" => n.copy(child = imports ++ n.child) :: Nil
+	case t:Text if t.text.trim == "" => Nil
 	case n => n :: Nil
 	}
 }

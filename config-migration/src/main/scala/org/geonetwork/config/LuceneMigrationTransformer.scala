@@ -67,7 +67,7 @@ case class LuceneMigrationTransformer(n: Node) {
 	  <!-- "The boost factor values you should use depend on what youÕre trying to achieve; --> 
 	  <!-- youÕll need to do some experimentation and -->
 	  <!-- tuning to achieve the desired effect." source: Lucene In Action -->
-	  {(n \ "boostDocument").headOption map {documentBoost}}
+	  {(n \ "boostDocument").headOption map {documentBoost} getOrElse Nil}
       <!-- All Lucene fields that are tokenized must be kept here because it -->
       <!-- is impossible unfortunately from Lucene API to work out which fields are -->
       <!-- tokenized and which aren't unless we read documents and we may not have -->
@@ -144,7 +144,7 @@ case class LuceneMigrationTransformer(n: Node) {
         <!-- activity for lucene index writing to a minimum. -->
 		<property name="ramBufferSizeMB" value={index \ "RAMBufferSizeMB" text}/>
         <!-- Determines how often segment indices are merged by addDocument(). -->
-		<property name="mergeFactor" value={index \ "mergeFactor" text}/>
+		<property name="mergeFactor" value={index \ "MergeFactor" text}/>
 		<!-- Default Lucene version to use (mainly for Analyzer creation). -->
 		<property name="luceneVersion" value={index \ "luceneVersion" text}/>
 	</bean>
@@ -155,7 +155,7 @@ case class LuceneMigrationTransformer(n: Node) {
     <bean id="luceneSearchConfig" class="org.fao.geonet.kernel.search.LuceneConfig$Search">
 	    <!-- Score parameters. Turning these parameters to true, affects performance. -->
         <!-- Set track doc score to true if score needs to be displayed in results using geonet:info/score element -->
-	    <property name="trackDocScores" value={search \ "RAMBufferSizeMB" text}/>
+	    <property name="trackDocScores" value={search \ "trackDocScores" text}/>
 	    <property name="trackMaxScore" value={search \ "trackMaxScore" text}/>
 	    <!-- Not used because no Scorer defined -->
 	    <property name="docsScoredInOrder" value={search \ "docsScoredInOrder" text}/>
@@ -182,7 +182,7 @@ case class LuceneMigrationTransformer(n: Node) {
         	   <property name="params">
           	    <map>{
           		  for(p <- boost \ "Param") yield 
-          		  	<entry key={p \ "type" text} value={p \ "value" text}/>
+          		  	<entry key={p att "type"} value={p att "value"}/>
                 }</map>
               </property>
             </bean>
