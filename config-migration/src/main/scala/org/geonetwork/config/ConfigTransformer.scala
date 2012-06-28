@@ -13,6 +13,7 @@ object ConfigTransformer {
     case "schemas" if fileName == "config-oai-prefixes.xml" => oaiConfig(n)
     case "summary" => SummaryMigrationTransformer(n).transform
     case "nodes" => GeopublisherMigrationTransformer(n).transform
+    case "profiles" => UserProfilesMigrationTransformer(n).transform
     case "services" => n.child map(ServiceTransformer.service(n att "package"))
     case "operations" if n \ "operation" exists (_ att "name" equalsIgnoreCase "GetCapabilities") =>
       CswTransformer(n).transform
