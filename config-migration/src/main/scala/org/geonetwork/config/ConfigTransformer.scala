@@ -5,17 +5,18 @@ import scala.xml._
 
 object ConfigTransformer {
   
-  private def transform(n: Node): Seq[Node] = n.label match {
+  private def transform(fileName: String, n: Node): Seq[Node] = n.label match {
     case "general" => generalDef(n)
     case "default" => defaultDef(n)
     case "appHandler" => appHandler(n)
+    case "schemas" if fileName == "config-oai-prefixes.xml" => oaiConfig(n)
     case "services" => n.child map(ServiceTransformer.service(n att "package"))
     case "operations" if n \ "operation" exists (_ att "name" equalsIgnoreCase "GetCapabilities") =>
       CswTransformer(n).transform
     case "db" =>  DbMigrationTransformer(n).transform
     case "config" if (n \ "index" nonEmpty) && (n \ "search" nonEmpty) =>  LuceneMigrationTransformer(n).transform
     case _ =>
-     n.child flatMap transform 
+     n.child flatMap {transform(fileName, _)}
   }
 
   def transformResource(n: Node) = {
@@ -23,7 +24,7 @@ object ConfigTransformer {
     val atts = file.attributes append new UnprefixedAttribute("enabled", n att "enabled", Null)
     file.copy(attributes = atts)
   }
-  def transformFile(n: Node, transformer:Node => Seq[Node] = transform) = {
+  def transformFile(n: Node, transformer:(String,Node) => Seq[Node] = transform) = {
     val name = n att "name"
     <configFile name={ name }>
       <beans xmlns="http://www.springframework.org/schema/beans" 
@@ -31,9 +32,18 @@ object ConfigTransformer {
             xmlns:context="http://www.springframework.org/schema/context"
             xmlns:p="http://www.springframework.org/schema/p" 
             xmlns:j="http://geonetwork-opensource.org/jeeves-spring-namespace http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd http://geonetwork-opensource.org/jeeves-spring-namespace http://geonetwork-opensource.org/jeeves-spring-namespace/jeeves-spring-namespace.xsd">
-        { n.child flatMap transformer }
+    	{constantElements(name,n)}
+        { n.child flatMap {n => transformer(name, n)} }
       </beans>
     </configFile>
+  }
+  private def constantElements(fileName:String, n:Node) = fileName match {
+    case "config.xml" => Seq(
+    	  <bean id="schemaManager" class="org.fao.geonet.kernel.SchemaManager"/>,
+    	  <bean id="initDbms" class="org.fao.geonet.InitializedDbms"/>,
+    	  <bean id="settingsManager" class="org.fao.geonet.kernel.setting.SettingManager"/>
+        )
+    case _ => Nil
   }
   private def generalDef(n: Node) = {
     val children = Map(n.child.map(c => c.label -> c.text): _*).withDefaultValue("")
@@ -66,7 +76,7 @@ object ConfigTransformer {
     </bean>
   }
 
-  private def resource(n: Node) = {
+  private def resource(fileName:String, n: Node) = {
     <bean id={(n \ "name").text.trim} class={(n \ "provider").text.trim}>
         <constructor-arg>
             <map>{
@@ -148,6 +158,18 @@ object ConfigTransformer {
         }</bean>
     case e if e.label == "xml" =>
       <bean name={ e att "name"} file={ e att "file" } localized={ e att "localized" } language={ e att "language" } defaultLang={ e att "defaultLang" } base={ e att "base" } class="jeeves.server.dispatchers.guiservices.XmlFile"/>
+  }
+
+  def oaiConfig(n: Node) = {
+    <bean id="oaiPmhDispatcher" class="org.fao.geonet.kernel.oaipmh.OaiPmhDispatcher">
+	  <property name="metadataFormats">
+	  	<list>{
+	  		for(p <- n \\ "schema") yield 
+	  		  <bean c:prefix={p att "prefix"} c:schema={p att "schemaLocation"} c:ns={p att "nsUrl"} class="org.fao.oaipmh.responses.MetadataFormat"/>
+	  	}</list>
+	  </property>
+    </bean>
+
   }
   
 }

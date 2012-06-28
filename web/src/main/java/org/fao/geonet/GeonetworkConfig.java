@@ -1,5 +1,6 @@
 package org.fao.geonet;
 
+import jeeves.config.DefaultConfig;
 import jeeves.config.EnvironmentalConfig;
 
 import org.fao.geonet.kernel.csw.CswCatalogConfig;
@@ -25,6 +26,7 @@ public class GeonetworkConfig implements Lifecycle {
     private String statusActionsClassName;
     
     private EnvironmentalConfig envConfig;
+    private DefaultConfig defaultConfig;
     private GeonetworkDataDirectory dataDirectories;
     private LuceneConfig luceneConfig;
     private SummaryConfig summaryConfig;
@@ -36,17 +38,20 @@ public class GeonetworkConfig implements Lifecycle {
     @Autowired
     public GeonetworkConfig(
             EnvironmentalConfig envConfig, 
+            DefaultConfig defaultConfig, 
             GeonetworkDataDirectory dataDirectories,
             LuceneConfig luceneConfig,
             SummaryConfig summaryConfig,
             CswCatalogConfig cswCatalogConfig) {
         this.envConfig = envConfig;
+        this.defaultConfig = defaultConfig;
         this.dataDirectories = dataDirectories;
         this.luceneConfig = luceneConfig;
         this.summaryConfig = summaryConfig;
         this.cswCatalogConfig = cswCatalogConfig;
     }
-    
+	public String getDefaultLanguage() { return defaultConfig.getLanguage(); }
+
     public String getLanguageProfilesDir() { return languageProfilesDir;}
     @Required
     public void setLanguageProfilesDir(String languageProfilesDir) {this.languageProfilesDir = languageProfilesDir;}
@@ -104,4 +109,5 @@ public class GeonetworkConfig implements Lifecycle {
     public boolean isRunning() {
         return started;
     }
+
 }

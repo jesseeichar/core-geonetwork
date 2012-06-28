@@ -24,14 +24,9 @@
 package org.fao.geonet;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.sql.SQLException;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -53,10 +48,7 @@ import jeeves.utils.Util;
 import jeeves.utils.XmlResolver;
 import jeeves.xlink.Processor;
 
-import org.fao.geonet.DatabaseSetupAndMigrationConfig.DbConfigFile;
-import org.fao.geonet.DatabaseSetupAndMigrationConfig.Version;
 import org.fao.geonet.constants.Geonet;
-import org.fao.geonet.csw.common.Csw;
 import org.fao.geonet.kernel.AccessManager;
 import org.fao.geonet.kernel.DataManager;
 import org.fao.geonet.kernel.SchemaManager;
@@ -71,17 +63,12 @@ import org.fao.geonet.kernel.harvest.HarvestManager;
 import org.fao.geonet.kernel.oaipmh.OaiPmhDispatcher;
 import org.fao.geonet.kernel.search.LuceneConfig;
 import org.fao.geonet.kernel.search.SearchManager;
-import org.fao.geonet.kernel.search.spatial.Pair;
 import org.fao.geonet.kernel.setting.SettingInfo;
 import org.fao.geonet.kernel.setting.SettingManager;
 import org.fao.geonet.languages.IsoLanguagesMapper;
 import org.fao.geonet.languages.LanguageDetector;
-import org.fao.geonet.lib.DatabaseType;
-import org.fao.geonet.lib.Lib;
-import org.fao.geonet.lib.ServerLib;
 import org.fao.geonet.notifier.MetadataNotifierControl;
 import org.fao.geonet.notifier.MetadataNotifierManager;
-import org.fao.geonet.resources.Resources;
 import org.fao.geonet.services.util.z3950.Repositories;
 import org.fao.geonet.services.util.z3950.Server;
 import org.fao.geonet.util.ThreadPool;
@@ -110,7 +97,6 @@ public class Geonetwork implements ApplicationHandler {
     private static final String       IDS_ATTRIBUTE_NAME        = "id";
 
 	private Logger        		logger;
-	private String 				path;				
     //----------------------------------------------
     // -- Injected by spring in future
     //----------------------------------------------
@@ -135,17 +121,29 @@ public class Geonetwork implements ApplicationHandler {
     private EnvironmentalConfig envConfig;
     private GeonetworkConfig config;
     private ServiceManager serviceMan;
-    private DatabaseSetupAndMigrationConfig dbConfiguration;
+    private SchemaManager schemaManager;
+    private InitializedDbms initdbms;
+    private SettingManager settingManager;
+    private OaiPmhDispatcher oaipmhDispatcher;
     //----------------------------------------------
 
 	@Autowired
 	public Geonetwork(EnvironmentalConfig envConfig, GeonetworkConfig config, 
-	        ServiceManager serviceMan, DatabaseSetupAndMigrationConfig dbConfiguration) {
+	        ServiceManager serviceMan, 
+	        SchemaManager schemaManager,
+	        InitializedDbms initdbms,
+	        SettingManager settingMan,
+	        OaiPmhDispatcher oaipmhDis) {
         this.config = config;
         this.envConfig = envConfig;
         this.serviceMan = serviceMan;
-        this.dbConfiguration = dbConfiguration;
+        this.schemaManager = schemaManager;
+        this.initdbms = initdbms;
+        this.settingManager = settingMan;
+        this.oaipmhDispatcher = oaipmhDis;
     }
+	
+	
 	
 	//---------------------------------------------------------------------------
 	//---
@@ -168,16 +166,10 @@ public class Geonetwork implements ApplicationHandler {
 	    ServiceContext context = serviceMan.createServiceContext(getContextName());
 		logger = Log.createLogger(Geonet.GEONETWORK);
 
-		path    = envConfig.getAppPath();
+		String appPath = envConfig.getAppPath();
 		
         ServletContext servletContext = envConfig.getServletContext();
         
-		ServerLib sl = new ServerLib(servletContext, path);
-		String version = sl.getVersion();
-		String subVersion = sl.getSubVersion();
-
-		logger.info("Initializing GeoNetwork " + version +  "." + subVersion +  " ...");
-
 		// Init configuration directory
 		GeonetworkDataDirectory dataDirectory = config.getDataDirectories();
 		
@@ -187,20 +179,20 @@ public class Geonetwork implements ApplicationHandler {
 		String luceneDir =  dataDirectory.getLuceneDir();
 		logger.info("Data directory: " + systemDataDir);
 
-		setProps(path);
+		setProps(appPath);
 
 		// Status actions class - load it
-		Class statusActionsClass = Class.forName(config.getStatusActionsClassName());
+		Class<?> statusActionsClass = Class.forName(config.getStatusActionsClassName());
 
-		JeevesJCS.setConfigFilename(path + "WEB-INF/classes/cache.ccf");
+		JeevesJCS.setConfigFilename(appPath + "WEB-INF/classes/cache.ccf");
 
 		// force caches to be config'd so shutdown hook works correctly
+		@SuppressWarnings("unused")
 		JeevesJCS jcsDummy = JeevesJCS.getInstance(Processor.XLINK_JCS);
 		jcsDummy = JeevesJCS.getInstance(XmlResolver.XMLRESOLVER_JCS);
 
-		Pair<Dbms,Boolean> pair = initDatabase(context);
-		Dbms dbms = pair.one();
-		Boolean created = pair.two();
+		Dbms dbms = initdbms.getDbms();
+		boolean created = initdbms.isCreated();
 
 		//------------------------------------------------------------------------
 		//--- initialize thread pool 
@@ -209,19 +201,9 @@ public class Geonetwork implements ApplicationHandler {
 
 		threadPool = new ThreadPool();
 
-		//------------------------------------------------------------------------
-		//--- initialize settings subsystem
-
-		logger.info("  - Setting manager...");
-
-		SettingManager settingMan = new SettingManager(dbms, context.getProviderManager());
-
-		// --- Migrate database if an old one is found
-		migrateDatabase(servletContext, dbms, settingMan, version, subVersion, context.getAppPath());
-		
 		//--- initialize ThreadUtils with setting manager and rm props
 		ThreadUtils.init(context.getResourceManager().getProps(Geonet.Res.MAIN_DB),
-		              	 settingMan); 
+		              	 settingManager); 
 
 
 		//------------------------------------------------------------------------
@@ -229,9 +211,9 @@ public class Geonetwork implements ApplicationHandler {
 
 		logger.info("  - Z39.50...");
 
-		boolean z3950Enable    = settingMan.getValueAsBool("system/z3950/enable", false);
-		String  z3950port      = settingMan.getValue("system/z3950/port");
-		String  host           = settingMan.getValue(Geonet.Settings.SERVER_HOST);
+		boolean z3950Enable    = settingManager.getValueAsBool("system/z3950/enable", false);
+		String  z3950port      = settingManager.getValue("system/z3950/port");
+		String  host           = settingManager.getValue(Geonet.Settings.SERVER_HOST);
 
 		// null means not initialized
 		ApplicationContext app_context = null;
@@ -259,7 +241,7 @@ public class Geonetwork implements ApplicationHandler {
 					session.authenticate(null, "z39.50", "", "", "Guest", "");
 					context.setUserSession(session);
 					context.setIpAddress("127.0.0.1");
-					Server.init(host, z3950port, path, context, app_context);
+					Server.init(host, z3950port, appPath, context, app_context);
 				}	
 			} catch (Exception e) {
 				logger.error("     Repositories file init FAILED - Z3950 server disabled and Z3950 client services (remote search, harvesting) may not work. Error is:" + e.getMessage());
@@ -270,16 +252,6 @@ public class Geonetwork implements ApplicationHandler {
 			logger.error("     Repositories file builder FAILED - Z3950 server disabled and Z3950 client services (remote search, harvesting) may not work.");
 		}
 
-		//------------------------------------------------------------------------
-		//--- initialize SchemaManager
-
-		logger.info("  - Schema manager...");
-
-		String schemaPluginsDir = dataDirectory.getSchemapluginsDir();
-		String schemaCatalogueFile = systemDataDir + "config" + File.separator + Geonet.File.SCHEMA_PLUGINS_CATALOG;
-		logger.info("			- Schema plugins directory: "+schemaPluginsDir);
-		logger.info("			- Schema Catalog File     : "+schemaCatalogueFile);
-		SchemaManager schemaMan = SchemaManager.getInstance(path, schemaCatalogueFile, schemaPluginsDir, context.getLanguage(), config.getPreferredSchema());
 
 		//------------------------------------------------------------------------
 		//--- initialize search and editing
@@ -303,16 +275,16 @@ public class Geonetwork implements ApplicationHandler {
 			throw new IllegalArgumentException("GeoTools datastore creation failed - check logs for more info/exceptions");
 		}
 
-		searchMan = new SearchManager(path, config, 
+		searchMan = new SearchManager(appPath, config, 
 				dataStore, 
-				new SettingInfo(settingMan), schemaMan, servletContext);
+				new SettingInfo(settingManager), schemaManager, servletContext);
 
 		//------------------------------------------------------------------------
 		//--- extract intranet ip/mask and initialize AccessManager
 
 		logger.info("  - Access manager...");
 
-		AccessManager accessMan = new AccessManager(dbms, settingMan);
+		AccessManager accessMan = new AccessManager(dbms, settingManager);
 
 		//------------------------------------------------------------------------
 		//--- get edit params and initialize DataManager
@@ -322,13 +294,13 @@ public class Geonetwork implements ApplicationHandler {
 		SvnManager svnManager = null;
 		XmlSerializer xmlSerializer = null;
 		if (config.isUseSubversion()) {
-			svnManager = new SvnManager(context, settingMan, dataDirectory.getSubversionPath(), dbms, created);
-			xmlSerializer = new XmlSerializerSvn(settingMan, svnManager);
+			svnManager = new SvnManager(context, settingManager, dataDirectory.getSubversionPath(), dbms, created);
+			xmlSerializer = new XmlSerializerSvn(settingManager, svnManager);
 		} else {
-			xmlSerializer = new XmlSerializerDb(settingMan);
+			xmlSerializer = new XmlSerializerDb(settingManager);
 		}
 
-		DataManager dataMan = new DataManager(context, svnManager, xmlSerializer, schemaMan, searchMan, accessMan, dbms, settingMan, config);
+		DataManager dataMan = new DataManager(context, svnManager, xmlSerializer, schemaManager, searchMan, accessMan, dbms, settingManager, config);
 
 
         /**
@@ -339,21 +311,21 @@ public class Geonetwork implements ApplicationHandler {
         /**
          * Initialize language detector
          */
-        LanguageDetector.init(path + config.getLanguageProfilesDir(), context, dataMan);
+        LanguageDetector.init(appPath + config.getLanguageProfilesDir(), context, dataMan);
 
 		//------------------------------------------------------------------------
 		//--- Initialize thesaurus
 
 		logger.info("  - Thesaurus...");
 
-		thesaurusMan = ThesaurusManager.getInstance(path, dataMan, context.getResourceManager(), thesauriDir);
+		thesaurusMan = ThesaurusManager.getInstance(appPath, dataMan, context.getResourceManager(), thesauriDir);
 
 		//------------------------------------------------------------------------
 		//--- initialize harvesting subsystem
 
 		logger.info("  - Harvest manager...");
 
-		harvestMan = new HarvestManager(context, settingMan, dataMan);
+		harvestMan = new HarvestManager(context, settingManager, dataMan);
 		dataMan.setHarvestManager(harvestMan);
 
 		//------------------------------------------------------------------------
@@ -362,14 +334,6 @@ public class Geonetwork implements ApplicationHandler {
 		logger.info("  - Catalogue services for the web...");
 
 		CatalogDispatcher catalogDis = new CatalogDispatcher(config);
-
-		//------------------------------------------------------------------------
-		//--- initialize catalogue services for the web
-
-		logger.info("  - Open Archive Initiative (OAI-PMH) server...");
-
-		OaiPmhDispatcher oaipmhDis = new OaiPmhDispatcher(settingMan, schemaMan);
-
 
         //------------------------------------------------------------------------
 		//--- initialize metadata notifier subsystem
@@ -383,13 +347,13 @@ public class Geonetwork implements ApplicationHandler {
 		geonetworkContext.accessMan   = accessMan;
 		geonetworkContext.dataMan     = dataMan;
 		geonetworkContext.searchMan   = searchMan;
-		geonetworkContext.schemaMan   = schemaMan;
+		geonetworkContext.schemaMan   = schemaManager;
 		geonetworkContext.config      = config;
 		geonetworkContext.catalogDis  = catalogDis;
-		geonetworkContext.settingMan  = settingMan;
+		geonetworkContext.settingMan  = settingManager;
 		geonetworkContext.harvestMan  = harvestMan;
 		geonetworkContext.thesaurusMan= thesaurusMan;
-		geonetworkContext.oaipmhDis   = oaipmhDis;
+		geonetworkContext.oaipmhDis   = oaipmhDispatcher;
 		geonetworkContext.app_context = app_context;
         geonetworkContext.metadataNotifierMan = metadataNotifierMan;
 		geonetworkContext.threadPool  = threadPool;
@@ -402,7 +366,7 @@ public class Geonetwork implements ApplicationHandler {
         // Creates a default site logo, only if the logo image doesn't exists
         // This can happen if the application has been updated with a new version preserving the database and
         // images/logos folder is not copied from old application 
-        createSiteLogo(geonetworkContext.getSiteId(), servletContext, context.getAppPath());
+        Logo.createSiteLogo(geonetworkContext.getSiteId(), servletContext, context.getAppPath());
 
         // Notify unregistered metadata at startup. Needed, for example, when the user enables the notifier config
         // to notify the existing metadata in database
@@ -413,245 +377,17 @@ public class Geonetwork implements ApplicationHandler {
 		//--- load proxy information from settings into Jeeves for observers such
 		//--- as jeeves.utils.XmlResolver to use
 		ProxyInfo pi = JeevesProxyInfo.getInstance();
-		boolean useProxy = settingMan.getValueAsBool("system/proxy/use", false);
+		boolean useProxy = settingManager.getValueAsBool("system/proxy/use", false);
 		if (useProxy) {
-			String  proxyHost      = settingMan.getValue("system/proxy/host");
-			String  proxyPort      = settingMan.getValue("system/proxy/port");
-			String  username       = settingMan.getValue("system/proxy/username");
-			String  password       = settingMan.getValue("system/proxy/password");
+			String  proxyHost      = settingManager.getValue("system/proxy/host");
+			String  proxyPort      = settingManager.getValue("system/proxy/port");
+			String  username       = settingManager.getValue("system/proxy/username");
+			String  password       = settingManager.getValue("system/proxy/password");
 			pi.setProxyInfo(proxyHost, new Integer(proxyPort), username, password);
 		}
 
 	}
 
-    /**
-     * Parses a version number removing extra "-*" element and returning an integer. "2.7.0-SNAPSHOT" is returned as 270.
-     * 
-     * @param number The version number to parse
-     * @return The version number as an integer
-     * @throws Exception
-     */
-    private int parseVersionNumber(String number) throws Exception {
-        // Remove extra "-SNAPSHOT" info which may be in version number
-        int dashIdx = number.indexOf("-");
-        if (dashIdx != -1) {
-            number = number.substring(0, number.indexOf("-"));
-        }
-        return Integer.valueOf(number.replaceAll("\\.", ""));
-    }
-    
-	/**
-	 * Checks if current database is running same version as the web application.
-	 * If not, apply migration SQL script :
-	 *  resources/sql/migration/{version}-to-{version}-{dbtype}.sql.
-	 * eg. 2.4.3-to-2.5.0-default.sql
-	 *
-     * @param servletContext
-     * @param dbms
-     * @param settingMan
-     * @param webappVersion
-     * @param subVersion
-     * @param appPath
-     */
-	private void migrateDatabase(ServletContext servletContext, Dbms dbms, SettingManager settingMan, String webappVersion, String subVersion, String appPath) {
-		logger.info("  - Migration ...");
-		
-		// Get db version and subversion
-		String dbVersion = settingMan.getValue("system/platform/version");
-		String dbSubVersion = settingMan.getValue("system/platform/subVersion");
-		
-		// Migrate db if needed
-		logger.info("      Webapp   version:" + webappVersion + " subversion:" + subVersion);
-		logger.info("      Database version:" + dbVersion + " subversion:" + dbSubVersion);
-		if (dbVersion == null || webappVersion == null) {
-			logger.warning("      Database does not contain any version information. Check that the database is a GeoNetwork database with data." + 
-							"      Migration step aborted.");
-			return;
-		}
-		
-		int from = 0, to = 0;
-
-		try {
-		    from = parseVersionNumber(dbVersion);
-		    to = parseVersionNumber(webappVersion);
-		} catch(Exception e) {
-		    logger.warning("      Error parsing version numbers: " + e.getMessage());
-            e.printStackTrace();
-		}
-		
-		if (from == to
-				//&& subVersion.equals(dbSubVersion) Check only on version number
-		) {
-			logger.info("      Webapp version = Database version, no migration task to apply.");
-		} else {
-			boolean anyMigrationAction = false;
-			boolean anyMigrationError = false;
-			
-            try {
-            	new UpdateHarvesterIdsTask().update(settingMan,dbms);
-            } catch (Exception e) {
-                logger.info("          Errors occurs during SQL migration file: " + e.getMessage());
-                e.printStackTrace();
-                anyMigrationError = true;
-            }
-
-			// Migrating from 2.0 to 2.5 could be done 2.0 -> 2.3 -> 2.4 -> 2.5
-			String dbType = DatabaseType.lookup(dbms).toString();
-			logger.debug("      Migrating from " + from + " to " + to + " (dbtype:" + dbType + ")...");
-			
-		    logger.info("      Loading SQL migration step configuration from config-db.xml ...");
-            for(Version version : dbConfiguration.migrate) {
-                int versionNumber = version.version;
-                if (versionNumber > from && versionNumber <= to) {
-                    logger.info("       - running tasks for " + versionNumber + "...");
-                    for(DbConfigFile file : version.file) {
-                        String filePath = path + file.path;
-                        String filePrefix = file.filePrefix;
-                        anyMigrationAction = true;
-                        logger.info("         - SQL migration file:" + filePath + " prefix:" + filePrefix + " ...");
-                        try {
-                            Lib.db.insertData(servletContext, dbms, path, filePath, filePrefix);
-                        } catch (Exception e) {
-                            logger.info("          Errors occurs during SQL migration file: " + e.getMessage());
-                            e.printStackTrace();
-                            anyMigrationError = true;
-                        }
-                    }
-                }
-            }
-			
-    		
-			// Refresh setting manager in case the migration task added some new settings.
-            try {
-                settingMan.refresh(dbms);
-            } catch (Exception e) {
-                logger.info("      Errors occurs during settings manager refresh during migration. Error is: " + e.getMessage());
-                e.printStackTrace();
-                anyMigrationError = true;
-            }
-			
-			// Update the logo 
-			String siteId = settingMan.getValue("system/site/siteId");
-			initLogo(servletContext, dbms, siteId, appPath);
-			
-			// TODO : Maybe a force rebuild index is required in such situation.
-			
-			if (anyMigrationAction && !anyMigrationError) {
-			    logger.info("      Successfull migration.\n" +
-                        "      Catalogue administrator still need to update the catalogue\n" +
-                        "      logo and data directory in order to complete the migration process.\n" +
-                        "      Lucene index rebuild is also recommended after migration."
-			            );
-			}
-			
-			if (!anyMigrationAction) {
-                logger.warning("      No migration task found between webapp and database version.\n" +
-                        "      The system may be unstable or may failed to start if you try to run \n" +
-                        "      the current GeoNetwork " + webappVersion + " with an older database (ie. " + dbVersion + "\n" +
-                        "      ). Try to run the migration task manually on the current database\n" +
-                        "      before starting the application or start with a new empty database.\n" +
-                        "      Sample SQL scripts for migration could be found in WEB-INF/sql/migrate folder.\n"
-                        );
-                
-            }
-			
-			if (anyMigrationError) {
-                logger.warning("      Error occurs during migration. Check the log file for more details.");
-            }
-			// TODO : Maybe some migration stuff has to be done in Java ?
-		}
-	}
-
-	/**
-	 * Database initialization. If no table in current database
-	 * create the GeoNetwork database. If an existing GeoNetwork database 
-	 * exists, try to migrate the content.
-	 * 
-	 * @param context
-	 * @return Pair with Dbms channel and Boolean set to true if db created
-	 * @throws Exception
-	 */
-	private Pair<Dbms, Boolean> initDatabase(ServiceContext context) throws Exception {
-		Dbms dbms = null;
-		try {
-			dbms = (Dbms) context.getResourceManager().open(Geonet.Res.MAIN_DB);
-		} catch (Exception e) {
-			logger.error("    Failed to open database connection, Check config.xml db file configuration.");
-			logger.error(Util.getStackTrace(e));
-			throw new IllegalArgumentException("No database connection");
-		}
-	
-		String dbURL = dbms.getURL();
-		logger.info("  - Database connection on " + dbURL + " ...");
-
-        ServletContext servletContext = context.getServletContext();
-
-		Boolean created = false;
-		// Create db if empty
-		if (!Lib.db.touch(dbms)) {
-			logger.info("      " + dbURL + " is an empty database (Metadata table not found).");
-
-			dbConfiguration.createDatabase(servletContext, dbms, path);
-			dbConfiguration.addData(servletContext, dbms, path);
-	        dbms.commit();
-            
-			// Copy logo
-			String uuid = UUID.randomUUID().toString();
-			initLogo(servletContext, dbms, uuid, context.getAppPath());
-			created = true;
-		} else {
-			logger.info("      Found an existing GeoNetwork database.");
-		}
-
-		return Pair.read(dbms, created);
-	}
-
-	/**
-	 * Copy the default dummy logo to the logo folder based on uuid
-     *
-     * @param servletContext
-     * @param dbms
-* @param nodeUuid
-* @param appPath
-* @throws FileNotFoundException
-	 * @throws IOException
-	 * @throws SQLException
-	 */
-	private void initLogo(ServletContext servletContext, Dbms dbms, String nodeUuid, String appPath) {
-		createSiteLogo(nodeUuid, servletContext, appPath);
-		
-		try {
-			dbms.execute("UPDATE Settings SET value=? WHERE name='siteId'", nodeUuid);
-		} catch (SQLException e) {
-			logger.error("      Error when setting siteId values: " + e.getMessage());
-		}
-	}
-
-    /**
-     * Creates a default site logo, only if the logo image doesn't exists
-     *
-     * @param nodeUuid
-     * @param servletContext
-     * @param appPath
-     */
-    private void createSiteLogo(String nodeUuid, ServletContext servletContext, String appPath) {
-        try {
-            String logosDir = Resources.locateLogosDir(servletContext, appPath);
-            File logo = new File(logosDir, nodeUuid +".gif");
-            if (!logo.exists()) {
-                FileOutputStream os = new FileOutputStream(logo);
-                try {
-                    os.write(Resources.loadImage(servletContext, appPath, "logos/dummy.gif", new byte[0]));
-                    logger.info("      Setting catalogue logo for current node identified by: " + nodeUuid);
-                } finally {
-                    os.close();
-                }
-            }
-        } catch (Exception e) {
-            logger.error("      Error when setting the logo: " + e.getMessage());
-        }
-    }
-	
 	/**
 	 * Set system properties to those required
 	 * @param path webapp path

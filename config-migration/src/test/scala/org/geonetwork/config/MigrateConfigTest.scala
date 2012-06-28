@@ -31,7 +31,9 @@ class MigrateConfigTest {
 		new MigrateConfiguration().migrate(folder.getAbsolutePath, true)
 		
 		for{ f <- folder.listFiles().filter(_.isFile)
-		  	 if f.getName != "config-gui.xml" } {
+		     if f.getName != "config-gui.xml"
+		     if f.getName != "config-notifier.xml"
+		     } {
 		  println("checking that "+f.getName()+" has data")
 		  val configData = xml.XML.loadFile(f)
 		  assertTrue("There should not be empty configuration files in "+f.getName, configData.child.collect{case e:xml.Elem => e}nonEmpty)

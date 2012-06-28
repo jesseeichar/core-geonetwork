@@ -40,6 +40,7 @@ public class GeonetworkDataDirectory {
     private String subversionPath;
     private String resourcesDir;
     private String htmlcacheDir;
+    private String schemaPluginCatalogPath;
 
 	/**
 	 * Check and create if needed GeoNetwork data directory.
@@ -253,8 +254,8 @@ public class GeonetworkDataDirectory {
 			}
 		}
 
-		String schemaCatPath = this.configDir + File.separator + Geonet.File.SCHEMA_PLUGINS_CATALOG;
-		File schemaCatFile = new File(schemaCatPath);
+		this.schemaPluginCatalogPath = this.configDir + File.separator + Geonet.File.SCHEMA_PLUGINS_CATALOG;
+		File schemaCatFile = new File(schemaPluginCatalogPath);
 		if (!schemaCatFile.exists()) {
 			Log.info(Geonet.DATA_DIRECTORY,
 					"     - Copying schema plugin catalogue ...");
@@ -321,4 +322,5 @@ public class GeonetworkDataDirectory {
     public String getSubversionPath() { return subversionPath; }
     public String getResourcesDir() { return resourcesDir; }
     public String getHtmlcacheDir() { return htmlcacheDir; }
+    public String getSchemaPluginCatalogPath() { return schemaPluginCatalogPath; }
 }

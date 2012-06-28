@@ -23,9 +23,11 @@
 
 package org.fao.geonet.kernel.oaipmh.services;
 
+import java.io.IOException;
+import java.util.List;
+
 import jeeves.server.context.ServiceContext;
-import jeeves.server.ConfigurationOverrides;
-import jeeves.utils.Xml;
+
 import org.fao.geonet.GeonetContext;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.kernel.SchemaManager;
@@ -37,19 +39,19 @@ import org.fao.oaipmh.responses.AbstractResponse;
 import org.fao.oaipmh.responses.ListMetadataFormatsResponse;
 import org.fao.oaipmh.responses.MetadataFormat;
 import org.jdom.Attribute;
-import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.Namespace;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 //=============================================================================
 
 public class ListMetadataFormats implements OaiPmhService
 {
+	private List<MetadataFormat> metadaFormats;
+
+	public ListMetadataFormats(List<MetadataFormat> metadataFormats) {
+		this.metadaFormats = metadataFormats;
+	}
+
 	public String getVerb() { return ListMetadataFormatsRequest.VERB; }
 
 	//---------------------------------------------------------------------------
@@ -78,7 +80,7 @@ public class ListMetadataFormats implements OaiPmhService
 				res.addFormat(getSchemaInfo(context, sm, schema));
 		}
 
-		for (MetadataFormat mdf : getConvertFormats(context)) {
+		for (MetadataFormat mdf : metadaFormats) {
 			res.addFormat(mdf);
 		}
 
@@ -114,32 +116,6 @@ public class ListMetadataFormats implements OaiPmhService
 		return mf;
 	}
 
-	//---------------------------------------------------------------------------
-
-	private List<MetadataFormat> getConvertFormats(ServiceContext context) throws IOException, JDOMException
-	{
-	
-		Element elem = Xml.loadFile(context.getAppPath() + DEFAULT_PREFIXES_FILE);
-		if (context.getServletContext() != null) {
-			ConfigurationOverrides.updateWithOverrides(DEFAULT_PREFIXES_FILE, context.getServletContext(), context.getAppPath(), elem);
-		}
-
-		List<Element> defaultSchemas = elem.getChildren();
-
-		List <MetadataFormat> defMdfs = new ArrayList<MetadataFormat>();
-		for (Element schema : defaultSchemas) {
-			defMdfs.add(new MetadataFormat(schema.getAttributeValue("prefix"), schema.getAttributeValue("schemaLocation"), schema.getAttributeValue("nsUrl")));
-		}
-		return defMdfs; 
-	}
-
-	//---------------------------------------------------------------------------
-	//---
-	//--- Variables
-	//---
-	//---------------------------------------------------------------------------
-
-	private static final String DEFAULT_PREFIXES_FILE = "WEB-INF" + File.separator + "config-oai-prefixes.xml";
 }
 
 //=============================================================================

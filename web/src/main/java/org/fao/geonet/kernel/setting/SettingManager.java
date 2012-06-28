@@ -23,15 +23,6 @@
 
 package org.fao.geonet.kernel.setting;
 
-import jeeves.resources.dbms.Dbms;
-import jeeves.server.resources.ProviderManager;
-import jeeves.server.resources.ResourceListener;
-import jeeves.server.resources.ResourceProvider;
-import jeeves.utils.Log;
-
-import org.fao.geonet.constants.Geonet;
-import org.jdom.Element;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +31,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import jeeves.resources.dbms.Dbms;
+import jeeves.server.resources.ProviderManager;
+import jeeves.server.resources.ResourceListener;
+import jeeves.server.resources.ResourceProvider;
+import jeeves.utils.Log;
+
+import org.fao.geonet.InitializedDbms;
+import org.fao.geonet.constants.Geonet;
+import org.jdom.Element;
+import org.springframework.beans.factory.annotation.Autowired;
 
 //=============================================================================
 
@@ -76,21 +78,26 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class SettingManager
 {
 	private Setting root;
-	private Dbms dbms;
 	//---------------------------------------------------------------------------
 	//---
 	//--- Constructor
 	//---
 	//---------------------------------------------------------------------------
 
-	public SettingManager(Dbms dbms, ProviderManager provMan) throws SQLException
+	public SettingManager(InitializedDbms initDbms) throws SQLException {
+		this(initDbms,null);
+	}
+	@Autowired
+	public SettingManager(InitializedDbms initDbms, ProviderManager provMan) throws SQLException
 	{
-		this.dbms = dbms;
+		Dbms dbms = initDbms.getDbms();
 		init(dbms);
 
-		for(ResourceProvider rp : provMan.getProviders()) {
-		    if (rp.getName().equals(dbms.getURL())) {
-				rp.addListener(resList);
+		if(provMan != null) {
+			for(ResourceProvider rp : provMan.getProviders()) {
+			    if (rp.getName().equals(dbms.getURL())) {
+					rp.addListener(resList);
+				}
 			}
 		}
 	}
@@ -103,7 +110,8 @@ public class SettingManager
 	 * @throws SQLException
 	 */
 	private void init(Dbms dbms) throws SQLException {
-		List list = dbms.select("SELECT * FROM Settings").getChildren();
+		@SuppressWarnings("unchecked")
+		List<Element> list = dbms.select("SELECT * FROM Settings").getChildren();
 
 		root = new Setting(0, null, null);
 		createSubTree(root, list);
@@ -434,11 +442,11 @@ public class SettingManager
      * @param s
      * @param elemList
      */
-	private void createSubTree(Setting s, List elemList)
+	private void createSubTree(Setting s, List<Element> elemList)
 	{
-		for(Iterator i=elemList.iterator(); i.hasNext(); )
+		for(Iterator<Element> i=elemList.iterator(); i.hasNext(); )
 		{
-			Element elem  = (Element) i.next();
+			Element elem  =  i.next();
 			String  sParId= elem.getChildText("parentid");
 			int     parId = sParId.equals("") ? -1 : Integer.parseInt(sParId);
 
@@ -594,8 +602,9 @@ public class SettingManager
 	{
 		if (maxSerial == 0)
 		{
-			List   list = dbms.select("SELECT MAX(id) AS max FROM Settings").getChildren();
-			String max  = ((Element) list.get(0)).getChildText("max");
+			@SuppressWarnings("unchecked")
+			List<Element>  list = dbms.select("SELECT MAX(id) AS max FROM Settings").getChildren();
+			String max  = (list.get(0)).getChildText("max");
 
 			maxSerial = Integer.parseInt(max);
 		}

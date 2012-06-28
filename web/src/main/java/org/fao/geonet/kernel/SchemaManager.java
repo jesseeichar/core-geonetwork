@@ -27,13 +27,31 @@
 
 package org.fao.geonet.kernel;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import javax.annotation.PostConstruct;
+
 import jeeves.constants.Jeeves;
 import jeeves.exceptions.OperationAbortedEx;
 import jeeves.server.context.ServiceContext;
 import jeeves.server.dispatchers.guiservices.XmlFile;
 import jeeves.utils.Log;
 import jeeves.utils.Xml;
-import org.apache.commons.lang.StringUtils;
+
+import org.fao.geonet.GeonetworkConfig;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.csw.common.Csw;
 import org.fao.geonet.exceptions.NoSchemaMatchesException;
@@ -49,21 +67,7 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.Namespace;
 import org.jdom.filter.ElementFilter;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Class that handles all functions relating to metadata schemas. This 
@@ -103,8 +107,6 @@ public class SchemaManager {
 	/** Active writers count */
 	private static int activeWriters = 0;
 
-    private static SchemaManager schemaManager = null; 
-
 	//--------------------------------------------------------------------------
 	//---
 	//--- Constructor
@@ -119,16 +121,20 @@ public class SchemaManager {
 		* @param defaultLang the default language (taken from context)
 		* @param defaultSchema the default schema (taken from config.xml)
 	  */
-	private SchemaManager(String basePath, String schemaPluginsCat, String sPDir, String defaultLang, String defaultSchema) throws Exception {
-
+    @Autowired
+	public SchemaManager(GeonetworkConfig config) throws Exception {
 		hmSchemas .clear();
 
-		this.basePath = basePath;
-		this.schemaPluginsDir  = sPDir;
-		this.defaultLang = defaultLang;
-		this.defaultSchema = defaultSchema;
-		this.schemaPluginsCat = schemaPluginsCat;
-		
+		this.basePath = config.getEnvConfig().getAppPath();
+		this.schemaPluginsDir  = config.getDataDirectories().getSchemapluginsDir();
+		this.defaultLang = config.getDefaultLanguage();
+		this.defaultSchema = config.getPreferredSchema();
+		this.schemaPluginsCat = config.getDataDirectories().getSchemaPluginCatalogPath();
+	}
+
+    @PostConstruct
+    public void init() throws Exception {
+    	
 		Element schemaPluginCatRoot = getSchemaPluginCatalog();
 
 		// -- check the plugin directory and add any schemas already in there
@@ -150,26 +156,8 @@ public class SchemaManager {
 
 		writeSchemaPluginCatalog(schemaPluginCatRoot);
 
-	}
-
-
-    /**
-     * Returns singleton instance.
-     *
-     * @param basePath
-     * @param sPDir
-     * @param defaultLang
-     * @param defaultSchema
-     * @return
-     * @throws Exception
-     */
-	public synchronized static SchemaManager getInstance(String basePath, String schemaPluginsCat, String sPDir, String defaultLang, String defaultSchema) throws Exception {
-		if (schemaManager == null) {
-			schemaManager = new SchemaManager(basePath, schemaPluginsCat, sPDir, defaultLang, defaultSchema);
-		}
-		return schemaManager;
-	}
-
+    }
+    
     /**
      * Ensures singleton-ness by preventing cloning.
      *

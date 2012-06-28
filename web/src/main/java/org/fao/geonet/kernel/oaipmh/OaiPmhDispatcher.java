@@ -24,7 +24,10 @@
 package org.fao.geonet.kernel.oaipmh;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.annotation.PostConstruct;
 
 import jeeves.constants.Jeeves;
 import jeeves.server.context.ServiceContext;
@@ -45,9 +48,11 @@ import org.fao.oaipmh.exceptions.BadArgumentException;
 import org.fao.oaipmh.exceptions.OaiPmhException;
 import org.fao.oaipmh.requests.AbstractRequest;
 import org.fao.oaipmh.responses.AbstractResponse;
+import org.fao.oaipmh.responses.MetadataFormat;
 import org.fao.oaipmh.server.OaiPmhFactory;
 import org.fao.oaipmh.util.Lib;
 import org.jdom.Element;
+import org.springframework.beans.factory.annotation.Autowired;
 
 //=============================================================================
 
@@ -56,25 +61,40 @@ public class OaiPmhDispatcher
 	
 	public static final int MODE_MODIFIDATE = 2;
 	public static final int MODE_TEMPEXTEND = 1;
+	private SettingManager settingsManager;
+	private SchemaManager schemaManager;
+	private List<MetadataFormat> metadataFormats;
 	
 	//---------------------------------------------------------------------------
 	//---
 	//--- Constructor
 	//---
 	//---------------------------------------------------------------------------
-
+	@Autowired
 	public OaiPmhDispatcher(SettingManager sm, SchemaManager scm)
 	{
-		ResumptionTokenCache cache = new ResumptionTokenCache(sm);
-		
+		this.settingsManager = sm;
+		this.schemaManager = scm;
+	}
+	public void setMetadataFormats(List<MetadataFormat> formats) { this.metadataFormats = formats; }
+	
+	/**
+	 * Used by spring to finish construction of object.
+	 * 
+	 * It is called after dependencies are set
+	 */
+	@PostConstruct
+	public void initServices() {
+		ResumptionTokenCache cache = new ResumptionTokenCache(settingsManager);
 		register(new GetRecord());
 		register(new Identify());
-		register(new ListIdentifiers(cache, sm, scm));
-		register(new ListMetadataFormats());
-		register(new ListRecords(cache, sm, scm));
+		register(new ListIdentifiers(cache, settingsManager, schemaManager));
+		register(new ListMetadataFormats(metadataFormats));
+		register(new ListRecords(cache, settingsManager, schemaManager));
 		register(new ListSets());
-	}
 
+	}
+	
 	//---------------------------------------------------------------------------
 
 	private void register(OaiPmhService s)
