@@ -99,7 +99,7 @@ public class JeevesEngineTest {
     @Test
     public void testDispatch() throws Exception {
         FileSystemXmlApplicationContext springContext = createContext();
-        
+        springContext.start();
         JeevesEngine engine = springContext.getBean(JeevesEngine.class);
         
         ServiceRequest srvReq = new ServiceRequest();

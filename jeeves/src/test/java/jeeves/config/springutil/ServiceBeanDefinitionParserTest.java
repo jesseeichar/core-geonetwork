@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -72,7 +73,7 @@ public class ServiceBeanDefinitionParserTest {
         assertEquals("v2", serviceConfig.getMandatoryValue("p2"));
         
         assertEquals("param-transform.xsl", ReflectionTestUtils.getField(info, "sheet"));
-        ServiceContext context = new ServiceContext("qwe", mock(MonitorManager.class), mock(ProviderManager.class), null, null, null);
+        ServiceContext context = new ServiceContext("qwe", mock(MonitorManager.class), mock(ProviderManager.class), null, null, Collections.<String,Object>emptyMap());
 
         Element result = info.execServices(serviceExecuteParams , context);
         assertEquals("result", result.getName());

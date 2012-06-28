@@ -155,7 +155,9 @@ public class ScheduleManager
 
 	public void exit() throws SchedulerException
 	{
-		scheduler.shutdown();
+		if(scheduler != null) {
+			scheduler.shutdown();
+		}
 	}
 
 	//--------------------------------------------------------------------------

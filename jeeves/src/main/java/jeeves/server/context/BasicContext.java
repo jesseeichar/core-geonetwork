@@ -58,7 +58,7 @@ public class BasicContext
 	//---
 	//--------------------------------------------------------------------------
 
-	public BasicContext(MonitorManager mm, ProviderManager pm, SerialFactory sf, Hashtable<String, Object> contexts)
+	public BasicContext(MonitorManager mm, ProviderManager pm, SerialFactory sf, Map<String, Object> contexts)
 	{
 		resMan = new ResourceManager(mm, pm);
 

@@ -64,8 +64,8 @@ case class LuceneMigrationTransformer(n: Node) {
 	  <!-- or the contrary and make end-user not so confident of your search engine! -->
 	  {fieldBoosting}
 	  <!-- Boosting factor for document based on document values. -->
-	  <!-- "The boost factor values you should use depend on what youÕre trying to achieve; --> 
-	  <!-- youÕll need to do some experimentation and -->
+	  <!-- "The boost factor values you should use depend on what youï¿½re trying to achieve; --> 
+	  <!-- youï¿½ll need to do some experimentation and -->
 	  <!-- tuning to achieve the desired effect." source: Lucene In Action -->
 	  {(n \ "boostDocument").headOption map {documentBoost} getOrElse Nil}
       <!-- All Lucene fields that are tokenized must be kept here because it -->

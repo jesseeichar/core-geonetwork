@@ -30,6 +30,11 @@ public class EnvironmentalConfig implements BeanDefinitionRegistryPostProcessor 
     public EnvironmentalConfig() {
         // to allow spring to configure
     }
+    public EnvironmentalConfig(ServletContext context) {
+    	this.servletContext = context;
+    	this.baseUrl = context.getContextPath();
+    	this.appPath = context.getRealPath(".");
+    }
     public EnvironmentalConfig(String baseUrl, String appPath) {
         super();
         this.baseUrl = baseUrl;

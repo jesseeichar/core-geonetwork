@@ -5,6 +5,9 @@ import java.io.File;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 
+import jeeves.config.EnvironmentalConfig;
+
+import org.geonetwork.config.MigrateConfiguration;
 import org.springframework.context.Lifecycle;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.ContextLoaderListener;
@@ -15,6 +18,7 @@ public class JeevesContextLoaderListener extends ContextLoaderListener {
 	public JeevesContextLoaderListener() {
 		System.out.println("Created JeevesContextLoader");
 	}
+	
 	
 	@Override
 	protected void customizeContext(ServletContext servletContext,
@@ -44,6 +48,10 @@ public class JeevesContextLoaderListener extends ContextLoaderListener {
 	
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
+		// migrate from old configuration to new spring configuration if needed
+		String configDir = new EnvironmentalConfig(event.getServletContext()).getConfigPath();
+		new MigrateConfiguration().migrate(configDir, true);
+		
 		super.contextInitialized(event);
 		Lifecycle context = (Lifecycle) WebApplicationContextUtils.getWebApplicationContext(event.getServletContext());
 		context.start();
