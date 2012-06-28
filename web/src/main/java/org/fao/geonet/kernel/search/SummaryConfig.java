@@ -21,6 +21,8 @@ import org.springframework.beans.factory.BeanInitializationException;
 
 public class SummaryConfig {
     Map<String, Map<String, Item>> configurations = new HashMap<String, Map<String, Item>>();
+    Element typeConf;
+
     public void setConfigurations(Map<String, List<Item>> configurations) {
         for (Map.Entry<String, List<Item>> entry : configurations.entrySet()) {
             Map<String, Item> map = new HashMap<String, Item>();
@@ -28,6 +30,13 @@ public class SummaryConfig {
                 map.put(item.name, item);
             }
             this.configurations.put(entry.getKey(), map);
+        }
+    }
+    public void setTypeConf(String typeConf) {
+        try {
+            this.typeConf = Xml.loadString(typeConf, false);
+        } catch (Exception e) {
+            throw new BeanInitializationException("The typeConf property of could not be parsed as XML");
         }
     }
 
@@ -38,21 +47,12 @@ public class SummaryConfig {
         String order;
         String type;
         int max;
-        Element typeConf;
         public void setName(String name) { this.name = name; }
         public void setPlural(String plural) { this.plural = plural; }
         public void setIndexKey(String indexKey) { this.indexKey = indexKey; }
         public void setOrder(String order) { this.order = order; }
         public void setType(String type) { this.type = type; }
         public void setMax(int max) { this.max = max; }
-
-        public void setTypeConf(String typeConf) {
-            try {
-                this.typeConf = Xml.loadString(typeConf, false);
-            } catch (Exception e) {
-                throw new BeanInitializationException("The typeConf property of Item "+name+" could not be parsed as XML");
-            }
-        }
     }
 
     public Element buildSummaryMaps(Element elSummary, String resultType, String langCode, IndexReader reader,
@@ -112,7 +112,7 @@ public class SummaryConfig {
     private SummaryComparator getSummaryComparator(String langCode, Item item) throws Exception {
         SortOption sortOption = SortOption.parse(item.order);
         
-        return new SummaryComparator(sortOption, Type.parse(item.type), langCode, item.typeConf);
+        return new SummaryComparator(sortOption, Type.parse(item.type), langCode, typeConf);
     }
 
     private Element addSortedSummaryKeys(Element elSummary, String langCode, Map<String, Map<String, Integer>> summaryMaps,
