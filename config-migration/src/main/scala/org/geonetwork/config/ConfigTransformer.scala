@@ -30,6 +30,8 @@ object ConfigTransformer {
   }
   def transformFile(n: Node, transformer:(String,Node) => Seq[Node] = transform) = {
     val name = n att "name"
+    Log.info("Migrating: " + name + " to depedency injection based configuration");
+
     <configFile name={ name }>
       <beans xmlns="http://www.springframework.org/schema/beans" 
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
