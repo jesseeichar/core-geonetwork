@@ -45,6 +45,7 @@ class MigrateConfigTest {
           case "config-db.xml" => assertDb(configData)
           case "config-lucene.xml" => assertLucene(configData)
           case "config-summary.xml" => assertSummary(configData)
+          case "geoserver-nodes.xml" => assertGeopublisher(configData)
           case _ => ()
         }
       } catch {
@@ -141,6 +142,12 @@ class MigrateConfigTest {
     assertEquals(1, n \ "bean" size)
     assertEquals(4, n \ "bean" \ "property" \\ "entry" size)
     (n \ "bean" \ "property" \\ "entry") foreach { n => assertTrue("expected " + (n att "key") + " to have some elements", n \\ "bean" nonEmpty) }
+    (n \ "bean" \ "property" \\ "entry" \\ "bean") foreach { n => assertTrue("expected " + (n) + " to have a name attribute", (n att "name").nonEmpty) }
+  }
+  def assertGeopublisher(n: Node) = {
+    assertEquals(1, n \ "bean" size)
+    assertEquals(1, n \ "bean" \ "property" \\ "bean" size)
+    (n \ "bean" \ "property" \\ "bean") foreach { n => assertTrue("expected " + (n) + " to have a name attribute", (n att "name").nonEmpty) }
   }
 
   def childrenByAtt(e: NodeSeq, childName: Symbol, attName: Symbol, attValue: String) =

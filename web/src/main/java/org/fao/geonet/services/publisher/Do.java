@@ -26,7 +26,6 @@ package org.fao.geonet.services.publisher;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 
 import jeeves.interfaces.Service;
 import jeeves.server.ServiceConfig;
@@ -76,17 +75,8 @@ public class Do implements Service {
 	 */
 	public static final String MODULE = "geonetwork.GeoServerPublisher";
 
-	/**
-	 * XML document containing Geoserver node configuration defined in
-	 * geoserver-nodes.xml
-	 */
-	private Element geoserverConfig;
-
-	/**
-	 * List of current known nodes
-	 */
-	private HashMap<String, GeoServerNode> geoserverNodes = new HashMap<String, GeoServerNode>();
-
+	private GeopublisherConfig geopublisherConfig;
+	
 	/**
 	 * Error code received when publishing
 	 */
@@ -122,42 +112,9 @@ public class Do implements Service {
 		Log.createLogger(MODULE);
 
 		// Load configuration
-		String geoserverConfigFile = appPath
-				+ params.getValue("configFile", "");
+		String geoserverConfigFile = appPath + params.getValue("configFile", "");
 
 		Log.info(MODULE, "Using configuration: " + geoserverConfigFile);
-
-		geoserverConfig = Xml.loadFile(geoserverConfigFile);
-		if (geoserverConfig == null) {
-			Log.error(MODULE, "Failed to load geoserver configuration file "
-					+ geoserverConfigFile);
-			return;
-		}
-
-		// Read configuration and register node
-        if(Log.isDebugEnabled(MODULE))
-            Log.debug(MODULE, "Start node registration");
-		Collection<Element> nodes = geoserverConfig.getChildren("node");
-		for (Element node : nodes) {
-			// TODO : check mandatory values and reject node when relevant
-			String id = node.getChildText("id");
-			String name = node.getChildText("name");
-            if(Log.isDebugEnabled(MODULE))
-                Log.debug(MODULE, "  Register node:" + name);
-			String url = node.getChildText("adminUrl");
-			String namespacePrefix = node.getChildText("namespacePrefix");
-			String namespaceUrl = node.getChildText("namespaceUrl");
-			String user = node.getChildText("user");
-			String password = node.getChildText("password");
-
-			GeoServerNode g = new GeoServerNode(id, name, url, namespacePrefix,
-					namespaceUrl, user, password);
-
-			if (g != null)
-				geoserverNodes.put(id, g);
-		}
-        if(Log.isDebugEnabled(MODULE))
-            Log.debug(MODULE, "End node registration.");
 	}
 
 	/**
@@ -197,14 +154,14 @@ public class Do implements Service {
 			String metadataId = Util.getParam(params, "metadataId");
 			String metadataUuid = Util.getParam(params, "metadataUuid", "");
 			String metadataTitle = Util.getParam(params, "metadataTitle", "");
-			GeoServerNode g = geoserverNodes.get(nodeId);
+			GeopublisherConfig.Node g = geopublisherConfig.get(nodeId);
 			if (g == null)
 				throw new IllegalArgumentException(
 						"Invalid node id "
 								+ nodeId
 								+ ". Can't find node id in current registered nodes. Use action=LIST parameter to retrieve the list of valid nodes.");
 
-			GeoServerRest gs = new GeoServerRest(g.getUrl(), g.getUsername(), g.getUserpassword(), g.getNamespacePrefix(), baseUrl);
+			GeoServerRest gs = new GeoServerRest(g.getAdminUrl(), g.getUser(), g.getPassword(), g.getNamespacePrefix(), baseUrl);
 
 			String file = Util.getParam(params, "file");
 			String access = Util.getParam(params, "access");
@@ -241,6 +198,14 @@ public class Do implements Service {
 			}
 		}
 		return null;
+	}
+
+	private Element list() {
+		Element root = new Element("nodes");
+		for(GeopublisherConfig.Node node: geopublisherConfig.getNodes()) {
+			root.addContent(node.toElement());
+		}
+		return root;
 	}
 
 	/**
@@ -517,13 +482,9 @@ public class Do implements Service {
 		}
 		return false;
 	}
-
-	/**
-	 * Return list of registered node
-	 * 
-	 * @return
-	 */
-	private Element list() {
-		return geoserverConfig;
+	
+	public void setGeopublisherConfig(GeopublisherConfig geopublisherConfig) {
+		this.geopublisherConfig = geopublisherConfig;
 	}
+
 }
