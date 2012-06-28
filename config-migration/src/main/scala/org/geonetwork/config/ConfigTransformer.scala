@@ -9,7 +9,9 @@ object ConfigTransformer {
     case "general" => generalDef(n)
     case "default" => defaultDef(n)
     case "appHandler" => appHandler(n)
+    case "statistics" if fileName == "config-stats-params.xml" => n
     case "schemas" if fileName == "config-oai-prefixes.xml" => oaiConfig(n)
+    case "summary" => oaiConfig(n)
     case "services" => n.child map(ServiceTransformer.service(n att "package"))
     case "operations" if n \ "operation" exists (_ att "name" equalsIgnoreCase "GetCapabilities") =>
       CswTransformer(n).transform
