@@ -39,10 +39,11 @@ class MigrateConfiguration {
             migrationInput ::= <configFile name={ f.getName() }>{ data }</configFile>
           }
           
-          def isConfigXml(n:Node) = n.attribute("name").exists(_.text == "config.xml")
+          val isConfigXml = (n:Node) => n.attribute("name").exists(_.text == "config.xml")
+          val isResourceXml = (n:Node) => n.attribute("name").exists(_.text == "config.xml")
           def importElem(n:Node) = <import resource={n.attribute("name").getOrElse(throw new Error("Unable to find name of resource "+n))}/>
           val migratedData = migrationInput flatMap (n => ConfigTransformer.transformFile(n))
-          val resources = migrationInput flatMap (_ \ "resources" \ "resource") flatMap ConfigTransformer.transformResource
+          val resources = migrationInput flatMap (_ \ "geonet" \ "resources" \ "resource") flatMap ConfigTransformer.transformResource
 
           val configXmlWithImports = migratedData map {
             case file if !isConfigXml(file) => file
@@ -58,7 +59,8 @@ class MigrateConfiguration {
               })
               
               val jzkitImport = migrationInput \\ "appHandler" \ "param" filter (p => (p att "name") == "jzkitConfig") map {
-                p => <import resource={p att "value"}/>
+                p => 
+                  <import resource={"classpath:"+(p att "value")}/>
               }
               val imports = fileImports ++ resourceImports ++ jzkitImport
               

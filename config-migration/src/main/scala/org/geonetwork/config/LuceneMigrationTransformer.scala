@@ -87,7 +87,7 @@ case class LuceneMigrationTransformer(n: Node) {
 	  <property name="numericFields">
 	  	<set>{ 
 	  	  for (f <- n \ "numeric" \ "Field" ) yield 
-	  	  	  <bean class="org.fao.geonet.kernel.search.LuceneConfig.tokenizedFields$NumericField"
+	  	  	  <bean class="org.fao.geonet.kernel.search.LuceneConfig$NumericField"
 	  	  		p:name={f att "name"} p:type={f att "type"} p:precisionStep={f att "precisionStep"} />
 	  	}</set>
 	  </property>
@@ -123,9 +123,7 @@ case class LuceneMigrationTransformer(n: Node) {
   def fieldBoosting = {
 	<property name="fieldBoosting">
 	  <map>{ n \ "fieldBoosting" \ "Field" map { field =>
-		<entry key={field att "name"}>
-		  {bean("",field)(_.head att "boost")}
-		</entry>
+		<entry key={field att "name"} value={field att "boost"}/>
         }
 	  }</map>
 	</property>

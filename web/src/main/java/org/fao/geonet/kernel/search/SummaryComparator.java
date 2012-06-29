@@ -23,9 +23,6 @@
 
 package org.fao.geonet.kernel.search;
 
-import org.fao.geonet.kernel.LocaleUtil;
-import org.jdom.Element;
-
 import java.text.Collator;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -37,6 +34,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.fao.geonet.kernel.LocaleUtil;
+
 public class SummaryComparator implements Comparator<Map.Entry<String, Integer>>
 {
     
@@ -46,7 +45,7 @@ public class SummaryComparator implements Comparator<Map.Entry<String, Integer>>
         STRING
         {
             @Override
-            public Comparable value(String string, Locale locale, Element configuration)
+            public Comparable value(String string, Locale locale, Map<String, List<String>> configuration)
             {
                 return new LocalizedStringComparable(string, locale);
             }
@@ -55,7 +54,7 @@ public class SummaryComparator implements Comparator<Map.Entry<String, Integer>>
         NUMBER
         {
             @Override
-            public Comparable value(String string, Locale locale, Element configuration)
+            public Comparable value(String string, Locale locale, Map<String, List<String>> configuration)
             {
             	try {
             		return Double.valueOf(string.trim());
@@ -67,7 +66,7 @@ public class SummaryComparator implements Comparator<Map.Entry<String, Integer>>
         SCALE
         {
             @Override
-            public Comparable value(String string, Locale locale, Element configuration)
+            public Comparable value(String string, Locale locale, Map<String, List<String>> configuration)
             {
                 String scale = string;
                 /**
@@ -94,15 +93,14 @@ public class SummaryComparator implements Comparator<Map.Entry<String, Integer>>
         DATE
         {
             @Override
-            public Comparable value(String string, Locale locale, Element configuration)
+            public Comparable value(String string, Locale locale, Map<String, List<String>> configuration)
             {
                 List<DateFormat> formats = new ArrayList<DateFormat>();
-                for (Object child : configuration.getChildren("dateFormat")) {
-                    Element elem = (Element) child;
+                for (String formatDescriptor : configuration.get("dateFormat")) {
                     synchronized (dateformats) {
-                        DateFormat format = dateformats.get(elem.getValue());
+                        DateFormat format = dateformats.get(formatDescriptor);
                         if (format == null) {
-                            dateformats.put(elem.getValue(), new SimpleDateFormat(elem.getValue()));
+                            dateformats.put(formatDescriptor, new SimpleDateFormat(formatDescriptor));
                         }
                         formats.add(format);
                     }
@@ -124,7 +122,7 @@ public class SummaryComparator implements Comparator<Map.Entry<String, Integer>>
             }
         };
 
-        public abstract Comparable value(String string, Locale locale, Element configuration);
+        public abstract Comparable value(String string, Locale locale, Map<String, List<String>> configuration);
 
         private static Map<Object, DateFormat> dateformats = new HashMap<Object, DateFormat>();
         static {
@@ -157,10 +155,10 @@ public class SummaryComparator implements Comparator<Map.Entry<String, Integer>>
 
     private SummaryComparator.SortOption _option;
     private final Type                         _type;
-    private final Element                      _configuration;
+    private final Map<String, List<String>>                      _configuration;
     private final Locale _locale;
 
-    public SummaryComparator(SummaryComparator.SortOption option, SummaryComparator.Type type, String langCode, Element configuration)
+    public SummaryComparator(SummaryComparator.SortOption option, SummaryComparator.Type type, String langCode, Map<String, List<String>> configuration)
     {
         this._option = option;
         this._type = type;

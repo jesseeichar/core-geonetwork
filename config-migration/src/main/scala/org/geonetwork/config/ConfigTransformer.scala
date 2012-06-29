@@ -14,7 +14,7 @@ object ConfigTransformer {
     case "summary" => SummaryMigrationTransformer(n).transform
     case "nodes" => GeopublisherMigrationTransformer(n).transform
     case "profiles" => UserProfilesMigrationTransformer(n).transform
-    case "services" => n.child map(ServiceTransformer.service(n att "package"))
+    case "services" => (n \ "_") map ServiceTransformer.service(n att "package")
     case "operations" if n \ "operation" exists (_ att "name" equalsIgnoreCase "GetCapabilities") =>
       CswTransformer(n).transform
     case "db" =>  DbMigrationTransformer(n).transform
@@ -24,7 +24,10 @@ object ConfigTransformer {
   }
 
   def transformResource(n: Node) = {
-    val file = transformFile(<configFile name={(n \ "config" \ "url").text.drop(5).takeWhile(_ != ':')}>{n}</configFile>, resource)
+    val id = (n \ "config" \ "url").text.drop(5).takeWhile(_ != ':')
+    val fileName = "config-%s-db.xml".format(id)
+    
+    val file = transformFile(<configFile name={fileName}>{n}</configFile>, resource)
     val atts = file.attributes append new UnprefixedAttribute("enabled", n att "enabled", Null)
     file.copy(attributes = atts)
   }
@@ -33,11 +36,19 @@ object ConfigTransformer {
     Log.info("Migrating: " + name + " to depedency injection based configuration");
 
     <configFile name={ name }>
-      <beans xmlns="http://www.springframework.org/schema/beans" 
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns:context="http://www.springframework.org/schema/context"
-            xmlns:p="http://www.springframework.org/schema/p" 
-            xmlns:j="http://geonetwork-opensource.org/jeeves-spring-namespace http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd http://geonetwork-opensource.org/jeeves-spring-namespace http://geonetwork-opensource.org/jeeves-spring-namespace/jeeves-spring-namespace.xsd">
+      <beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:j="http://geonetwork-opensource.org/jeeves-spring-namespace"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://geonetwork-opensource.org/jeeves-spring-namespace
+        http://geonetwork-opensource.org/jeeves-spring-namespace/jeeves-spring-namespace.xsd"> 
+
     	{constantElements(name,n)}
         { n.child flatMap {n => transformer(name, n)} }
       </beans>
@@ -47,7 +58,8 @@ object ConfigTransformer {
     case "config.xml" => Seq(
     	  <bean id="schemaManager" class="org.fao.geonet.kernel.SchemaManager"/>,
     	  <bean id="initDbms" class="org.fao.geonet.InitializedDbms"/>,
-    	  <bean id="settingsManager" class="org.fao.geonet.kernel.setting.SettingManager"/>
+    	  <bean id="settingsManager" class="org.fao.geonet.kernel.setting.SettingManager"/>,
+    	  <bean id="geonetworkDataDirectory" class="org.fao.geonet.GeonetworkDataDirectory"/>
         )
     case _ => Nil
   }
@@ -61,7 +73,7 @@ object ConfigTransformer {
   }
   private def defaultDef(n: Node) = {
     val children = Map(n.child.map(c => c.label -> c.text): _*).withDefaultValue("")
-    <bean id="jeevesGeneralConfig" class="jeeves.config.GeneralConfig" 
+    <bean id="jeevesDefaultConfig" class="jeeves.config.DefaultConfig" 
             p:service={ children("service") } 
             p:startupErrorService={ children("startupErrorService") } 
             p:localized={ children("localized") } 
@@ -75,8 +87,14 @@ object ConfigTransformer {
       </property>
       <property name="errorPages">
         <list>{
-          val errors = n \ "error" \ "_"
-          errors map guiservice
+          for( error <- n \ "error") yield 
+          	<bean p:statusCode={error att "statusCode"} p:sheet={error att "sheet"} p:contentType={error att "contentType"} p:testCondition={error att "testCondition"} class="jeeves.server.dispatchers.ErrorPage">
+          	  <property name="guiServices">
+          	    <list>{
+        	      error \ "_" map guiservice
+          	    }</list>
+          	  </property>
+          	</bean>
         }</list>
       </property>
     </bean>
@@ -152,7 +170,7 @@ object ConfigTransformer {
   
   private def guiservice(n: Node) = n match {
     case e if e.label == "call" =>
-      <bean name={ e att "name" } serviceClass={ e att "class"} class="jeeves.server.dispatchers.guiservices.Call">
+      <bean p:name={ e att "name" } p:serviceClass={ e att "class"} class="jeeves.server.dispatchers.guiservices.Call">
         { val params = e \ "param" 
           if(params.nonEmpty) {
             <property name="param"><list>{
@@ -163,7 +181,7 @@ object ConfigTransformer {
           }
         }</bean>
     case e if e.label == "xml" =>
-      <bean name={ e att "name"} file={ e att "file" } localized={ e att "localized" } language={ e att "language" } defaultLang={ e att "defaultLang" } base={ e att "base" } class="jeeves.server.dispatchers.guiservices.XmlFile"/>
+      <bean p:name={ e att "name"} p:file={ e att "file" } p:localized={ e att "localized" } p:language={ e att "language" } p:defaultLang={ e att "defaultLang" } p:base={ e att "base" } class="jeeves.server.dispatchers.guiservices.XmlFile"/>
   }
 
   def oaiConfig(n: Node) = {
@@ -171,7 +189,11 @@ object ConfigTransformer {
 	  <property name="metadataFormats">
 	  	<list>{
 	  		for(p <- n \\ "schema") yield 
-	  		  <bean c:prefix={p att "prefix"} c:schema={p att "schemaLocation"} c:ns={p att "nsUrl"} class="org.fao.oaipmh.responses.MetadataFormat"/>
+	  		  <bean class="org.fao.oaipmh.responses.MetadataFormat">
+	  		  	<constructor-arg index="0" value={p att "prefix"} />
+	  		  	<constructor-arg index="1" value={p att "schemaLocation"} />
+	  		  	<constructor-arg index="2" value={p att "nsUrl"} />
+	  		  </bean>
 	  	}</list>
 	  </property>
     </bean>

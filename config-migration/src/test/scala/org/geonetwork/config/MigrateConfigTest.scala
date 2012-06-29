@@ -29,6 +29,7 @@ class MigrateConfigTest {
 
     new MigrateConfiguration().migrate(folder.getAbsolutePath, true)
 
+    
     for {
       f <- folder.listFiles().filter(_.isFile)
       if f.getName != "config-gui.xml"
@@ -37,16 +38,18 @@ class MigrateConfigTest {
       println("checking that " + f.getName() + " has data")
       val configData = xml.XML.loadFile(f)
       try {
+        assertNoDuplicateIds(configData, f)
+        assertCallHaveClassName(configData, f)
         assertTrue("There should not be empty configuration files in " + f.getName, configData.child.collect { case e: xml.Elem => e }nonEmpty)
+        configData \\ "service" filter (_.prefix == "j") foreach {s => assertTrue((s att "id").nonEmpty) }
         f.getName match {
-          case "config.xml" =>
-            assertTrue(childrenByAtt(configData, 'import, 'resource, "JZkitApplicationContext.xml").nonEmpty)
           case "config-csw.xml" => assertCsw(configData)
           case "config-db.xml" => assertDb(configData)
           case "config-lucene.xml" => assertLucene(configData)
           case "config-summary.xml" => assertSummary(configData)
           case "geoserver-nodes.xml" => assertGeopublisher(configData)
           case "user-profiles.xml" => assertProfiles(configData)
+          case "config.xml" => assertMainConfig(configData)
           case _ => ()
         }
       } catch {
@@ -56,7 +59,23 @@ class MigrateConfigTest {
       }
     }
   }
-
+  def assertNoDuplicateIds (configData: Elem, f: File) {
+    var ids = Set[String]()
+    for (id <- configData \\ "@id"; if !(f.getName matches "config-.*?-db.xml")) {
+      assertFalse(id.text + " is a duplicate id in " + f.getName, ids contains id.text)
+      ids += id.text
+    }
+  }
+  def assertCallHaveClassName(configData: Elem, f: File) {
+    for(call <- configData \\ "call") {
+      assertTrue(call att "serviceClass" nonEmpty)
+    }
+    for(bean <- configData \\ "bean"; if (bean att "class") == "jeeves.server.dispatchers.guiservices.Call") {
+       assertTrue(bean att "serviceClass" nonEmpty)
+       val prefix = bean.attributes.find(_.key == "serviceClass").get.prefixedKey
+       assertTrue("The p prefix is missing from serviceClass on "+bean, bean.attributes.find(_.key == "serviceClass").get.prefixedKey == "p:serviceClass")
+    }
+  }
   def assertCsw(configData: Elem) {
     assertEquals(1, configData \ "bean" filter (_ att "class" equals "org.fao.geonet.kernel.csw.CswCatalogConfig$GetCapabilities") size)
     assertEquals(1, configData \ "bean" filter (_ att "class" equals "org.fao.geonet.kernel.csw.CswCatalogConfig$GetDomain") size)
@@ -141,9 +160,10 @@ class MigrateConfigTest {
   }
   def assertSummary(n: Node) = {
     assertEquals(1, n \ "bean" size)
-    assertEquals(4, n \ "bean" \ "property" \\ "entry" size)
-    (n \ "bean" \ "property" \\ "entry") foreach { n => assertTrue("expected " + (n att "key") + " to have some elements", n \\ "bean" nonEmpty) }
-    (n \ "bean" \ "property" \\ "entry" \\ "bean") foreach { n => assertTrue("expected " + (n) + " to have a name attribute", (n att "name").nonEmpty) }
+    val configurations = childrenByAtt(n \ "bean", 'property, 'name, "configurations")
+    assertEquals(4, configurations \\ "entry" size)
+    (configurations \\ "entry") foreach { n => assertTrue("expected " + (n att "key") + " to have some elements", n \\ "bean" nonEmpty) }
+    (configurations \\ "entry" \\ "bean") foreach { n => assertTrue("expected " + (n) + " to have a name attribute", (n att "name").nonEmpty) }
   }
   def assertGeopublisher(n: Node) = {
     assertEquals(1, n \ "bean" size)
@@ -153,6 +173,15 @@ class MigrateConfigTest {
   def assertProfiles(n: Node) = {
 	  assertEquals(7, n \ "bean" size)
 	  (n \ "bean" \ "property" \\ "value") foreach { n => assertTrue("expected " + (n) + " to have text", n.text.nonEmpty) }
+  }
+  def assertMainConfig(configData: Node) = {
+    var importedFiles = Set[String]()
+    for(f <- configData \ "import" \\ "@resource") {
+      assertFalse(importedFiles contains f.text)
+      importedFiles += f.text
+    }
+    assertTrue(childrenByAtt(configData, 'import, 'resource, "classpath:JZkitApplicationContext.xml").nonEmpty)
+    assertTrue(childrenByAtt(configData, 'import, 'resource, "config-h2-db.xml").nonEmpty)
   }
 
   def childrenByAtt(e: NodeSeq, childName: Symbol, attName: Symbol, attValue: String) =

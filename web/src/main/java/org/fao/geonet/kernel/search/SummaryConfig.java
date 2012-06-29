@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import jeeves.utils.Log;
-import jeeves.utils.Xml;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.FieldSelector;
@@ -17,11 +16,10 @@ import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.kernel.search.SummaryComparator.SortOption;
 import org.fao.geonet.kernel.search.SummaryComparator.Type;
 import org.jdom.Element;
-import org.springframework.beans.factory.BeanInitializationException;
 
 public class SummaryConfig {
     Map<String, Map<String, Item>> configurations = new HashMap<String, Map<String, Item>>();
-    Element typeConf;
+    Map<String,List<String>> typeConf;
 
     public void setConfigurations(Map<String, List<Item>> configurations) {
         for (Map.Entry<String, List<Item>> entry : configurations.entrySet()) {
@@ -32,13 +30,7 @@ public class SummaryConfig {
             this.configurations.put(entry.getKey(), map);
         }
     }
-    public void setTypeConf(String typeConf) {
-        try {
-            this.typeConf = Xml.loadString(typeConf, false);
-        } catch (Exception e) {
-            throw new BeanInitializationException("The typeConf property of could not be parsed as XML");
-        }
-    }
+    public void setTypeConf(Map<String,List<String>> typeConf) { this.typeConf = typeConf; }
 
     public static class Item {
         String name;

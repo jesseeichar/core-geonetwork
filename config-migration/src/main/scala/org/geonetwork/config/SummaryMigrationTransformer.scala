@@ -21,10 +21,17 @@ case class SummaryMigrationTransformer(n: Node) {
     	  }</map>
     	</property>
     	<!-- In future typeConf will also be spring injection but for now this is sufficient -->
-    	<property name="typeConf">{
-    	  """<![CDATA[ <typeConf>%s</typeConf> ]]>""".format(n \ "typeConf" \ "_")
-    	}</property>
-    	  
+    	<property name="typeConf">
+    	  <map>{
+    		for( (key, nodes) <- (n \ "typeConfig" \ "_").groupBy(_.label) )  yield {
+    		  <entry key={key}>
+    		  	<list>{ 
+    		  	  for (value <- nodes) yield <value>{value.text}</value>
+    		  	}</list>
+    		  </entry>
+    		 }
+    	  }</map>
+    	</property>
       </bean>
     }
 }
