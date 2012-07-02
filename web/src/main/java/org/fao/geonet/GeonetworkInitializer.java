@@ -1,11 +1,13 @@
 package org.fao.geonet;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.UUID;
 
 import javax.servlet.ServletContext;
 
 import jeeves.config.EnvironmentalConfig;
+import jeeves.constants.Jeeves;
 import jeeves.interfaces.Logger;
 import jeeves.resources.dbms.Dbms;
 import jeeves.server.resources.ResourceManager;
@@ -22,7 +24,25 @@ import org.fao.geonet.lib.ServerLib;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.Lifecycle;
 
-public class InitializedDbms implements Lifecycle{
+/**
+ * This class initialize the environment required for several of the beans used in Geonetwork.
+ * 
+ * Some of its functionalities are:
+ * 
+ * <ul>
+ * <li>Create database tables if necessary</li>
+ * <li>Migrate data to new database version</li>
+ * <li>Set the Xml Resolver catalog system property</li>
+ * </ul>
+ * 
+ * In addition to performing system initialization the initializer also opens a DBMS instance
+ * for other beans to use during setup.  However once the spring lifecycle event "start" is
+ * fired the DBMS instance is closed and is no longer usable.
+ *  
+ * @author jeichar
+ *
+ */
+public class GeonetworkInitializer implements Lifecycle{
 	private static Logger        		logger = Log.createLogger(Log.DBMS);
 
 	private Dbms dbms;
@@ -38,7 +58,7 @@ public class InitializedDbms implements Lifecycle{
     //----------------------------------------------
 
 	@Autowired
-	public InitializedDbms(
+	public GeonetworkInitializer(
 			DatabaseSetupAndMigrationConfig dbConfiguration,
 			EnvironmentalConfig envConfig,
 			ResourceManager resourceManager
@@ -54,11 +74,44 @@ public class InitializedDbms implements Lifecycle{
 
 		initDatabase();
 		migrateDatabase(version, subVersion);
+		
+		setProps(envConfig.getAppPath());
 	}
 	
 	public Dbms getDbms() { return dbms; }
 	public boolean isCreated() { return created; }
-	
+
+	/**
+	 * Set system properties to those required
+	 * @param path webapp path
+	 */
+	private void setProps(String path) {
+
+		String webapp = path + "WEB-INF" + File.separator;
+
+		//--- Set jeeves.xml.catalog.files property
+		//--- this is critical to schema support so must be set correctly
+		String catalogProp = System.getProperty(Jeeves.XML_CATALOG_FILES);
+		if (catalogProp == null) catalogProp = "";
+		if (!catalogProp.equals("")) {
+			logger.info("Overriding "+Jeeves.XML_CATALOG_FILES+" property (was set to "+catalogProp+")");
+		} 
+		catalogProp = webapp + "oasis-catalog.xml;" + envConfig.getConfigPath() + File.separator + "schemaplugin-uri-catalog.xml";
+		System.setProperty(Jeeves.XML_CATALOG_FILES, catalogProp);
+		logger.info(Jeeves.XML_CATALOG_FILES+" property set to "+catalogProp);
+
+		//--- Set mime-mappings
+		String mimeProp = System.getProperty("mime-mappings");
+		if (mimeProp == null) mimeProp = "";
+		if (!mimeProp.equals("")) {
+			logger.info("Overriding mime-mappings property (was set to "+mimeProp+")");
+		} 
+		mimeProp = webapp + "mime-types.properties";
+		System.setProperty("mime-mappings", mimeProp);
+		logger.info("mime-mappings property set to "+mimeProp);
+
+	}
+		
     /**
      * Parses a version number removing extra "-*" element and returning an integer. "2.7.0-SNAPSHOT" is returned as 270.
      * 

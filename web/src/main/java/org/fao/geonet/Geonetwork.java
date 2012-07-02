@@ -122,7 +122,7 @@ public class Geonetwork implements ApplicationHandler {
     private GeonetworkConfig config;
     private ServiceManager serviceMan;
     private SchemaManager schemaManager;
-    private InitializedDbms initdbms;
+    private GeonetworkInitializer initdbms;
     private SettingManager settingManager;
     private OaiPmhDispatcher oaipmhDispatcher;
     //----------------------------------------------
@@ -131,7 +131,7 @@ public class Geonetwork implements ApplicationHandler {
 	public Geonetwork(EnvironmentalConfig envConfig, GeonetworkConfig config, 
 	        ServiceManager serviceMan, 
 	        SchemaManager schemaManager,
-	        InitializedDbms initdbms,
+	        GeonetworkInitializer initdbms,
 	        SettingManager settingMan,
 	        OaiPmhDispatcher oaipmhDis) {
         this.config = config;
@@ -178,8 +178,6 @@ public class Geonetwork implements ApplicationHandler {
 		String thesauriDir = dataDirectory.getCodelistDir();
 		String luceneDir =  dataDirectory.getLuceneDir();
 		logger.info("Data directory: " + systemDataDir);
-
-		setProps(appPath);
 
 		// Status actions class - load it
 		Class<?> statusActionsClass = Class.forName(config.getStatusActionsClassName());
@@ -388,37 +386,6 @@ public class Geonetwork implements ApplicationHandler {
 
 	}
 
-	/**
-	 * Set system properties to those required
-	 * @param path webapp path
-	 */
-	private void setProps(String path) {
-
-		String webapp = path + "WEB-INF" + FS;
-
-		//--- Set jeeves.xml.catalog.files property
-		//--- this is critical to schema support so must be set correctly
-		String catalogProp = System.getProperty(Jeeves.XML_CATALOG_FILES);
-		if (catalogProp == null) catalogProp = "";
-		if (!catalogProp.equals("")) {
-			logger.info("Overriding "+Jeeves.XML_CATALOG_FILES+" property (was set to "+catalogProp+")");
-		} 
-		catalogProp = webapp + "oasis-catalog.xml;" + envConfig.getConfigPath() + File.separator + "schemaplugin-uri-catalog.xml";
-		System.setProperty(Jeeves.XML_CATALOG_FILES, catalogProp);
-		logger.info(Jeeves.XML_CATALOG_FILES+" property set to "+catalogProp);
-
-		//--- Set mime-mappings
-		String mimeProp = System.getProperty("mime-mappings");
-		if (mimeProp == null) mimeProp = "";
-		if (!mimeProp.equals("")) {
-			logger.info("Overriding mime-mappings property (was set to "+mimeProp+")");
-		} 
-		mimeProp = webapp + "mime-types.properties";
-		System.setProperty("mime-mappings", mimeProp);
-		logger.info("mime-mappings property set to "+mimeProp);
-
-	}
-		
 		
 	//---------------------------------------------------------------------------
 	//---

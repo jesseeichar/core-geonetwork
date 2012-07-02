@@ -76,7 +76,7 @@ case class CswTransformer(n: Node) {
 
     }
     def typenames(op: Node) = {
-         <property name="typenames">
+         <property name="typeNames">
             <set>{
               for (t <- op \ "typenames" \ "typename" ) yield {
                 <bean class="org.fao.geonet.kernel.csw.CswCatalogConfig$TypeName"

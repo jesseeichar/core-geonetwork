@@ -57,7 +57,8 @@ object ConfigTransformer {
   private def constantElements(fileName:String, n:Node) = fileName match {
     case "config.xml" => Seq(
     	  <bean id="schemaManager" class="org.fao.geonet.kernel.SchemaManager"/>,
-    	  <bean id="initDbms" class="org.fao.geonet.InitializedDbms"/>,
+    	  <!-- Initializer for many of the geonetwork objects (they will have a dependeny on this class -->,
+    	  <bean id="geonetworkInitialiyer" class="org.fao.geonet.GeonetworkInitializer"/>,
     	  <bean id="settingsManager" class="org.fao.geonet.kernel.setting.SettingManager"/>,
     	  <bean id="geonetworkDataDirectory" class="org.fao.geonet.GeonetworkDataDirectory"/>
         )

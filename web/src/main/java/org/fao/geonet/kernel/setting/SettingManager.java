@@ -38,7 +38,7 @@ import jeeves.server.resources.ResourceListener;
 import jeeves.server.resources.ResourceProvider;
 import jeeves.utils.Log;
 
-import org.fao.geonet.InitializedDbms;
+import org.fao.geonet.GeonetworkInitializer;
 import org.fao.geonet.constants.Geonet;
 import org.jdom.Element;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,11 +84,11 @@ public class SettingManager
 	//---
 	//---------------------------------------------------------------------------
 
-	public SettingManager(InitializedDbms initDbms) throws SQLException {
+	public SettingManager(GeonetworkInitializer initDbms) throws SQLException {
 		this(initDbms,null);
 	}
 	@Autowired
-	public SettingManager(InitializedDbms initDbms, ProviderManager provMan) throws SQLException
+	public SettingManager(GeonetworkInitializer initDbms, ProviderManager provMan) throws SQLException
 	{
 		Dbms dbms = initDbms.getDbms();
 		init(dbms);

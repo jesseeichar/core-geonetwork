@@ -1353,7 +1353,7 @@ public class SearchManager {
 	 * @return
 	 */
 	private void addNumericField(Document doc, String name, String string, Store store, boolean index) {
-		LuceneConfig.NumericField fieldConfig = _luceneConfig.getNumericFields().get(name);
+		LuceneConfig.NumericField fieldConfig = _luceneConfig.getNumericFieldsMap().get(name);
 		// string = cleanNumericField(string);
 		NumericField field = new NumericField(name, fieldConfig.getPrecisionStep(), store, index);
 		// TODO : reuse the numeric field for better performance

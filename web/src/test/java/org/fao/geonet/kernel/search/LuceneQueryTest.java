@@ -40,7 +40,7 @@ public class LuceneQueryTest extends TestCase {
         LuceneConfig lc = JeevesApplicationContextLoaderUtil.load(null, "src/main/webapp/", "WEB-INF/config-lucene.xml").getBean(LuceneConfig.class);
     	
 		_tokenizedFieldSet = lc.getTokenizedFields();
-		_numericFieldSet = lc.getNumericFields();
+		_numericFieldSet = lc.getNumericFieldsMap();
 	}
 
     /**

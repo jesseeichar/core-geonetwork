@@ -35,6 +35,17 @@ public class GeonetworkConfig implements Lifecycle {
     
     private boolean started;
     
+    /**
+     * Create new instance.  
+     * 
+     * @param initializer
+     * @param envConfig
+     * @param defaultConfig
+     * @param dataDirectories
+     * @param luceneConfig
+     * @param summaryConfig
+     * @param cswCatalogConfig
+     */
     @Autowired
     public GeonetworkConfig(
             EnvironmentalConfig envConfig, 
@@ -50,8 +61,8 @@ public class GeonetworkConfig implements Lifecycle {
         this.summaryConfig = summaryConfig;
         this.cswCatalogConfig = cswCatalogConfig;
     }
+    
 	public String getDefaultLanguage() { return defaultConfig.getLanguage(); }
-
     public String getLanguageProfilesDir() { return languageProfilesDir;}
     @Required
     public void setLanguageProfilesDir(String languageProfilesDir) {this.languageProfilesDir = languageProfilesDir;}

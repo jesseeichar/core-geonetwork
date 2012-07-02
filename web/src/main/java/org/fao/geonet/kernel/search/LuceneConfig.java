@@ -56,7 +56,7 @@ public class LuceneConfig extends ReloadableBean {
     public void setBoostDocument(DocumentBoosting boostDocument) { this.documentBoosting = boostDocument; }
     
     public Set<String> getTokenizedFields() { return tokenizedFields; }
-    public void setTokenized(Set<String> tokenized) { this.tokenizedFields = tokenized; }
+    public void setTokenizedFields(Set<String> tokenized) { this.tokenizedFields = tokenized; }
     
     public float getRamBufferSizeMB() { return index.ramBufferSizeMB; }
     public int getMergeFactor() { return index.mergeFactor; }
@@ -67,7 +67,7 @@ public class LuceneConfig extends ReloadableBean {
     public QueryBoostFactory getQueryBoost() { return search.queryBoost; }
     public Map<String, String> getDumpFields() { return search.dumpFields;}
 
-    public Map<String, NumericField> getNumericFields() { return numericFields; }
+    public Map<String, NumericField> getNumericFieldsMap() { return numericFields; }
     public void setNumericFields(Set<NumericField> numerics) { 
         numericFields = new HashMap<String,NumericField>();
         for (NumericField numeric : numerics) {
@@ -99,7 +99,7 @@ public class LuceneConfig extends ReloadableBean {
         sb.append(" * Tokenized fields: " + getTokenizedFields()
                 + "\n");
         sb.append(" * Numeric fields: "
-                + getNumericFields().keySet().toString() + "\n");
+                + getNumericFieldsMap().keySet().toString() + "\n");
         sb.append(" * Dump fields: " + getDumpFields()
                 + "\n");
         sb.append(" * Search boost query: " + classString(getQueryBoost()) + "\n");

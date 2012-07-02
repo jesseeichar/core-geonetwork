@@ -52,6 +52,7 @@ import jeeves.utils.Log;
 import jeeves.utils.Xml;
 
 import org.fao.geonet.GeonetworkConfig;
+import org.fao.geonet.GeonetworkInitializer;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.csw.common.Csw;
 import org.fao.geonet.exceptions.NoSchemaMatchesException;
@@ -114,15 +115,11 @@ public class SchemaManager {
 	//--------------------------------------------------------------------------
 
 	/**	Constructor
-		*
-		* @param basePath the web app base path
-		* @param schemaPluginsCat the schema catalogue file
-		* @param sPDir the schema plugin directory
-		* @param defaultLang the default language (taken from context)
-		* @param defaultSchema the default schema (taken from config.xml)
+	  * @param initializer required so initializer is created before this class since this
+	  * class depends on some initialization that takes place in initializer
 	  */
     @Autowired
-	public SchemaManager(GeonetworkConfig config) throws Exception {
+	public SchemaManager(GeonetworkConfig config, GeonetworkInitializer initializer) throws Exception {
 		hmSchemas .clear();
 
 		this.basePath = config.getEnvConfig().getAppPath();

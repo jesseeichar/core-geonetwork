@@ -102,7 +102,7 @@ public class CatalogSearcher {
 		_luceneConfig = config.getLuceneConfig();
 		_catalogConfig = config.getCswCatalogConfig();
 		_tokenizedFieldSet = _luceneConfig.getTokenizedFields();
-		_numericFieldSet = _luceneConfig.getNumericFields();
+		_numericFieldSet = _luceneConfig.getNumericFieldsMap();
 		
 		_selector = new FieldSelector() {
             private static final long serialVersionUID = 1L;
@@ -116,7 +116,7 @@ public class CatalogSearcher {
 
 	public void reloadLuceneConfiguration(LuceneConfig lc) {
 		_tokenizedFieldSet = lc.getTokenizedFields();
-		_numericFieldSet = lc.getNumericFields();
+		_numericFieldSet = lc.getNumericFieldsMap();
 	}
 	
 	// ---------------------------------------------------------------------------

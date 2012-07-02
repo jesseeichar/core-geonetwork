@@ -32,12 +32,9 @@ object ServiceTransformer {
         contentType={output att "contentType"}
         forward={output att "forward"}
         file={output att "file"}
-        blob={output att "blob"}>
-      <xml file="output.xml" name="sources" localized="true" base="loc" language="fre"/>
-      <call name="outputService" serviceClass="jeeves.config.springutil.TestService">
-        {output \ "param"}
-      </call>
-    </output>
+        blob={output att "blob"}>{
+        for (c <- output \ "_") yield guiservice(c)
+      }</output>
     }
   }
     
@@ -46,19 +43,16 @@ object ServiceTransformer {
         <error sheet="error-transform.xsl"
             testCondition="correctError"
             contentType="text"
-            statusCode="500">
-          <call name="errorService" serviceClass=".TestService">
-            {error \ "param"}
-          </call>
-          <xml file="error.xml" name="sources" localized="false" base="erloc" language="eng"/>
-        </error>
+            statusCode="500">{
+          for (c <- error \ "_") yield guiservice(c)
+        }</error>
       }
   }
     
   private def guiservice(n: Node) = n match {
     case e if e.label == "call" =>
       <call name={ e att "name" } serviceClass={ e att "class"}>
-        { e \\ "params" }
+      { e \\ "param" }
       </call>
     case e if e.label == "xml" =>
       <xml name={ e att "name"} file={ e att "file" } localized={ e att "localized" } language={ e att "language" } defaultLang={ e att "defaultLang" } base={ e att "base" } class="jeeves.server.dispatchers.guiservices.XmlFile"/>
