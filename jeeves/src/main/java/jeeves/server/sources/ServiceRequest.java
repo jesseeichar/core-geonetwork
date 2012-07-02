@@ -28,7 +28,11 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import jeeves.constants.Jeeves;
+import jeeves.utils.Log;
 import jeeves.utils.Xml;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -55,7 +59,9 @@ public class ServiceRequest
 	protected InputMethod  input     = InputMethod.GET;
 	protected OutputMethod output    = OutputMethod.DEFAULT;
 	private Map<String, String> headers = new HashMap<String, String>();
-
+	
+	protected HttpServletResponse response = null ;
+	protected HttpServletRequest  request  = null ;
 	//---------------------------------------------------------------------------
 
 	public ServiceRequest() {}
@@ -150,6 +156,29 @@ public class ServiceRequest
 	/** called when the system ends streaming data*/
 
 	public void endStream() throws IOException {}
+
+	public void setHttpServletResponse(HttpServletResponse res) {
+		response = res ;
+	}
+	public HttpServletResponse getHttpServletResponse(){ return response;}
+
+	public void setHttpServletRequest(HttpServletRequest req) {
+		request = req;	
+	}
+	public HttpServletRequest getHttpServletRequest() { return request; }
+
+	public void redirectToLogin() {
+		try {
+			if ((request.getHeader("sec-username") == null)
+			    || (request.getHeader("sec-username") != null
+				&& request.getHeader("sec-username").equals("anonymousUser"))) {
+			    response.sendRedirect("/geonetwork/srv/fr/main.home?login");
+			}
+		} catch (Exception e) {
+			Log.error("ServiceRequest", "Something went wrong while trying to redirect");
+			return;
+		}
+	}
 }
 
 //=============================================================================
