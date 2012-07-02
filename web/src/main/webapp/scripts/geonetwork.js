@@ -69,8 +69,43 @@ function get_cookie ( cookie_name )
 	}
 
 // Forms
-	function goSubmit(form_name) {
-		document.forms[form_name].submit();
+	function goSubmit(form_name, permitAjax) {
+        permitAjax = permitAjax == undefined ? true : false;
+
+		if (!permitAjax || typeof Ext == 'undefined' || $('editForm') === null) {
+			document.forms[form_name].submit();
+		} else {
+		  var metadataId = document.mainForm.id.value;
+		  var divToRestore = null;
+		  if (opener) {
+		  	divToRestore = opener.document.getElementById(metadataId);
+		  }
+
+		  disableEditForm();
+
+		  var myAjax = new Ajax.Request(
+			document.mainForm.action,
+		  	{
+		  		method: 'post',
+		  		parameters: $('editForm').serialize(true),
+		  		onSuccess: function(req) {
+		  			var html = req.responseText;
+		  			if (divToRestore) divToRestore.removeClassName('editing');
+		  			if (html.startsWith("<?xml") < 0) { // service returns xml on success
+		  				alert(translate("errorSaveFailed") + html);
+		  			}
+					
+		  			setBunload(false);
+		  			location.replace(getGNServiceURL('metadata.edit?id='+metadataId));
+		  		},
+		  		onFailure: function(req) { 
+		  			alert(translate("errorSaveFailed") + "/ status " + req.status + " text: " + req.statusText + " - " + translate("tryAgain"));
+		  			$('editorBusy').hide();
+		  			setBunload(true); // reset warning for window destroy
+		  		}
+		  	}
+		  );
+		}
 	}
 
 	function goReset(form_name)
@@ -167,7 +202,7 @@ function get_cookie ( cookie_name )
 		}
 
 		var url = Env.locService +'/' + service;
-		Modalbox.show(url,{title: title, width: width, afterHide: function() {
+		Modalbox.show(url,{title: title, width: width, height: 400, afterHide: function() {
                 if ($("simple_search_pnl").visible()) {
                     runSimpleSearch();
 
@@ -222,6 +257,15 @@ function get_cookie ( cookie_name )
 		} else {
 			oActions('oAcOs');
 		}
+	}
+	
+	function blockKeyPress(e) {
+		// deny enter button when not pressed on search
+		if (e.keyCode == 13) {
+			if(e.preventDefault) e.preventDefault();
+			else event.returnValue = false;
+	        return false;
+	    }
 	}
 
 /**********************************************************************
@@ -386,6 +430,112 @@ function displayBox(content, contentDivId, modal) {
     	w.setHeight(345);
     	w.anchorTo(Ext.getBody(), (modal?'c-c':'tr-tr'));	// Align top right if not modal, or center
     }
-
 }
-	
+
+/**
+ * PMT GeoBretagne-Specific
+ */
+
+function redirectToExternalApp(destUrl, id) {
+  var myAjax = new Ajax.Request(
+      getGNServiceURL("metadata.service.extract"), {
+        method: 'get',
+        parameters: (typeof id == 'undefined') ? '' : 'id=' + id,
+        onSuccess: function(req) {
+          var jsFromXml = req.responseXML || new OpenLayers.Format.XML().read(req.responseText);
+          var jsonObject = {services: [], layers: []};
+          /*
+           * Implementing rules from the wiki :
+           *
+           *  1. if multiple WMC docs are selected in
+           *  GeoNetwork the latter will refuse to open the MapFish app
+           *
+           *  2. if a WMC doc and WMS items (layers or services) are selected
+           *  in GeoNetwork the latter will refuse to open the MapFish app
+           *
+           *  3. if WMS services are selected the MapFish app will open a dialog
+           *  window for the user to select layers
+           *
+           */
+          var wmcCount = 0;
+          var wmsCount = 0;
+          Ext.each(jsFromXml.getElementsByTagName('service'), function(item, index, array) {
+              var owsType = item.getAttribute('owstype');
+              jsonObject.services.push({
+                text: item.getAttribute('text'),
+                metadataURL: Env.host + Env.locService + "/metadata.show?id=" + item.getAttribute('mdid'),
+                owstype: owsType,
+                owsurl: item.getAttribute('owsurl')
+              });
+
+              switch (owsType) {
+                case 'WMC':
+                  wmcCount += 1;
+                  break;
+
+                case 'WMS':
+                  wmsCount += 1;
+                  break;
+              }
+          });
+
+          Ext.each(jsFromXml.getElementsByTagName('layer'), function(item, index, array) {
+            var owsType = item.getAttribute('owstype');
+
+            jsonObject.layers.push({
+              layername: item.getAttribute('layername'),
+              metadataURL: Env.host + Env.locService + "/metadata.show?id=" + item.getAttribute('mdid'),
+              owstype: owsType,
+              owsurl: item.getAttribute('owsurl')
+            });
+
+            switch (owsType) {
+              case 'WMC':
+                wmcCount += 1;
+                break;
+              case 'WMS':
+                wmsCount += 1;
+                break;
+            }
+          });
+
+          /* Checking inputs - rule #1 */
+          if (wmcCount > 1) {
+            alert(translate("invalidSelectionMoreThanOneWMC"));
+            return;
+          }
+          /* rule #2 */
+          if ((wmcCount > 0) && (wmsCount > 0)) {
+            alert(translate("invalidSelectionOneWMCandOneOrMoreWMS"));
+           return;
+          }
+          /* new rule : No data (no WMS nor WMC) available into
+           * selected MDs. Alerting the user
+           */
+          if ((wmcCount == 0) && (wmsCount == 0)) {
+            alert(translate("invalidSelectionnoWMCnorWMS"));
+            return;
+          }
+
+          var form = Ext.DomHelper.append(Ext.getBody(), {
+            tag: 'form',
+            action: destUrl,
+            target: "_blank",
+            method: 'post'
+          });
+
+          var input = Ext.DomHelper.append(form, {
+            tag: 'input',
+            name: 'data'
+          });
+
+          input.value = new OpenLayers.Format.JSON().write(jsonObject);
+          form.submit();
+          Ext.removeNode(form);
+        },
+        onFailure: function(req) {
+          alert("Erreur lors de la récupération des services WxS des Métadonnées");
+        }
+      } // End object
+    ); // End Ajax request
+}

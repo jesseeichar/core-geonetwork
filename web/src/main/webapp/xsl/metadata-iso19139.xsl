@@ -2394,9 +2394,9 @@
 					<xsl:with-param name="schema" select="$schema"/>
 					<xsl:with-param name="edit"   select="true()"/>
 				</xsl:apply-templates>
-				
+
 				<xsl:choose>
-					<xsl:when test="string(gmd:protocol/gco:CharacterString)='WWW:DOWNLOAD-1.0-http--download' and string(gmd:name/gco:CharacterString|gmd:name/gmx:MimeFileType)!=''">
+					<xsl:when test="(string(gmd:protocol/gco:CharacterString)='WWW:DOWNLOAD-1.0-http--download' and string(gmd:name/gco:CharacterString|gmd:name/gmx:MimeFileType)!='') or (string(gmd:protocol/gco:CharacterString)='OGC:WMC-1.1.0-http-get-capabilities' and string(gmd:name/gco:CharacterString|gmd:name/gmx:MimeFileType)!='')">
 						<xsl:apply-templates mode="iso19139FileRemove" select="gmd:name/gco:CharacterString|gmd:name/gmx:MimeFileType">
 							<xsl:with-param name="access" select="'private'"/>
 							<xsl:with-param name="id" select="$id"/>
@@ -2606,7 +2606,14 @@
 								</xsl:otherwise>
 							</xsl:choose>
 						</xsl:variable>
+						<!-- PMT c2c GeoOrchestra modification
+						the Ext modal box is messed up, and we
+						actually don't need it. skip it.
+
+						was :
 						<a href="{$linkage}" title="{$title}" onclick="runFileDownload(this.href, this.title); return false;"><xsl:value-of select="$title"/></a>
+						 -->
+						<a href="{$linkage}" title="{$title}" target="_blank" class="dlform"><xsl:value-of select="$title"/></a>
 					</xsl:with-param>
 				</xsl:apply-templates>
 			</xsl:when>
@@ -2675,7 +2682,10 @@
 			<xsl:when test="$edit=true()">
 				<xsl:variable name="protocol" select="../gmd:protocol/gco:CharacterString"/>
 				<xsl:variable name="pref" select="../gmd:protocol/gco:CharacterString/geonet:element/@ref"/>
+				<xsl:variable name="urlref" select="../gmd:linkage/gmd:URL/geonet:element/@ref"/>
 				<xsl:variable name="ref" select="gco:CharacterString/geonet:element/@ref|gmx:MimeFileType/geonet:element/@ref"/>
+
+
 				<xsl:variable name="value" select="gco:CharacterString|gmx:MimeFileType"/>
 				<xsl:variable name="button" select="starts-with($protocol,'WWW:DOWNLOAD') and contains($protocol,'http') and normalize-space($value)=''"/>
 
@@ -2684,7 +2694,7 @@
 					<xsl:with-param name="edit" select="$edit"/>
 					<xsl:with-param name="title" select="/root/gui/strings/file"/>
 					<xsl:with-param name="text">
-						<button class="content" onclick="startFileUpload({//geonet:info/id}, '{$ref}');" type="button">
+						<button class="content" onclick="startFileUpload({//geonet:info/id}, '{$ref}', '{$urlref}');" type="button">
 							<xsl:value-of select="/root/gui/strings/insertFileMode"/>
 						</button>
 					</xsl:with-param>
@@ -2728,11 +2738,17 @@
 			<xsl:with-param name="text">
 				<table width="100%"><tr>
 					<xsl:variable name="ref" select="geonet:element/@ref"/>
-					<td width="70%"><xsl:value-of select="string(.)"/></td>
-					<td align="right"><button class="content" onclick="javascript:doFileRemoveAction('{/root/gui/locService}/resources.del','{$ref}','{$access}','{$id}')"><xsl:value-of select="/root/gui/strings/remove"/></button></td>
+					<xsl:variable name="value" select="string(.)"/>
+					<td width="70%"><xsl:value-of select="$value"/></td>
+					<td  class="padded-content">
+						<button class="content" type="button" onclick="javascript:doFileRemoveAction('{/root/gui/locService}/resources.del','{$ref}','{$access}','{$id}')"><xsl:value-of select="/root/gui/strings/remove"/></button>
+						<xsl:text> </xsl:text>
+						<a class="content repository" onclick="javascript:showGeoPublisherPanel('{/root/*/geonet:info/id}', '{$value}', '{$access}', 'gmd:onLine', '{../../../../geonet:element/@ref}');" alt="{/root/gui/strings/publishHelp}" title="{/root/gui/strings/geopublisherHelp}"><xsl:value-of select="/root/gui/strings/geopublisher"/></a>
+					</td>
 				</tr></table>
 			</xsl:with-param>
 			<xsl:with-param name="schema"/>
+			<xsl:with-param name="edit" select="true()"/>
 		</xsl:call-template>
 	</xsl:template>
 
@@ -3832,6 +3848,13 @@
 				geonet:child[@name='referenceSystemInfo' and @prefix='gmd']">
 		<xsl:text>showCRSSelectionPanel</xsl:text>
 	</xsl:template>
+    <xsl:template mode="addXMLFragment" 
+        match="gmd:pointOfContact|geonet:child[@name='pointOfContact' and @prefix='gmd']
+                |gmd:contact|geonet:child[@name='contact' and @prefix='gmd']
+                |gmd:distributor|geonet:child[@name='distributor' and @prefix='gmd']
+                |gmd:citedResponsibleParty|geonet:child[@name='citedResponsibleParty' and @prefix='gmd']">
+        <xsl:text>findSharedObjects</xsl:text>
+    </xsl:template>
 	<xsl:template mode="addXMLFragment" match="*|@*"></xsl:template>
 	
 </xsl:stylesheet>

@@ -38,16 +38,21 @@
 					&#160;
 					(page <xsl:value-of select="$currPage"/>/<xsl:value-of select="$pages"/>),
 					&#160;
-					<span id="nbselected">
-						<xsl:choose>
-							<xsl:when test="/root/response/@selected">
-								<xsl:value-of select="/root/response/@selected"/> 
-							</xsl:when>
-							<xsl:otherwise>
-								<xsl:value-of select="count(//geonet:info[selected='true'])"/>
-							</xsl:otherwise>                            
-						</xsl:choose>
-					</span> <xsl:value-of select="/root/gui/strings/selected"/> 
+			<span id="nbselectedspan">
+				Panier :
+				<span id="nbselected">
+					<xsl:choose>
+						<xsl:when test="/root/response/@selected">
+							<xsl:value-of select="/root/response/@selected" />
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:value-of select="count(//geonet:info[selected='true'])" />
+						</xsl:otherwise>
+					</xsl:choose>
+				</span>					
+				<xsl:value-of select="/root/gui/strings/selected" /> - 
+				<a href="#" id="emptyCart" onclick="javascript:metadataselect(0, 'remove-all')"><xsl:value-of select="/root/gui/strings/emptyCart" /></a>
+			</span>
 				</xsl:with-param>
 				<xsl:with-param name="indent" select="50"/>
 			</xsl:call-template>
@@ -107,7 +112,7 @@
 						</a>
 						&#160;
 						<!-- Add other actions list on selected metadata     -->
-						<button id="oAcOs" name="oAcOs" class="content" onclick="actionOnSelect('{/root/gui/strings/noSelectedMd}')" style="width:220px;" title="{/root/gui/strings/otherActions}">
+						<button id="oAcOs" name="oAcOs" class="content" onkeypress="blockKeyPress(event)" onmouseup="actionOnSelect('{/root/gui/strings/noSelectedMd}')" style="width:220px;" title="{/root/gui/strings/otherActions}">
 							<img id="oAcOsImg" name="oAcOsImg" src="{/root/gui/url}/images/plus.gif" style="padding-right:3px;"/>
 							<xsl:value-of select="/root/gui/strings/actionOnSelect"/>
 						</button>
@@ -139,6 +144,8 @@
 									</button>
 								</xsl:if>
 							</xsl:if>
+							<button onclick="redirectToExternalApp('/mapfishapp/')"><xsl:value-of select="/root/gui/strings/viewInViewer"/></button>
+							<button onclick="redirectToExternalApp('/extractorapp/')"><xsl:value-of select="/root/gui/strings/sendToExtractor"/></button>
 							<button onclick="gn_filteredSearch()"><xsl:value-of select="/root/gui/strings/selectedOnly"/></button>
 							<button onclick="runPdfSearch(true);" alt="{/root/gui/strings/savepdf}" title="{/root/gui/strings/savepdf}"><xsl:value-of select="/root/gui/strings/printSelection"/></button>
 							<button onclick="load('{/root/gui/locService}/mef.export?uuid=&amp;format=full&amp;version=2')"><xsl:value-of select="/root/gui/strings/export"/></button>
@@ -338,6 +345,10 @@
 											<a href="{/root/gui/locService}/iso19139.xml?id={$metadata/geonet:info/id}" target="_blank" title="Download ISO19115/19139 metadata in XML">
 												<img src="{/root/gui/url}/images/xml.png" height="20px" width="20px" alt="ISO19115/19139 XML" title="Save ISO19115/19139 metadata as XML" border="0"/>
 											</a>
+											<a href="{/root/gui/locService}/iso19139.pdf?id={$metadata/geonet:info/id}" target="_blank" title="Download ISO19115/19139 metadata in PDF">
+												<img src="{/root/gui/url}/images/pdf.gif" height="20px" width="20px" alt="ISO19115/19139 PDF" title="Save ISO19115/19139 metadata as PDF" border="0"/>
+											</a>
+
 <!-- //FIXME												<a href="{/root/gui/locService}/iso_arccatalog8.xml?id={$metadata/geonet:info/id}" target="_blank" title="Download ISO19115 metadata in XML for ESRI ArcCatalog">
 <img src="{/root/gui/url}/images/ac.png" height="20px" width="20px" alt="ISO19115 XML for ArcCatalog" title="Save ISO19115 metadata in XML for ESRI ArcCatalog" border="0"/>
 											</a> -->
@@ -360,7 +371,7 @@
 										</xsl:otherwise>
 									</xsl:choose>
 									<!-- <input id="selId" name="{$metadata/geonet:info/id}" type="checkbox" /> -->
-									<xsl:value-of select="$metadata/title"/>
+									<a href="{/root/gui/locService}/metadata.show?id={$metadata/geonet:info/id}"><xsl:value-of select="$metadata/title"/></a>
 								</div>
 
 							</xsl:otherwise>
@@ -467,7 +478,7 @@
 								</xsl:choose>
 							</xsl:when>
 							<xsl:when test="count($metadata/link[@type='download'])=1 and $metadata/link[@type='download'] != ''">
-								<button class="content" onclick="load('{$metadata/link[@type='download']}')" title="{/root/gui/strings/download}">
+								<button class="content dlform" title="{/root/gui/strings/download}" onclick="javascript:dl_openDLForm(event, '{$metadata/link[@type='download']}')" >
 									<xsl:value-of select="/root/gui/strings/download"/>
 								</button>
 							</xsl:when>
@@ -623,6 +634,9 @@
 													<a href="{/root/gui/locService}/iso19115to19139.xml?id={$metadata/geonet:info/id}" target="_blank" title="{/root/gui/strings/savexml/iso19139}">
 														<img src="{/root/gui/url}/images/xml.png" height="20px" width="20px" alt="{/root/gui/strings/savexml/iso19139}" title="{/root/gui/strings/savexml/iso19139}" border="0"/>
 													</a>
+													<a href="{/root/gui/locService}/iso19115.pdf?id={$metadata/geonet:info/id}" target="_blank" title="Save ISO19115/19139 metadata as PDF">
+													    <img src="{/root/gui/url}/images/pdf.gif" alt="{/root/gui/strings/savepdf/iso19115}" title="{/root/gui/strings/savepdf/iso19115}" border="0"/>
+												    </a>
 													<a href="{/root/gui/locService}/iso_arccatalog8.xml?id={$metadata/geonet:info/id}" target="_blank" title="{/root/gui/strings/savexml/iso19115Esri}">
 														<img src="{/root/gui/url}/images/ac.png" height="20px" width="20px"  alt="{/root/gui/strings/savexml/iso19115Esri}" title="{/root/gui/strings/savexml/iso19115Esri}" border="0"/>
 													</a>
@@ -631,6 +645,9 @@
 													<a href="{/root/gui/locService}/iso19139.xml?id={$metadata/geonet:info/id}" target="_blank" title="{/root/gui/strings/savexml/iso19139}">
 														<img src="{/root/gui/url}/images/xml.png" height="20px" width="20px" alt="{/root/gui/strings/savexml/iso19139}" title="{/root/gui/strings/savexml/iso19139}" border="0"/>
 													</a>
+													<a href="{/root/gui/locService}/iso19139.pdf?id={$metadata/geonet:info/id}" target="_blank" title="Save ISO19115/19139 metadata as PDF">
+													    <img src="{/root/gui/url}/images/pdf.gif" alt="{/root/gui/strings/savepdf/iso19139}" title="{/root/gui/strings/savepdf/iso19139}" border="0"/>
+												    </a>
 	<!-- //FIXME												<a href="{/root/gui/locService}/iso_arccatalog8.xml?id={$metadata/geonet:info/id}" target="_blank" title="Download ISO19115 metadata in XML for ESRI ArcCatalog">
 		<img src="{/root/gui/url}/images/ac.png" height="20px" width="20px" alt="ISO19115 XML for ArcCatalog" title="Save ISO19115 metadata in XML for ESRI ArcCatalog" border="0"/>
 													</a> -->

@@ -34,7 +34,7 @@
 		
 		<!-- Required by keyword selection panel -->
 		<xsl:if test="/root/gui/config/search/keyword-selection-panel">
-			<xsl:call-template name="ext-ux"/>
+			<xsl:call-template name="edit-header"/>
 		</xsl:if>
 		
          <xsl:choose>
@@ -50,9 +50,11 @@
 
                 <link rel="stylesheet" type="text/css" href="{/root/gui/url}/scripts/openlayers/theme/default/style.css" />
                 <link rel="stylesheet" type="text/css" href="{/root/gui/url}/geonetwork_map.css" /-->
-         
+                
                 <script type="text/javascript" src="{/root/gui/url}/scripts/ext/adapter/ext/ext-base.js"></script>
                 <script type="text/javascript" src="{/root/gui/url}/scripts/ext/ext-all.js"></script>
+
+                
                 <script type="text/javascript" src="{/root/gui/url}/scripts/ext/form/FileUploadField.js"></script>
 
                 <script type="text/javascript" src="{/root/gui/url}/scripts/openlayers/lib/OpenLayers.js"></script>
@@ -108,8 +110,13 @@
                 <script type="text/javascript" src="{/root/gui/url}/scripts/ol_settings.js"></script>		
                 <script type="text/javascript" src="{/root/gui/url}/scripts/ol_minimap.js"></script>
                 <script type="text/javascript" src="{/root/gui/url}/scripts/ol_map.js"></script>
-                
+
+                <script type="text/javascript" src="{/root/gui/url}/scripts/ext-ux/MultiselectItemSelector-3.0/Multiselect.js"></script>
+                <script type="text/javascript" src="{/root/gui/url}/scripts/ext-ux/MultiselectItemSelector-3.0/DDView.js"></script>
+
                 <script type="text/javascript" src="{/root/gui/url}/scripts/editor/tooltip.js"></script>
+                <script type="text/javascript" src="{/root/gui/url}/scripts/editor/app.SearchField.js"></script>
+                <script type="text/javascript" src="{/root/gui/url}/scripts/editor/app.KeywordSelectionPanel.js"></script>
                 <script type="text/javascript" src="{/root/gui/url}/scripts/editor/tooltip-manager.js"></script>
                 <script type="text/javascript" src="{/root/gui/url}/scripts/editor/simpletooltip.js"></script>
                 <script type="text/javascript" src="{/root/gui/url}/scripts/editor/metadata-show.js"></script>
@@ -141,14 +148,17 @@
 		
 		<script type="text/javascript" language="JavaScript1.2">
 
+            function initSearch() {
+                var currentSearch = get_cookie('search');
+                if (currentSearch=='advanced') {
+                    showAdvancedSearch();
+                } else {
+                    initSimpleSearch("<xsl:value-of select="$wmc"/>");
+                }
+            }
 			function init()
 			{
-				var currentSearch = get_cookie('search');
-				if (currentSearch=='advanced') {
-					showAdvancedSearch();
-				} else {
-					initSimpleSearch("<xsl:value-of select="$wmc"/>");
-				}
+                initSearch();
 				<!-- If a UUID is passed, it will be opened within the AJAX page -->
 				var uuid="<xsl:value-of select="$uuid"/>";
 				if (uuid!='') {
@@ -221,7 +231,7 @@
                 
                 GeoNetwork.MapStateManager.loadMapState();
                 
-				initMapViewer();
+				//initMapViewer();
 				var mapViewport =  GeoNetwork.mapViewer.getViewport();
 				
 				var categories = new Ext.Panel({
@@ -293,23 +303,10 @@
 										layout: 'border',
 										items: [
 											{region:'north',
-											id: 'north-map-panel',
-											title: '<xsl:value-of select="/root/gui/strings/mapViewer"/>',
-											border:false,
-											collapsible: true,
-											collapsed: true,
-											split: true,
-											height: 450,
-											minSize: 300,
-											//maxSize: 500,
-											layout: 'fit',
-											listeners: {
-												  collapse: collapseMap,
-												  expand: expandMap
-											   },
-											items: [mapViewport]
-											
-											},
+                                                                                        id: 'north-map-panel',
+                                                                                        hidden: true,
+                                                                                        html: ''
+                                                                                        },
 											{region:'center', 
 											contentEl :'content',
 											border:false,
@@ -332,35 +329,33 @@
                         // Initialize small maps for search
                         initMapsSearch();
                         
-						showSimpleSearch();
+
+                    initSearch();
 			});
 			
             
             function initMapViewer() {
-                var mapOptions = <xsl:value-of select='/root/gui/config/mapViewer/@options'/>;
+                var mapConfig = Geonetwork.CONFIG.MainMap
+                var mapOptions = mapConfig.mapOptions
 
                 // Init projection list
-                <xsl:for-each select="/root/gui/config/mapViewer/proj/crs">
-                GeoNetwork.ProjectionList.push(["<xsl:value-of select='@code'/>","<xsl:value-of select='@name'/>"]);
-                </xsl:for-each>
+                GeoNetwork.ProjectionList = mapConfig.projections;
 
                   // Init WMS server list
-                <xsl:for-each select="/root/gui/config/mapViewer/servers/server">
-                GeoNetwork.WMSList.push(["<xsl:value-of select='@name'/>","<xsl:value-of select='@url'/>"]);
-                </xsl:for-each>
+                GeoNetwork.WMSList = mapConfig.servers;
 
                 // Initialize map viewer
-               GeoNetwork.mapViewer.init(backgroundLayers, mapOptions);
+               GeoNetwork.mapViewer.init(mapConfig.layerFactory, mapOptions);
             }
 
             function initMapsSearch() {
-                var mapOptions1 = <xsl:value-of select='/root/gui/config/mapSearch/@options'/>;
-                var mapOptions2 = <xsl:value-of select='/root/gui/config/mapSearch/@options'/>;
+                var mapConfig = Geonetwork.CONFIG.SearchMap
+                var mapOptions1 = mapConfig.mapOptions;
+                var mapOptions2 = Ext.apply({},mapOptions1);
 
                 // Initialize minimaps
-                GeoNetwork.minimapSimpleSearch.init("ol_minimap1", "region_simple", backgroundLayersMapSearch, mapOptions1);
-                GeoNetwork.minimapAdvancedSearch.init("ol_minimap2", "region", backgroundLayersMapSearch, mapOptions2);
-
+                GeoNetwork.minimapSimpleSearch.init("ol_minimap1", "region_simple", mapConfig.layerFactory, mapOptions1);
+                GeoNetwork.minimapAdvancedSearch.init("ol_minimap2", "region", mapConfig.layerFactory, mapOptions2);
 
                 GeoNetwork.minimapSimpleSearch.setSynchMinimap(GeoNetwork.minimapAdvancedSearch);
                 GeoNetwork.minimapAdvancedSearch.setSynchMinimap(GeoNetwork.minimapSimpleSearch);
@@ -401,7 +396,7 @@
 			</div>
 			
 			<!-- Advanced search panel -->
-			<div id="advanced_search_pnl">
+			<div id="advanced_search_pnl" style="display: none;">
 				<xsl:call-template name="advanced_search_content"/>
 			</div>
 			
@@ -935,30 +930,8 @@
 								<td>
 
 									<!-- regions combobox -->
-
-									<select class="content" name="region" id="region">
-										<option value="">
-											<xsl:if test="/root/gui/searchDefaults/theme='_any_'">
-												<xsl:attribute name="selected"/>
-											</xsl:if>
-											<xsl:value-of select="/root/gui/strings/any"/>
-										</option>
-
-										<xsl:for-each select="/root/gui/regions/record">
-											<xsl:sort select="label/child::*[name() = $lang]"
-												order="ascending"/>
-											<option>
-												<xsl:if test="id=/root/gui/searchDefaults/region">
-												<xsl:attribute name="selected"/>
-												</xsl:if>
-												<xsl:attribute name="value">
-												<xsl:value-of select="id"/>
-												</xsl:attribute>
-												<xsl:value-of
-												select="label/child::*[name() = $lang]"/>
-											</option>
-										</xsl:for-each>
-									</select>
+                                    <input type="text" id="region_cat_combo" size="20"/>
+                                    <input type="text" id="region_combo" size="20"/>
 								</td>
 							</tr>
 						</table>

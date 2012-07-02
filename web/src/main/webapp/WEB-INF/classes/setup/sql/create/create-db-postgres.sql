@@ -345,3 +345,110 @@ CREATE TABLE IndexLanguages
 
   );
 --  -- ======================================================================
+
+--  -- ======================================================================
+-- 
+-- GeOrchestra modification : adding shared object tables
+-- This implies to use a PostGreSQL spatial database (postgis)
+
+CREATE TABLE sharedobject_templates (
+    typename character varying(32) NOT NULL,
+    template text NOT NULL
+);
+
+
+CREATE TABLE spatialindex (
+    fid integer NOT NULL,
+    id character varying(250),
+    the_geom geometry,
+    CONSTRAINT enforce_dims_the_geom CHECK ((ndims(the_geom) = 2)),
+    CONSTRAINT enforce_geotype_the_geom CHECK (((geometrytype(the_geom) = 'MULTIPOLYGON'::text) OR (the_geom IS NULL))),
+    CONSTRAINT enforce_srid_the_geom CHECK ((srid(the_geom) = 4326))
+);
+
+INSERT INTO sharedobject_templates VALUES ('shared_contacts', '<gmd:CI_ResponsibleParty xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gco="http://www.isotc211.org/2005/gco" xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://www.isotc211.org/2005/gmd/gmd.xsd">
+  <gmd:individualName xsi:type="gmd:PT_FreeText_PropertyType">
+    <gco:CharacterString>Nom</gco:CharacterString>
+  </gmd:individualName>
+  <gmd:organisationName xsi:type="gmd:PT_FreeText_PropertyType">
+    <gco:CharacterString>Organisme</gco:CharacterString>
+  </gmd:organisationName>
+  <gmd:positionName xsi:type="gmd:PT_FreeText_PropertyType">
+    <gco:CharacterString>Position</gco:CharacterString>
+  </gmd:positionName>
+  <gmd:contactInfo>
+    <gmd:CI_Contact>
+      <gmd:phone>
+        <gmd:CI_Telephone>
+          <gmd:voice>
+            <gco:CharacterString>Voice 1</gco:CharacterString>
+          </gmd:voice>
+        </gmd:CI_Telephone>
+      </gmd:phone>
+      <gmd:address>
+        <gmd:CI_Address>
+          <gmd:deliveryPoint xsi:type="gmd:PT_FreeText_PropertyType">
+            <gco:CharacterString>Adresse</gco:CharacterString>
+          </gmd:deliveryPoint>
+          <gmd:city>
+            <gco:CharacterString>Ville</gco:CharacterString>
+          </gmd:city>
+          <gmd:administrativeArea>
+            <gco:CharacterString>Incorporation Administrative</gco:CharacterString>
+          </gmd:administrativeArea>
+          <gmd:postalCode>
+            <gco:CharacterString>Code postal</gco:CharacterString>
+          </gmd:postalCode>
+          <gmd:country>
+            <gco:CharacterString>Pays</gco:CharacterString>
+          </gmd:country>
+          <gmd:electronicMailAddress>
+            <gco:CharacterString>email@address.com</gco:CharacterString>
+          </gmd:electronicMailAddress>
+        </gmd:CI_Address>
+      </gmd:address>
+      <gmd:onlineResource>
+        <gmd:CI_OnlineResource>
+          <gmd:linkage>
+            <gmd:URL>http://website.com</gmd:URL>
+          </gmd:linkage>
+          <gmd:protocol>
+            <gco:CharacterString>WWW:LINK-1.0-http--link</gco:CharacterString>
+          </gmd:protocol>
+          <gmd:applicationProfile>
+            <gco:CharacterString>applciation profile</gco:CharacterString>
+          </gmd:applicationProfile>
+          <gmd:name>
+            <gco:CharacterString gco:nilReason="missing" />
+          </gmd:name>
+          <gmd:description>
+            <gco:CharacterString gco:nilReason="missing" />
+          </gmd:description>
+          <gmd:function>
+            <gmd:CI_OnLineFunctionCode codeList="http://www.isotc211.org/2005/resources/codeList.xml#CI_OnLineFunctionCode" codeListValue="information" />
+          </gmd:function>
+        </gmd:CI_OnlineResource>
+      </gmd:onlineResource>
+      <gmd:hoursOfService>
+        <gco:CharacterString>hours of service</gco:CharacterString>
+      </gmd:hoursOfService>
+      <gmd:contactInstructions>
+        <gco:CharacterString>contact instructions</gco:CharacterString>
+      </gmd:contactInstructions>
+    </gmd:CI_Contact>
+  </gmd:contactInfo>
+  <gmd:role>
+    <gmd:CI_RoleCode codeListValue="originator" codeList="http://www.isotc211.org/2005/resources/codeList.xml#CI_RoleCode" />
+  </gmd:role>
+</gmd:CI_ResponsibleParty>');
+
+    
+ALTER TABLE ONLY spatialindex
+    ADD CONSTRAINT spatialindex_pkey PRIMARY KEY (fid);
+
+CREATE INDEX spatialindexndx1 ON spatialindex USING btree (id);
+
+CREATE INDEX spatialindexndx2 ON spatialindex USING gist (the_geom);
+
+--  -- ======================================================================
+

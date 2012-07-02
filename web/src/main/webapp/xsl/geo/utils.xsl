@@ -11,11 +11,28 @@
             var translations = {
 				<xsl:apply-templates select="/root/gui/strings/*[@js='true' and not(*) and not(@id)]" mode="js-translations"/>
 			};
+		/* Hacky solution to implement missing features in IE (used by ExtJS anyway ...)
+		 * (PIGMA issue #2443)
+		 */
+        	if (window.Range) {
+        		if (typeof Range.prototype.createContextualFragment == "undefined") {
+    				Range.prototype.createContextualFragment = function(html) {
+        				var doc = this.startContainer.ownerDocument;
+        				var container = doc.createElement("div");
+        				container.innerHTML = html;
+        				var frag = doc.createDocumentFragment(), n;
+        				while ( (n = container.firstChild) ) {
+            					frag.appendChild(n);
+        				}
+        				return frag;
+    				};
+			}
+		}
 		</script>
 
         <xsl:choose>
             <xsl:when test="/root/request/debug">
-	            <script type="text/javascript" src="{/root/gui/url}/scripts/prototype.js"></script>
+				<script type="text/javascript" src="{/root/gui/url}/scripts/prototype.js"></script>
 				<script type="text/javascript" src="{/root/gui/url}/scripts/geonetwork.js"></script>
 				<script type="text/javascript" src="{/root/gui/url}/scripts/scriptaculous/scriptaculous.js?load=slider,effects,controls"></script>
 				<script type="text/javascript" src="{/root/gui/url}/scripts/modalbox.js"></script>
@@ -47,7 +64,7 @@
     JS files are compressed using jsbuild tool (see jsbuild directory).
     -->
     <xsl:template name="geoHeader">
-        <script src="../../scripts/ext/adapter/ext/ext-base.js" type="text/javascript"/>
+        <script src="../../scripts/ext/adapter/prototype/ext-prototype-adapter.js" type="text/javascript"/>
         <script src="../../scripts/geo/proj4js-compressed.js" type="text/javascript"/>
 		<xsl:if test="count(/root/gui/config/map/proj/crs) &gt; 1">
         </xsl:if>
@@ -91,26 +108,12 @@
                 <script type="text/javascript" src="{/root/gui/url}/scripts/geoext/GeoExt.js"></script>			
                 <script type="text/javascript" src="{/root/gui/url}/scripts/mapfish/MapFish.js"></script>            
             </xsl:otherwise>
+						<!--  JS configurations -->
         </xsl:choose>
+				<script type="text/javascript" src="{/root/gui/url}/GeoConfig.js"></script>
         
         <script type="text/javascript" language="JavaScript1.2">
-        // Load layers defined in config file
-        var backgroundLayers = [];
 
-        // Map viewer options to use in main map viewer and in editor map viewer
-        var mapOptions =  <xsl:value-of select='/root/gui/config/mapViewer/@options'/>;
-
-        <xsl:for-each select="/root/gui/config/mapViewer/layers/layer">
-        backgroundLayers.push(["<xsl:value-of select='@tocName'/>","<xsl:value-of select='@server'/>",<xsl:value-of select='@params'/>, <xsl:value-of select='@options'/>]);                           
-        </xsl:for-each>
-
-        var backgroundLayersMapSearch = [];
-        <xsl:for-each select="/root/gui/config/mapSearch/layers/layer">
-        backgroundLayersMapSearch.push(["<xsl:value-of select='@tocName'/>","<xsl:value-of select='@server'/>",<xsl:value-of select='@params'/>, <xsl:value-of select='@options'/>]);
-        </xsl:for-each>
-
-        // If no layers defined for search map, use the layers defined for map viewer
-        if (backgroundLayersMapSearch.length == 0) backgroundLayersMapSearch = backgroundLayers;
         </script>
         
         <script src="../../scripts/geo/extentMap.js" type="text/javascript"/>
@@ -145,7 +148,10 @@
 		        <script type="text/javascript" src="../../scripts/editor/app.SearchField.js"></script>
 		        <script type="text/javascript" src="../../scripts/editor/app.KeywordSelectionPanel.js"></script>
 				<script type="text/javascript" src="../../scripts/editor/app.CRSSelectionPanel.js"></script>
+                <script type="text/javascript" src="../../scripts/editor/app.GeoPublisherPanel.js"></script>
 				<script type="text/javascript" src="../../scripts/editor/app.LinkedMetadataSelectionPanel.js"></script>
+                <script type="text/javascript" src="../../scripts/sharedobject/Admin.js"></script>
+                <script type="text/javascript" src="../../scripts/sharedobject/ObjectGrid.js"></script>
 			</xsl:when>
 			<xsl:otherwise>
 				<!-- 

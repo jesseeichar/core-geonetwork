@@ -55,18 +55,10 @@ GeoNetwork.app = function() {
         map = new OpenLayers.Map('ol_map', options);
     };
 
-    /**
-     * Adds a layer to the map 
-     *
-     */
-    var createWmsLayer = function(name, url, params, options) {
-        map.addLayer(new OpenLayers.Layer.WMS(name, url, params, options));
-    };
-
 
     var createDummyBaseLayer = function(extent) {
         var graphic = new OpenLayers.Layer.Image('Dummy', '../../scripts/openlayers/img/blank.gif', extent,
-                map.getSize(), {isBaseLayer: true, displayInLayerSwitcher: false});
+        map.getSize(), {isBaseLayer: true, displayInLayerSwitcher: false});
         map.addLayer(graphic);
     };
 
@@ -516,7 +508,7 @@ GeoNetwork.app = function() {
         toolbar.push(action);
 
         toolbar.push("-");
-
+/*
         var printItem = new Geonetwork.print.PrintAction({
                 map: map,
                 text: "",
@@ -532,11 +524,9 @@ GeoNetwork.app = function() {
                     //printCommand.spec.mapTitle = "PrintControl";
                 }
             });
-            
         toolbar.push(printItem);
-        
         toolbar.push("-");
-        
+*/
         // create split button for measure controls
 
         var measureSplit = new Ext.SplitButton({
@@ -998,7 +988,7 @@ GeoNetwork.app = function() {
             deferredRender:false, 
             items: [
                 tree,
-                {
+/*                {
                     xtype: 'print-simple',
                     title: OpenLayers.i18n("mf.print.print"),
                     bodyStyle: 'padding: 7px;',
@@ -1007,27 +997,13 @@ GeoNetwork.app = function() {
                         defaults: {
                             width: 100,
                             listWidth: 100
-                        }/*,
-                         items: [
-                         {
-                         xtype: 'textfield',
-                         fieldLabel:  OpenLayers.i18n("mf.print.mapTitle"),
-                         name: 'mapTitle',
-                         value: 'Map title'
-                         },
-                         {
-                         xtype: 'textarea',
-                         fieldLabel:  OpenLayers.i18n("mf.print.comment"),
-                         name: 'comment',
-                         height: 100,
-                         value: 'Some comments'
-                         }
-                         ] */
+                        }
                     },
                     border: false,
                     map: map,
                     configUrl: printConfigUrl
                 }
+        */
             ]
         });
        
@@ -1106,7 +1082,7 @@ GeoNetwork.app = function() {
 
     // public space:
     return {
-        init: function(layers, mapOptions) {
+        init: function(layerFactory, mapOptions) {
             Ext.QuickTips.init();
 
             createMap(mapOptions);
@@ -1114,8 +1090,9 @@ GeoNetwork.app = function() {
             //createDummyBaseLayer(mapOptions.maxExtent);
 
            // default layers in the map
-            for (var i=0; i<layers.length; i++) {                
-                createWmsLayer(layers[i][0],layers[i][1],layers[i][2],layers[i][3]);
+           var layers = layerFactory()
+            for (var i=0; i<layers.length; i++) {
+              map.addLayer(layers[i]);
             }       
                        
             // Fix for the toctree to get the correct mappanel (i

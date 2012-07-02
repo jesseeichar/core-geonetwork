@@ -3,9 +3,8 @@
 	xmlns:geonet="http://www.fao.org/geonetwork"
 	exclude-result-prefixes="xsl geonet">
 
-	<!--xsl:variable name="lang" select="/root/gui/language"/-->
 
-	<!--xsl:template match="/"-->
+
 	<xsl:template name="advanced_search_fields">
 	<form name="advsearch" id="advsearch" onsubmit="javascript:runAdvancedSearch();" action="">
 		<div style="border-bottom: 1px solid;">
@@ -139,9 +138,6 @@
 							<xsl:value-of select="/root/gui/strings/any"/>
 						</option>
 						<xsl:for-each select="/root/gui/sources/record">
-							<!--
-								<xsl:sort order="ascending" select="name"/>
-							-->
 							<xsl:variable name="source" select="siteid/text()"/>
 							<xsl:variable name="sourceName" select="name/text()"/>
 							<option value="{$source}">
@@ -184,7 +180,7 @@
 				</xsl:if>
 					
 				<!-- Template -->
-				<xsl:if test="string(/root/gui/session/userId)!='' and /root/gui/services/service[@name='metadata.edit']">
+				<xsl:if test="/root/gui/services/service[@name='metadata.edit']">
 					<div class="row">
 						<span class="labelField"><xsl:value-of select="/root/gui/strings/kind"/></span>
 						
@@ -236,13 +232,19 @@
 							</xsl:for-each>
 						</select>
 					</div>					
-				</xsl:if>				
+				</xsl:if>
+				<xsl:call-template name="indexFieldFilter">
+					<xsl:with-param name="fld" select="'_orgName'" />
+				</xsl:call-template>
+				<xsl:call-template name="indexFieldFilter">
+					<xsl:with-param name="fld" select="'topicCat'" />
+					<xsl:with-param name="codeName" select="'gmd:MD_TopicCategoryCode'" />
+				</xsl:call-template>
 			</div>
 			
 		</div>
 	</form>					
 </xsl:template>
-
     <!-- ============================================================
         INSPIRE
     ======================================= ===================== -->
@@ -793,34 +795,8 @@
 	
 	<!-- Region -->
 	<div class="row">  <!-- div row-->
-		<span class="labelField"><xsl:value-of select="/root/gui/strings/region"/></span>
-		<select class="content" name="region" id="region" onchange="javascript:doRegionSearchAdvanced();">
-			<option value="">
-				<xsl:if test="/root/gui/searchDefaults/theme='_any_'">
-					<xsl:attribute name="selected">selected</xsl:attribute>
-				</xsl:if>
-				<xsl:value-of select="/root/gui/strings/any"/>
-			</option>
-			<option value="userdefined">
-				<xsl:if test="/root/gui/searchDefaults/theme='_userdefined_'">
-					<xsl:attribute name="selected">selected</xsl:attribute>
-				</xsl:if>
-				<xsl:value-of select="/root/gui/strings/userDefined"/>
-			</option>
-			
-			<xsl:for-each select="/root/gui/regions/record">
-				<xsl:sort select="label/child::*[name() = $lang]" order="ascending"/>
-				<option value="{id}">
-					<xsl:if test="id=/root/gui/searchDefaults/region">
-						<xsl:attribute name="selected">selected</xsl:attribute>
-					</xsl:if>
-					<xsl:attribute name="value">
-							<xsl:value-of select="id"/>
-					</xsl:attribute>
-					<xsl:value-of select="label/child::*[name() = $lang]"/>
-				</option>
-			</xsl:for-each>
-		</select>							
+		<input type="text" id="region_cat_combo_adv" size="20"/>
+		<input type="text" id="region_combo_adv" size="20"/>					
 	</div>
 </xsl:template>
 
@@ -843,7 +819,7 @@
 		</div>
 		
 		<div class="row">
-			<input value="" name="radfrom" id="radfrom1" type="radio" disabled="disabled">
+			<input value="" name="radfrom" id="radfrom1" type="radio">
 					<xsl:if test="string(/root/gui/searchDefaults/dateFrom)!='' and string(/root/gui/searchDefaults/dateTo)!=''">
 						<xsl:attribute name="checked">CHECKED</xsl:attribute>
 					</xsl:if>
@@ -855,25 +831,24 @@
 			<xsl:value-of select="/root/gui/strings/from"/>
 			<input style="width: 90px;" readonly="READONLY" id="dateFrom" value="{/root/gui/searchDefaults/dateFrom}" name="dateFrom" class="inpBnds" type="text"
 				onchange="JavaScript:$('extFrom').value ='';$('extTo').value ='';
-						  $('radfrom1').checked=true;$('radfrom1').disabled='';$('radfromext1').disabled='disabled';"/>
+						  $('radfrom1').checked=true;"/>
 			<img title="{/root/gui/strings/fromDateSelector}" style="cursor: pointer; margin-bottom: 6px; margin-right:10px;" id="from_trigger_c" 
 				src="{/root/gui/url}/scripts/calendar/img.gif" alt="{/root/gui/strings/fromDateSelector}" align="middle" hspace="1"/>
 					
 			<xsl:value-of select="/root/gui/strings/to"/>
 			<input style="width: 90px;" readonly="READONLY" id="dateTo" value="{/root/gui/searchDefaults/dateTo}" name="dateTo" class="inpBnds" type="text"
 				onchange="JavaScript:$('extFrom').value ='';$('extTo').value ='';
-						  $('radfrom1').checked=true;$('radfrom1').disabled='';$('radfromext1').disabled='disabled';" />
+						  $('radfrom1').checked=true;" />
 			<img title="{/root/gui/strings/toDateSelector}" style="cursor: pointer; margin-bottom: 6px;" id="to_trigger_c" 
 				src="{/root/gui/url}/scripts/calendar/img.gif" alt="{/root/gui/strings/toDateSelector}" align="middle" hspace="1"/>
 				
-<!--				<div onclick="JavaScript:$('dateFrom').value ='';$('dateTo').value ='';" style="cursor: pointer;"><xsl:value-of select="/root/gui/strings/clear"/></div> -->
 			<img title="{/root/gui/strings/clear}" style="cursor: pointer; margin-bottom: 6px;" id="clearDates1" 
 				src="{/root/gui/url}/images/clear_left.png" alt="{/root/gui/strings/clear}" align="middle" 
-				hspace="1" onclick="JavaScript:$('dateFrom').value ='';$('dateTo').value ='';"/> <!-- $('radfrom0').checked=true;$('radfrom1').disabled='disabled';$('radfromext1').disabled='disabled';"/> -->
+				hspace="1" onclick="JavaScript:$('dateFrom').value ='';$('dateTo').value ='';"/>
 		</div>
 		
 		<div class="row">
-			<input value="" name="radfrom" id="radfromext1" type="radio" disabled="disabled">
+			<input value="" name="radfrom" id="radfromext1" type="radio">
 					<xsl:if test="string(/root/gui/searchDefaults/extFrom)!='' and string(/root/gui/searchDefaults/extTo)!=''">
 						<xsl:attribute name="checked" />
 					</xsl:if>
@@ -885,20 +860,20 @@
 			<xsl:value-of select="/root/gui/strings/from"/>
 			<input style="width: 90px;" readonly="READONLY" id="extFrom" value="{/root/gui/searchDefaults/extFrom}" name="extFrom" class="inpBnds" type="text"
 				onchange="JavaScript:$('dateFrom').value ='';$('dateTo').value ='';
-						  $('radfromext1').checked=true;$('radfromext1').disabled='';$('radfrom1').disabled='disabled';"/>
+						  $('radfromext1').checked=true;"/>
 			<img title="{/root/gui/strings/fromDateSelector}" style="cursor: pointer; margin-bottom: 6px; margin-right:10px;" id="extfrom_trigger_c" 
 				src="{/root/gui/url}/scripts/calendar/img.gif" alt="{/root/gui/strings/fromDateSelector}" align="middle" hspace="1"/>
 					
 			<xsl:value-of select="/root/gui/strings/to"/>
 			<input  style="width: 90px;" readonly="READONLY" id="extTo" value="{/root/gui/searchDefaults/extTo}" name="extTo" class="inpBnds" type="text"
 				onchange="JavaScript:$('dateFrom').value ='';$('dateTo').value ='';
-						  $('radfromext1').checked=true;$('radfromext1').disabled='';$('radfrom1').disabled='disabled';" />
+						  $('radfromext1').checked=true;" />
 			<img title="{/root/gui/strings/toDateSelector}" style="cursor: pointer; margin-bottom: 6px;" id="extto_trigger_c" 
 				src="{/root/gui/url}/scripts/calendar/img.gif" alt="{/root/gui/strings/toDateSelector}" align="middle" hspace="1"/>
 												
 			<img title="{/root/gui/strings/clear}" style="cursor: pointer; margin-bottom: 6px;" id="clearDates2" 
 				src="{/root/gui/url}/images/clear_left.png" alt="{/root/gui/strings/clear}" align="middle" 
-				hspace="1" onclick="JavaScript:$('extFrom').value ='';$('extTo').value ='';"/> <!-- $('radfrom0').checked=true;$('radfromext1').disabled='disabled';$('radfrom1').disabled='disabled';"/> -->
+				hspace="1" onclick="JavaScript:$('extFrom').value ='';$('extTo').value ='';"/>
 		</div>
 		
 	</div>
@@ -931,6 +906,49 @@
 		</script>
 	</xsl:if>
 </xsl:template>
-	
+
+<xsl:template name="indexFieldFilter">
+    <xsl:param name="fld"/>
+    <xsl:param name="codeName"/>
+    
+    <div class="row">
+    
+    <xsl:choose>
+    <xsl:when test="starts-with($fld, '_')">
+        <span class="labelField"><xsl:value-of select="/root/gui/strings/*[name() = substring($fld, 2)]"/></span>
+	</xsl:when>
+    <xsl:otherwise>
+        <span class="labelField"><xsl:value-of select="/root/gui/strings/*[name() = $fld]"/></span>
+</xsl:otherwise>
+	</xsl:choose>
+			<select class="content" name="{$fld}" id="{$fld}">
+				<option value="">
+					<xsl:if test="/root/gui/searchDefaults/*[name() = $fld] = ''">
+						<xsl:attribute name="selected"/>
+					</xsl:if>
+					<xsl:value-of select="/root/gui/strings/any"/>
+				</option>
+				
+				<xsl:for-each select="/root/gui/indexTerms/*[name() = $fld]/term">
+					<xsl:sort select="text()" order="ascending"/>
+					
+					<option value="{text()}">
+						<xsl:if test="text() = /root/gui/searchDefaults/*[name() = $fld]">
+							<xsl:attribute name="selected"/>
+						</xsl:if>
+                        <xsl:choose>
+                        <xsl:when test="string-length($codeName)">
+                            <xsl:variable name="termName" select="text()"/>
+    						<xsl:value-of select="/root/gui/iso19139/codelist[@name = $codeName]/entry[code/text() = $termName]/label"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="text()"/>
+                        </xsl:otherwise>
+                        </xsl:choose>
+					</option>
+				</xsl:for-each>
+			</select>
+		</div>
+</xsl:template>
 
 </xsl:stylesheet>

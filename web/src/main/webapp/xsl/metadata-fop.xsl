@@ -44,16 +44,26 @@
 
 		<fo:table-row>
 			<fo:table-cell>
-				<fo:block>
-					<fo:inline font-weight="normal">
+				<fo:block font-weight="bold" font-size="6pt">
 						<xsl:value-of select="$title" />
-					</fo:inline>
 				</fo:block>
 			</fo:table-cell>
 			<fo:table-cell number-columns-spanned="2">
-				<fo:block>
+				<fo:block font-size="6pt">
 					<xsl:value-of select="$text" />
 				</fo:block>
+			</fo:table-cell>
+		</fo:table-row>
+		<!-- PMT little hack to space after each rows -->
+		<fo:table-row height="10pt">
+			<fo:table-cell>
+				<fo:block/>
+			</fo:table-cell>
+			<fo:table-cell>
+				<fo:block/>
+			</fo:table-cell>
+			<fo:table-cell>
+				<fo:block/>
 			</fo:table-cell>
 		</fo:table-row>
 	</xsl:template>
@@ -102,17 +112,29 @@
 						<fo:table-column column-width="12cm" />
 						<fo:table-column column-width="1cm" />
 						<fo:table-body>
-							<fo:table-row>
+							<fo:table-row 
+										border-bottom="1pt solid black" background-color="#eeeeee">
 								<fo:table-cell
 									number-columns-spanned="3">
-									<fo:block
-										border-top="1pt solid black">
-										<fo:inline font-weight="normal">
-											<xsl:text>::</xsl:text>
+									<fo:block>
+										<fo:inline font-weight="bold" font-size="8pt">
+											<xsl:text>:: </xsl:text>
 											<xsl:value-of
 												select="$title" />
 										</fo:inline>
 									</fo:block>
+								</fo:table-cell>
+							</fo:table-row>
+							<!-- PMT little hack to space after each rows -->
+							<fo:table-row height="10pt">
+								<fo:table-cell>
+									<fo:block/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block/>
 								</fo:table-cell>
 							</fo:table-row>
 							<fo:table-row>
@@ -134,6 +156,17 @@
 											</fo:table>
 										</xsl:if>
 									</fo:block>
+								</fo:table-cell>
+							</fo:table-row>
+							<fo:table-row height="10pt">
+								<fo:table-cell>
+									<fo:block />
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block />
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block />
 								</fo:table-cell>
 							</fo:table-row>
 						</fo:table-body>
@@ -344,40 +377,31 @@
 	<!--
 		main pdf banner
 	-->
-	<xsl:template name="banner">
-		<fo:table table-layout="fixed" width="100%">
-			<fo:table-column
-				column-width="proportional-column-width(1)" />
-			<fo:table-column
-				column-width="proportional-column-width(1)" />
-			<fo:table-body>
-				<fo:table-row>
-					<fo:table-cell display-align="left" background-color="#064377">
-						<fo:block text-align="left">
-							<!-- FIXME -->
-							<fo:external-graphic>
-								<xsl:attribute name="src">
-                                url('<xsl:value-of
-										select="concat('http://', //server/host,':', //server/port, /root/gui/url,'/images/header-left.jpg')" />')"
-                                    </xsl:attribute>
-							</fo:external-graphic>
-					   </fo:block>
-					</fo:table-cell>
-					<fo:table-cell display-align="right" background-color="#064377">
-					   <fo:block text-align="right">
-                    		<fo:external-graphic>
-								<xsl:attribute name="src">
-                                url('<xsl:value-of
-										select="concat('http://', //server/host,':', //server/port, /root/gui/url,'/images/header-right.gif')" />')"
-                                    </xsl:attribute>
-
-							</fo:external-graphic>
-						</fo:block>
-					</fo:table-cell>
-				</fo:table-row>
-			</fo:table-body>
-		</fo:table>
-	</xsl:template>
+        <xsl:template name="banner">
+          <fo:table table-layout="fixed" width="100%">
+            <fo:table-column
+              column-width="proportional-column-width(1)" />
+            <fo:table-column
+              column-width="proportional-column-width(1)" />
+            <fo:table-body>
+              <fo:table-row>
+                <fo:table-cell display-align="left">
+                  <fo:block text-align="left">
+                  </fo:block>
+                </fo:table-cell>
+                <fo:table-cell display-align="right">
+                  <fo:block text-align="right">
+                    <fo:external-graphic>
+                      <xsl:attribute name="src">
+                        url('<xsl:value-of select="concat('http://', //server/host,':', //server/port,'/static/img/logo.png')" />')"
+                      </xsl:attribute>
+                    </fo:external-graphic>
+                  </fo:block>
+                </fo:table-cell>
+              </fo:table-row>
+            </fo:table-body>
+          </fo:table>
+        </xsl:template>
 
 
 

@@ -123,7 +123,10 @@ app.KeywordSelectionPanel = Ext.extend(Ext.FormPanel, {
             id: 'keywordSearchField',
             width:240,
             store: app.keyword.keywordStore,
-            paramName: 'pKeyword'
+            paramName: 'pKeyword',
+            afterRender:function(){
+            	if(Ext.isIE8)this.el.setTop(1);
+            	}
         });
     },
     

@@ -36,6 +36,30 @@
 			
 			window.javascriptsLocation = "<xsl:value-of select="/root/gui/url"/>/scripts/";
 			
+
+			
+			<!-- Adding the security headers stuff -->
+			<!--  note: ExtJS is not loaded yet, using classic namespace instead -->
+			if (typeof Geonetwork === 'undefined') { 
+				Geonetwork = {};
+			}
+			if (typeof Geonetwork.user === 'undefined') {
+				Geonetwork.user = {};
+			}
+			if (typeof Geonetwork.dlform === 'undefined') {
+				Geonetwork.dlform = {};
+			}
+			Geonetwork.user.username = "<xsl:value-of select="/root/gui/env/security-proxy/sec-username"/>";
+			Geonetwork.user.first_name = "<xsl:value-of select="/root/gui/env/security-proxy/sec-firstname"/>";
+			Geonetwork.user.last_name = "<xsl:value-of select="/root/gui/env/security-proxy/sec-lastname"/>";
+			Geonetwork.user.company = "<xsl:value-of select="/root/gui/env/security-proxy/sec-org"/>";
+			Geonetwork.user.email = "<xsl:value-of select="/root/gui/env/security-proxy/sec-email"/>";
+			Geonetwork.user.tel = "<xsl:value-of select="/root/gui/env/security-proxy/sec-tel"/>";
+			Geonetwork.dlform.activated = "<xsl:value-of select="/root/gui/env/downloadform/activated"/>";			
+			Geonetwork.dlform.pdf_url = "<xsl:value-of select="/root/gui/env/downloadform/pdf_url"/>";
+			
+			
+			
 			<xsl:if test="//service/@name = 'main.home'">
             document.onkeyup = alertkey;
             
@@ -49,8 +73,8 @@
              }
              
              if (e.keyCode == 13) {
-                  <xsl:if test="string(/root/gui/session/userId)=''">
-                  if ($('username').value != '') { // login action
+                  <xsl:if test="string(/root/gui/login/userId)=''">
+                  if (($('username') != null) &amp;&amp; ($('username').value != '')) { // login action
                     goSubmit('login')
                     return;
                   }
@@ -68,10 +92,12 @@
 		<link rel="stylesheet" type="text/css" href="{/root/gui/url}/geonetwork.css"/>
 		<link rel="stylesheet" type="text/css" href="{/root/gui/url}/modalbox.css"/>
 		<xsl:apply-templates mode="css" select="/"/>
+		<!-- ExtJS gray theme -->
+		<link rel="stylesheet" type="text/css" href="{/root/gui/url}/scripts/ext/resources/css/xtheme-gray.css" />
 		
 		<!-- JS -->
 		<xsl:call-template name="jsHeader"/>
-		
+
 	</xsl:template>
 	
 	<!--

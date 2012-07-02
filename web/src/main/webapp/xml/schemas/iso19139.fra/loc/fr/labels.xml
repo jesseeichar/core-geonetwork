@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<labels xmlns:fra="http://www.cnig.gouv.fr/2005/fra" 
+		xmlns:gmd="http://www.isotc211.org/2005/gmd"
+        xmlns:gts="http://www.isotc211.org/2005/gts"
+        xmlns:gco="http://www.isotc211.org/2005/gco"
+        xmlns:gml="http://www.opengis.net/gml"
+        xmlns:srv="http://www.isotc211.org/2005/srv"
+        xmlns:gmx="http://www.isotc211.org/2005/gmx">
+	<element name="fra:FRA_DataIdentification">
+		<label>Identification</label>
+		<description>description</description>
+	</element>
+	<element name="fra:FRA_Constraints">
+		<label>Contraintes</label>
+		<description>Contraintes sur l’accès et l’utilisation de la donnée</description>
+	</element>
+	<element name="fra:FRA_LegalConstraints">
+		<label>Contraintes légales</label>
+		<description>classe pour les restrictions et conditions préalables légales pour accéder et utiliser les métadonnées ou la ressource</description>
+	</element>
+	<element name="fra:FRA_SecurityConstraints">
+		<label>Contraintes de sécurité</label>
+		<description>classe avec les restrictions de manipulation imposées sur les métadonnées ou la ressource pour la sécurité nationale ou des situations de sécurité similaires</description>
+	</element>
+	<element name="fra:citation">
+		<label>Document(s) associé(s)</label>
+		<description>Citations de documents concernant les contraintes de ressources</description>
+	</element>
+	<element name="fra:relatedCitation">
+		<label>Document(s) associé(s)</label>
+		<description>Citations de documents concernant la ressource</description>
+	</element>
+	<element name="fra:InDirectReferenceSystem">
+		<label>Système de projection indirect (pour les ressources non géographiques)</label>
+		<description>Dérivé de ReferenceSystem / précise qu’il s’agit d’une référence directe</description>
+	</element>
+	<element name="fra:DirectReferenceSystem">
+		<label>Système de projection direct (pour les ressources géographiques)</label>
+		<description>Dérivé de ReferenceSystem / précise qu’il s’agit d’une référence indirecte</description>
+	</element>
+	<!--
+		PMT geobretagne : redmine issue #1805 : missing fields backported from
+		regular iso19139 schema
+	-->
+	<element name="gmd:language" id="3.0" context="gmd:MD_Metadata">
+		<label>Langue</label>
+		<description>Langue utilisée pour documenter les métadonnées</description>
+		<help>Langue utilisée pour la documentation des métadonnées. La
+			sélection s'opère dans la liste des langues ISO. Exemple : "fr" pour
+			le français, "de" pour l'allemand, "en" pour l'anglais, "it" pour
+			l'italien, "rm" pour le romanche, ...</help>
+		<condition>Obligatoire</condition>
+	</element>
+	<element name="gmd:language" id="39.0" context="gmd:MD_DataIdentification">
+		<label>Langue</label>
+		<description>Langue utilisée pour le jeu de données</description>
+		<help>Langue utilisée pour la documentation des données. La sélection
+			s'opère dans la liste des langues ISO. Exemple : "fr" pour le
+			français, "de" pour l'allemand, "en" pour l'anglais, "it" pour
+			l'italien, "rm" pour le romanche, ...</help>
+		<condition>Obligatoire</condition>
+	</element>
+	<element name="gmd:language" id="235.0"
+		context="gmd:MD_FeatureCatalogueDescription">
+		<label>Langue</label>
+		<description>Langues utilisées dans le catalogue</description>
+		<help>Langue utilisée dans le catalogue d'objets. La sélection
+			s'opère dans la liste des langues ISO. Exemple : "fr" pour le
+			français, "de" pour l'allemand, "en" pour l'anglais, "it" pour
+			l'italien, "rm" pour le romanche, ...</help>
+		<condition />
+	</element>
+	
+	<element name="gmd:date" id="144.0" context="gmd:MD_MaintenanceInformation">
+		<label>Date de la prochaine mise à jour</label>
+		<description>Date de la prochaine mise à jour de la ressource</description>
+		<help>Date de la prochaine mise à jour (jj.mm.aaaa).</help>
+		<condition />
+	</element>
+	<element name="gmd:date" id="362.0" context="gmd:CI_Citation">
+		<label>Date</label>
+		<description>Date de référence pour la ressource en question</description>
+		<help>Date de référence indiquée sous forme de date (jj.mm.aaaa) et de
+			type de date (création, publication, traitement). Ces informations
+			sont du type CI_Date et sont gérées dans la classe du même nom.</help>
+		<condition />
+	</element>
+	<element name="gmd:date" id="394.0" context="gmd:CI_Date">
+		<label>Date</label>
+		<description>Date de référence pour la ressource en question</description>
+		<help>Date de référence (jj.mm.aaaa)</help>
+		<condition />
+	</element>
+	
+	<element name="gmd:characterSet" id="4.0" context="gmd:MD_Metadata">
+		<label>Jeu de caractère</label>
+		<description>Nom complet du standard de code de caractères utilisé
+			pour le jeu de métadonnées</description>
+		<help>Nom complet du code de caractères normalisé utilisé pour le
+			fichier de métadonnées. Le paramètre par défaut est "utf8". Les
+			fichiers de texte contiennent normalement des valeurs d'octets
+			représentant un sous-ensemble de valeurs de caractères via un codage
+			(8859_1, ISO Latin-1), un format de transfert
+			(Unicode-Transfer-Format UTF8) ou tout autre moyen.</help>
+		<condition>Par défaut UTF-8</condition>
+	</element>
+	<element name="gmd:characterSet" id="40.0" context="gmd:MD_DataIdentification">
+		<label>Jeu de caractère</label>
+		<description>Nom entier du standard de code de caractères utilisé pour
+			le jeu de données</description>
+		<help>Nom complet du code de caractères normalisé utilisé pour le
+			fichier de métadonnées. Le paramètre par défaut est "utf8". Les
+			fichiers de texte contiennent normalement des valeurs d'octets
+			représentant un sous-ensemble de valeurs de caractères via un codage
+			(8859_1, ISO Latin-1), un format de transfert
+			(Unicode-Transfer-Format UTF8) ou tout autre moyen.</help>
+		<condition>Par défaut UTF-8</condition>
+	</element>
+	<element name="gmd:characterSet" id="4.0">
+		<label>Jeu de caractère</label>
+		<description>Nom complet du standard de code de caractères utilisé
+			pour le jeu de métadonnées</description>
+		<help>Nom complet du code de caractères normalisé utilisé pour le
+			fichier de métadonnées. Le paramètre par défaut est "utf8". Les
+			fichiers de texte contiennent normalement des valeurs d'octets
+			représentant un sous-ensemble de valeurs de caractères via un codage
+			(8859_1, ISO Latin-1), un format de transfert
+			(Unicode-Transfer-Format UTF8) ou tout autre moyen.</help>
+		<condition>Par défaut UTF-8</condition>
+	</element>
+	
+	<element name="gmd:description" id="87.0" context="LI_ProcessStep">
+		<label>Description de l'événement</label>
+		<description>Description de l'événement, incluant les paramètres ou
+			tolérances y relatifs</description>
+		<help>Description du processus (étape de traitement) pouvant inclure
+			la description de paramètres ou de tolérances.</help>
+		<condition>Obligatoire</condition>
+	</element>
+	<element name="gmd:description" id="93.0" context="LI_Source">
+		<label>Description</label>
+		<description>Description détaillée de l'état des données sources</description>
+		<help>Description des données source.</help>
+	</element>
+	<element name="gmd:description" id="335.0" context="gmd:EX_Extent">
+		<label>Description</label>
+		<description>Etendue spatiale et temporelle pour l'objet en question</description>
+		<help>Description sous forme textuelle de l'extension spatiale et
+			temporelle de l'objet considéré.</help>
+		<condition />
+	</element>
+	<element name="gmd:description" id="401.0" context="gmd:CI_OnlineResource">
+		<label>Description</label>
+		<description>Texte descriptif détaillé sur ce que la ressource en
+			ligne est/fait</description>
+		<help>Description détaillée de ce que propose la source en ligne.</help>
+		<condition />
+	</element>
+
+	<element name="gmd:extent" id="45.0" context="gmd:MD_DataIdentification">
+		<label>Etendue</label>
+		<description>Information complémentaire sur les étendues spatiales et
+			temporelles du jeu de données, incluant le polygone de délimitation
+			et les dimensions verticales et temporelles</description>
+		<help>Informations supplémentaires concernant l'extension spatiale et
+			temporelle des données, incluant le polygone de délimitation, les
+			altitudes et la durée de validité. Ces informations sont du type
+			EX_Extent et sont gérées dans la classe du même nom.</help>
+		<condition>Condition</condition>
+	</element>
+
+	<element name="gmd:version" id="208.2" context="gmd:RS_Identifier">
+		<label>Version</label>
+		<description>Identification de la version pour la domaine de valeurs</description>
+		<help>Numéro de version de l'espace nominal / de l'identifiant
+			(alphanumérique).</help>
+		<condition />
+	</element>
+	<element name="gmd:version" id="286.0">
+		<label>Version</label>
+		<description>Version du format (date,nombre,etc)</description>
+		<help>Version du format de données, par exemple 6.0.</help>
+		<condition>Obligatoire</condition>
+	</element>
+
+  <element name="gmd:name" id="196.0" context="gmd:RS_ReferenceSystem">
+    <label>Nom du système de référence</label>
+    <description>Nom du système de référence utilisé</description>
+    <help>Nom du système de référence utilisé.</help>
+    <condition>Obligatoire</condition>
+  </element>
+  <element name="gmd:name" id="285.0" context="gmd:MD_Format">
+    <label>Nom du format</label>
+    <description>Nom des formats de transfert des données</description>
+    <help>Nom du format de transfert de données, par exemple TIFF, ZIP, etc.</help>
+    <condition>Obligatoire</condition>
+  </element>
+  <element name="gmd:name" id="307.0" context="gmd:MD_ExtendedElementInformation">
+    <label>Nom</label>
+    <description>Nom de l'élément de métadonnée étendu</description>
+    <help>Nom de l'élément de métadonnées étendu.</help>
+    <condition>Obligatoire</condition>
+  </element>
+  <element name="gmd:name" id="321.0" context="gmd:MD_ApplicationSchemaInformation">
+    <label>Nom</label>
+    <description>Nom du schéma d'application utilisé</description>
+    <help>Nom du schéma d'application utilisé.</help>
+    <condition>Obligatoire</condition>  
+  </element>
+  <element name="gmd:name" id="400.0" context="gmd:CI_OnlineResource">
+    <label>Nom</label>
+    <description>Nom de la ressource en ligne</description>
+    <help>Nom de la source en ligne.</help>
+    <condition>Obligatoire</condition>
+  </element>
+  <element name="gmd:name" id="404.0" context="gmd:CI_Series">
+    <label>Nom</label>
+    <description>Nom des séries ou du jeu de données global desquels le jeu de donnée est une partie</description>
+    <help>Nom de la série ou du jeu de données composé dont émane le jeu de données.</help>
+    <condition>Obligatoire</condition>
+  </element>
+  <element name="gmd:name">
+    <label>Nom</label>
+    <description>Nom des séries, ou des jeux de données agrégés, duquel le jeu de données provient</description>
+    <help/>
+    <condition>Obligatoire</condition>    
+  </element>
+
+  <element name="gmd:extent" id="45.0" context="gmd:MD_DataIdentification">
+    <label>Etendue</label>
+    <description>Information complémentaire sur les étendues spatiales et temporelles du jeu de données, incluant le polygone de délimitation et les dimensions verticales et temporelles</description>
+    <help>Informations supplémentaires concernant l'extension spatiale et temporelle des données, incluant le polygone de délimitation, les altitudes et la durée de validité. Ces informations sont du type EX_Extent et sont gérées dans la classe du même nom.</help>
+    <condition>Condition</condition>
+  </element>
+  <element name="gmd:extent" id="140.0" context="gmd:DQ_Scope">
+    <label>Etendue</label>
+    <description>Information sur les domaines horizontaux, verticaux et temporels des données spécifiées par l'attribut scope (79) du domaine d'applicabilité</description>
+    <help>Informations relatives à l'extension horizontale, verticale et temporelle des données conformément au domaine de validité défini. Ces informations sont du type EX_Extent et sont gérées dans la classe du même nom.</help>
+    <condition>Condition</condition>
+  </element>
+  <element name="gmd:extent" id="351.0" context="gmd:EX_TemporalExtent">
+    <label>Etendue</label>
+    <description>Date et temps pour le contenu du jeu de donnée</description>
+    <help>Date et heure du domaine de validité du jeu de données (texte).</help>
+    <condition>Condition</condition> 
+  </element>
+
+  <element name="gmd:metadataConstraints" id="20.0" context="gmd:MD_Metadata">
+    <label>Contraites sur les métadonnées</label>
+    <description>Contraintes sur l'accès et l'utilisation des métadonnées</description>
+    <help>Restrictions d'accès et d'utilisation des métadonnées (exemple : copyright, conditions d'octroi de licence, etc.). Ces informations sont gérées dans la classe MD_Constraints.</help>
+    <condition/>
+  </element>
+  <element name="gmd:metadataConstraints">
+    <label>Contraintes sur les métadonnées</label>
+    <description>Contraintes sur l’accès et l’utilisation des métadonnées</description>
+    <help/>
+    <condition/>
+  </element>
+
+  <element name="gmd:contact" id="8.0" context="gmd:MD_Metadata">
+    <label>Contact</label>
+    <description>Organisme responsable pour les informations que contiennent les métadonnées.</description>
+    <help>Rôle (propriétaire, prestataire, gestionnaire, etc.) de la personne ou du service compétent pouvant être sélectionné dans la liste présentée ici. Cet attribut renvoie à la classe CI_ResponsibleParty dans laquelle les informations relatives au service ou à la personne concernée sont gérées. Cet attribut est du type CI_ResponsibleParty et est géré dans la classe du même nom.</help>
+    <condition>Obligatoire</condition> 
+  </element>
+  <element name="gmd:contact" id="148.1" context="gmd:MD_MaintenanceInformation">
+    <label>Contact pour la mise à jour</label>
+    <description>Indications concernant la personne ou l'organisation qui est responsable de la mis à jour des métadonnées</description>
+    <help>Informations concernant la personne ou l'organisation responsable de la mise à jour des données. Ces informations sont du type CI_ResponsibleParty et sont gérées dans la classe du même nom.</help>
+    <condition/>
+  </element>
+  <element name="gmd:contact" id="8.0">
+    <label>Contact</label>
+    <description>Organisme responsable pour les informations que contiennent les métadonnées.</description>
+    <help>Rôle (propriétaire, prestataire, gestionnaire, etc.) de la personne ou du service compétent pouvant être sélectionné dans la liste présentée ici. Cet attribut renvoie à la classe CI_ResponsibleParty dans laquelle les informations relatives au service ou à la personne concernée sont gérées. Cet attribut est du type CI_ResponsibleParty et est géré dans la classe du même nom.</help>
+    <condition>Obligatoire</condition>
+  </element>
+
+</labels>

@@ -77,7 +77,7 @@ var extentMap = {
      *   - watched_bbox: the coma separated 4 ids of the input field (east, south,
      *                   west, north) to listen for modifications
      */
-    initMapDiv: function () {
+    initMapDiv: function (div) {
         
         var viewers, idFunc;
         extentMap.mainProj = new OpenLayers.Projection(extentMap.mainProjCode);
@@ -86,7 +86,7 @@ var extentMap = {
         // some pages have prototype and other have access to ext so do a check
         // and choose the one that is available
         if (Ext) {
-            viewers = Ext.DomQuery.select('.extentViewer');
+            viewers = Ext.DomQuery.select('.extentViewer',div);
             idFunc = Ext.id;
         } else {
             viewers = $$('.extentViewer');
@@ -376,9 +376,11 @@ var extentMap = {
      */
     createMap: function() {
     	OpenLayers.ImgPath = "../../scripts/openlayers/img/";
-    	
+
+        var options = Ext.apply({},Geonetwork.CONFIG.SearchMap.mapOptions);
+
 		// Set main projection same as map viewer projection
-    	extentMap.mainProj = new OpenLayers.Projection(mapOptions.projection);
+    	extentMap.mainProj = new OpenLayers.Projection(options.projection);
 
     	// TODO : how to define one common map with background in config file.
     	/*var options = {
@@ -387,7 +389,6 @@ var extentMap = {
     		    theme: null
     		}; */
 
-    	var options = mapOptions;
     	options.theme = null;
     	
         var map = extentMap.map = new OpenLayers.Map(
@@ -399,9 +400,11 @@ var extentMap = {
         // Disable mouse wheel and navigation toolbar in view mode.
         // User can still pan the map.
         if(!extentMap.edit) {
-        	var navigationControl = map.getControlsByClass('OpenLayers.Control.Navigation')[0];
-        	navigationControl.disableZoomWheel();
-        	map.removeControl(map.getControlsByClass('OpenLayers.Control.PanZoom')[0]);
+              var navigationControl = map.getControlsByClass('GeoNetwork.Control.ZoomWheel')[0];
+            if(navigationControl) {
+                navigationControl.handler.deactivate();
+            }
+            map.removeControl(map.getControlsByClass('OpenLayers.Control.PanZoom')[0]);
         }
         
         // Add mouse position control to display coordintate.
@@ -412,13 +415,10 @@ var extentMap = {
         // configuration parameters should be define in order
         // to define map layers. Currently using the same
         // WMS as Intermap.
-        
-        for (var i=0; i<backgroundLayers.length; i++) {
-            var layer = new OpenLayers.Layer.WMS(backgroundLayers[i][0],
-                    backgroundLayers[i][1],
-                    backgroundLayers[i][2],
-                    backgroundLayers[i][3])
-            map.addLayer(layer);    
+
+        var layers = Geonetwork.CONFIG.SearchMap.layerFactory();
+        for (var i=0; i<layers.length; i++) {
+            map.addLayer(layers[i]);
         }
         
         
@@ -496,7 +496,9 @@ var extentMap = {
 
             // Always reproject to WGS84
  			if (extentMap.mainProj != extentMap.wgsProj) {
-            	boundsProjected.transform(extentMap.mainProj, wgsProj);
+                // PMT C2C GeoOrchestra : was wgsProj,
+                // should probably be extentMap.wgsProj
+                boundsProjected.transform(extentMap.mainProj, extentMap.wgsProj);
             }	
             
     	} else {
@@ -753,6 +755,107 @@ var extentMap = {
         } else {
             map.zoomToMaxExtent();
         }
+    },
+    
+    
+    initRegionCombos: function(handleSelection, catComboId, regComboId) {
+
+        catComboId = catComboId === undefined ? "region_cat_combo" : catComboId;
+        regComboId = regComboId === undefined ? "region_combo" : regComboId;
+
+        if(Ext.getCmp(catComboId+"_cmp") !== null && Ext.getCmp(catComboId+"_cmp") !== undefined) {
+            // already initialized
+            return;
+        }
+
+        var categories = new Ext.data.Store({
+            proxy: new Ext.data.HttpProxy({
+                url: '/geonetwork/srv/en/xml.region.list?categories=true',
+				method: 'GET'
+            }),
+            reader: new Ext.data.XmlReader(
+                { record: 'type', id: 'id'},
+                [ { name: 'name', type: 'string' } ]
+            ),
+            listeners: {
+                load: function(records, options) {
+                    catCombo.select(0,true);
+                },
+                scope: this
+            }
+        });
+
+        var catCombo = new Ext.form.ComboBox({
+            id: catComboId+'_cmp',
+            fieldLabel: 'Sélectionnez une catégorie',
+            store: categories,
+            mode: 'remote', //'local',
+            editable: false,
+            displayField: 'name',
+            triggerAction: 'all',
+            forceSelection: true,
+            selectOnFocus: true,
+            emptyText: 'Sélectionnez une catégorie',
+            applyTo: catComboId,
+            listeners: {
+                beforequery: function() {
+                    var width = catCombo.getSize().width + 
+                        catCombo.el.up('.x-form-field-wrap').down('.x-form-trigger').getSize().width;
+                    catCombo.setWidth(width);
+                },
+                select: function(combo) {
+                    regCombo.enable();
+                    var typename = categories.getAt(combo.selectedIndex).id;
+                    regions.baseParams.typename = typename;
+                },
+                scope: this
+            }
+        });
+
+        var regions = new Ext.data.Store({
+            proxy: new Ext.data.HttpProxy({
+                url: '/geonetwork/srv/en/xml.region.list',
+                baseParams: {
+                  pattern: '*',
+                  typename: 'geob_loc:COMMUNE'
+                },
+				method: 'GET'
+            }),
+            reader: new Ext.data.XmlReader(
+                    { record: 'record', id: '@id'},
+                    [ { name: 'name', type: 'string' } ]
+                  ),
+            listeners: {
+              beforeload: function(store) {
+                store.baseParams.pattern = '*'+regCombo.getValue()+'*';
+              },
+              load: function(records, options) {
+                var width = regCombo.getSize().width + 
+                    regCombo.el.up('.x-form-field-wrap').down('.x-form-trigger').getSize().width;
+                regCombo.setWidth(width);
+              }
+            }
+        });
+
+        var regCombo = new Ext.form.ComboBox({
+            fieldLabel: 'Sélectionnez une région',
+            id: regComboId+'_cmp',
+            store: regions,
+            disabled: true,
+            hideTrigger: true,
+            displayField: 'name',
+            triggerAction: 'all',
+            typeAhead: true,
+            selectOnFocus: true,
+            emptyText: 'Sélectionnez une région',
+            applyTo: regComboId,
+            minChars: 2,
+            listeners: {
+                select: function (comb, rec) {
+                    handleSelection(regions.baseParams.typename, rec.id);
+                }
+            }
+        });
     }
 };
 
@@ -768,3 +871,4 @@ OpenLayers.Format.GML.Base.prototype.writers.feature._geometry = function(geomet
         return extentMap.prev_geometry.apply(this, arguments);
     }
 };
+

@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<labels xmlns:fra="http://www.cnig.gouv.fr/2005/fra"
+		xmlns:gmd="http://www.isotc211.org/2005/gmd"
+        xmlns:gts="http://www.isotc211.org/2005/gts"
+        xmlns:gco="http://www.isotc211.org/2005/gco"
+        xmlns:gml="http://www.opengis.net/gml"
+        xmlns:srv="http://www.isotc211.org/2005/srv"
+        xmlns:gmx="http://www.isotc211.org/2005/gmx">
+	<element name="fra:FRA_DataIdentification">
+		<label>Identification</label>
+		<description>description</description>
+	</element>
+	<element name="fra:FRA_Constraints">
+		<label>Constraints</label>
+		<description></description>
+	</element>
+	<element name="fra:FRA_LegalConstraints">
+		<label>Legal constraints</label>
+		<description></description>
+	</element>
+	<element name="fra:FRA_SecurityConstraints">
+		<label>Security constraints</label>
+		<description></description>
+	</element>
+	<element name="fra:citation">
+		<label>Citation</label>
+		<description></description>
+	</element>
+	<element name="fra:relatedCitation">
+		<label>Related citation</label>
+		<description></description>
+	</element>
+	<element name="fra:FRA_IndirectReferenceSystem">
+		<label>Indirect reference system</label>
+		<description></description>
+	</element>
+	<element name="fra:FRA_DirectReferenceSystem">
+		<label>Direct reference system</label>
+		<description></description>
+	</element>
+		<!--
+		PMT geobretagne : redmine issue #1805 : missing fields backported from
+		regular iso19139 schema
+	-->
+	<element name="gmd:language" context="gmd:MD_Metadata" id="3.0">
+		<label>Metadata language</label>
+		<description>Language used for documenting metadata</description>
+		<condition>conditional</condition>
+	</element>
+	<element name="gmd:language" context="gmd:MD_DataIdentification"
+		id="39.0">
+		<label>Language</label>
+		<description>Language(s) used within the dataset</description>
+		<help>language(s) used within the dataset</help>
+		<_condition>Mandatory</_condition>
+	</element>
+	<element name="gmd:language" context="gmd:MD_FeatureCatalogueDescription"
+		id="235.0">
+		<label>Language</label>
+		<description>Language(s) used within the catalogue</description>
+	</element>
+
+    <element name="gmd:date" id="144.0" context="gmd:MD_MaintenanceInformation">
+        <label>Date of next update</label>
+        <description>Scheduled revision date for resource</description>
+    </element>
+    <element name="gmd:date" id="362.0" context="gmd:CI_Citation">
+        <condition>mandatory</condition>
+        <label>Date</label>
+        <description>Reference date for the cited resource</description>
+        <_condition>M</_condition>
+    </element>
+    <element name="gmd:date" id="394.0" context="gmd:CI_Date">
+        <condition>mandatory</condition>
+        <label>Date</label>
+        <description>Reference date for the cited resource</description>
+        <_condition>M</_condition>
+    </element>
+
+	<element name="gmd:characterSet" id="4.0" context="gmd:MD_Metadata">
+		<label>Character set</label>
+		<description>Full name of the character coding standard used for the
+			metadata
+			set</description>
+		<condition>conditional</condition>
+		<_condition>conditional / ISO/IEC 10646-1 not used and not defined by
+			encoding?</_condition>
+	</element>
+	<element name="gmd:characterSet" id="40.0" context="gmd:MD_DataIdentification">
+		<label>Character set</label>
+		<description>Full name of the character coding standard used for the
+			dataset</description>
+		<_condition>Conditional / ISO 10646-1 not used?</_condition>
+	</element>
+	<element name="gmd:characterSet" id="4.0">
+		<label>Character set</label>
+		<description>Full name of the character coding standard used for the
+			metadata
+			set</description>
+		<condition>conditional</condition>
+	</element>
+
+
+	<element name="gmd:description" id="87.0" context="LI_ProcessStep">
+		<condition>mandatory</condition>
+		<label>Description</label>
+		<description>Description of the event, including related parameters or
+			tolerances</description>
+	</element>
+	<element name="gmd:description" id="93.0" context="LI_Source">
+		<label>Description</label>
+		<description>Detailed description of the level of the source data</description>
+		<_condition>Conditional / sourceExtent not provided?</_condition>
+	</element>
+	<element name="gmd:description" id="335.0" context="gmd:EX_Extent">
+		<label>Description</label>
+		<description>Spatial and temporal extent for the referring object</description>
+		<_condition>Conditional / geographicElement and temporalElement and
+			verticalElement not
+			documented?</_condition>
+	</element>
+	<element name="gmd:description" id="401.0" context="gmd:CI_OnlineResource">
+		<label>Description</label>
+		<description>Detailed text description of what the online resource
+			is/does</description>
+	</element>
+
+    <element name="gmd:extent" id="45.0" context="gmd:MD_DataIdentification">
+        <label>Extent</label>
+        <description>Extent information including the bounding polygon, vertical, and temporal
+            extent of the dataset</description>
+        <_condition>Conditional / if hierarchyLevel equals "dataset"? Either
+            extent.geographicElement.EX_GeographicBoundingBox or
+            extent.geographicElement.EX_GeographicDescription is required</_condition>
+    </element>
+
+	<element name="gmd:version" id="208.2" context="gmd:RS_Identifier">
+		<label>Version</label>
+		<description>Version identifier for the namespace</description>
+	</element>
+	<element name="gmd:version" id="286.0">
+		<label>Version</label>
+		<description>Version of the format (date, number, etc.)</description>
+		<condition>mandatory</condition>
+	</element>	
+
+	<element name="gmd:name" context="gmd:MD_AbstractClass" id="560.0">
+        <label>Name</label>
+        <description>Name</description>
+    </element>
+    <element name="gmd:name" context="gmd:MD_Medium" id="292.0">
+        <label>Name</label>
+        <description>Name of the medium on which the resource can be received</description>
+    </element>
+    <element name="gmd:name" context="gmd:RS_ReferenceSystem" id="196.0">
+        <label>Name</label>
+        <description>Name of reference system used</description>
+        <condition>mandatory</condition>
+    </element>
+    <element name="gmd:name" context="gmd:MD_Format" id="285.0">
+        <label>Name</label>
+        <description>Name of the data transfer format(s)</description>
+        <help>name of the data transfer format(s)</help>
+        <condition>mandatory</condition>
+    </element>
+    <element name="gmd:name" context="gmd:MD_ExtendedElementInformation" id="307.0">
+        <label>Name</label>
+        <description>Name of the extended metadata element</description>
+        <condition>mandatory</condition>
+    </element>
+    <element name="gmd:name" context="gmd:MD_ApplicationSchemaInformation" id="321.0">
+        <label>Name</label>
+        <description>Name of the application schema used</description>
+        <condition>mandatory</condition>
+    </element>
+    <element name="gmd:name" context="gmd:CI_OnlineResource" id="400.0">
+        <label>Name of the resource</label>
+        <description>Name of the online resource</description>
+    </element>
+    <element name="gmd:name" context="gmd:CI_Series" id="404.0">
+        <label>Name</label>
+        <description>Name of the series, or aggregate dataset, of which the dataset is a
+            part</description>
+    </element>
+    <element name="gmd:name" context="gmd:MD_CodeDomain" id="537.0">
+        <label>Name</label>
+        <description>Name of the code domain</description>
+    </element>
+    <element name="gmd:name" context="gmd:MD_CodeValue" id="546.0">
+        <label>Name</label>
+        <description>Value name</description>
+    </element>
+    <element name="gmd:name" context="gmd:MD_Attribute" id="551.0">
+        <label>Name</label>
+        <description>Attribute name</description>
+    </element>
+    <element name="gmd:name" context="gmd:MD_Role" id="556.0">
+        <label>Name</label>
+        <description>Role name</description>
+    </element>
+    <element name="gmd:name">
+        <label>Name</label>
+        <description/>
+    </element>
+	
+	<element name="gmd:extent" id="45.0" context="gmd:MD_DataIdentification">
+        <label>Extent</label>
+        <description>Extent information including the bounding polygon, vertical, and temporal
+            extent of the dataset</description>
+        <_condition>Conditional / if hierarchyLevel equals "dataset"? Either
+            extent.geographicElement.EX_GeographicBoundingBox or
+            extent.geographicElement.EX_GeographicDescription is required</_condition>
+    </element>
+    <element name="gmd:extent" id="140.0" context="gmd:DQ_Scope">
+        <label>Extent</label>
+        <description>Information about the horizontal, vertical and temporal extent of the data
+            specified by the scope</description>
+    </element>
+    <element name="gmd:extent" id="351.0" context="gmd:EX_TemporalExtent">
+        <label>Extent</label>
+        <description>Date and time for the content of the dataset</description>
+        <_condition>mandatory</_condition>
+    </element>
+    
+    <element name="gmd:metadataConstraints" id="20.0" context="gmd:MD_Metadata">
+        <label>Metadata constraints</label>
+        <description>Provides restrictions on the access and use of metadata</description>
+    </element>
+    <element name="gmd:metadataConstraints">
+        <label>Metadata constraints</label>
+        <description>Provides restrictions on the access and use of data</description>
+    </element>
+    
+        <element name="gmd:contact" id="8.0" context="gmd:MD_Metadata">
+        <condition>mandatory</condition>
+        <label>Contact</label>
+        <description>Party responsible for the metadata information</description>
+    </element>
+    <element name="gmd:contact" id="148.1" context="gmd:MD_MaintenanceInformation">
+        <label>Contact</label>
+        <description>Identification of, and means of communication with, person(s) and
+            organization(s) with responsability for maintaining the metadata</description>
+    </element>
+    <element name="gmd:contact" id="8.0">
+        <label>Metadata author</label>
+        <description>Party responsible for the metadata information</description>
+        <condition>mandatory</condition>
+    </element>
+    
+    <element name="gmd:identifier" id="573.0">
+        <label>Identifier</label>
+        <description>Unique identifier for the resource. EXAMPLE: Universal Product Code (UPC),
+            National Stock Number (NSN)</description>
+    </element>
+    <element name="gmd:identifier" id="573.0" context="gmd:CI_Citation">
+        <label>Citation identifier</label>
+        <description>Identifier of the citation</description>
+    </element>
+    <element name="gmd:identifier" id="575.0" context="gmd:MD_Authority">
+        <label>Identifier</label>
+        <description>Identifier which belongs to the authority</description>
+    </element>
+    
+</labels>
