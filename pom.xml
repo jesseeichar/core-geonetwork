@@ -1,6 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.georchestra</groupId>
+		<artifactId>root</artifactId>
+		<version>1.0</version>
+	</parent>
   <groupId>org.geonetwork-opensource</groupId>
   <artifactId>geonetwork</artifactId>
   <packaging>pom</packaging>
@@ -62,15 +68,15 @@
   <!-- TODO developer part-->
   <developers>
     <developer>
-      <name></name>
-      <id></id>
-      <organization></organization>
-      <organizationUrl></organizationUrl>
-      <email></email>
+      <name/>
+      <id/>
+      <organization/>
+      <organizationUrl/>
+      <email/>
       <roles>
-        <role></role>
+        <role/>
       </roles>
-      <timezone></timezone>
+      <timezone/>
     </developer>
   </developers>
   
@@ -80,6 +86,10 @@
       <url>http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt</url>
     </license>
   </licenses>
+  
+  <properties>
+      <gt.version>2.6.5</gt.version>
+  </properties>
   
   <build>
     
@@ -121,8 +131,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.5</source>  <!-- The -source argument for the Java compiler. -->
-          <target>1.5</target>  <!-- The -target argument for the Java compiler. -->
+          <source>1.6</source>  <!-- The -source argument for the Java compiler. -->
+          <target>1.6</target>  <!-- The -target argument for the Java compiler. -->
           <debug>true</debug>   <!-- Whether to include debugging information.   -->
           <encoding>UTF-8</encoding> <!-- The -encoding argument for the Java compiler. -->
         </configuration>
@@ -378,47 +388,52 @@
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-api</artifactId>
-        <version>2.6.2</version>
+        <version>${gt.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools.xsd</groupId>
         <artifactId>gt-xsd-gml3</artifactId>
-        <version>2.6.2</version>
+        <version>${gt.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-cql</artifactId>
-        <version>2.6.2</version>
+        <version>${gt.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-shapefile</artifactId>
-        <version>2.6.2</version>
+        <version>${gt.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools.xsd</groupId>
         <artifactId>gt-xsd-filter</artifactId>
-        <version>2.6.2</version>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-wfs</artifactId>
+        <version>${gt.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-epsg-extension</artifactId>
-        <version>2.6.2</version>
+        <version>${gt.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-referencing</artifactId>
-        <version>2.6.2</version>
+        <version>${gt.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-epsg-hsql</artifactId>
-        <version>2.6.2</version>
+        <version>${gt.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-postgis</artifactId>
-        <version>2.6.2</version>
+        <version>${gt.version}</version>
       </dependency>
       <dependency>
         <groupId>lizard</groupId>
@@ -468,7 +483,12 @@
         <artifactId>cog-jglobus</artifactId>
         <version>1.2-060802</version>
       </dependency>
-
+      <dependency>
+          <groupId>com.novell.ldap</groupId>
+          <artifactId>jldap</artifactId>
+          <version>4.3</version>
+      </dependency>
+      
       <!-- Databased stuff -->
       <dependency>
         <groupId>mckoi</groupId>
@@ -587,7 +607,7 @@
       </releases>
       <id>localGeoNetwork</id>
       <name>GeoNetwork local repository</name>
-      <url>file://maven_repo</url>
+      <url>file://${basedir}/../maven_repo</url>
     </repository>
 
 	<!-- Mapfish repository -->
@@ -616,19 +636,15 @@
   <!--     Modules for the build in approximate dependency order   -->
   <!-- =========================================================== -->
   <modules>
-    
     <!-- Remove comment tag to include documentation in the build. 
       Python and Latex are required to build the documentation. -->
     
 <!--    <module>docs</module> -->
-
     <module>cachingxslt</module>
     <module>jeeves</module> 
     <module>oaipmh</module>
     <module>sde</module>
     <module>web</module>
-    <module>geoserver</module>
-    <module>gast</module>
   </modules>
 
   <distributionManagement>
