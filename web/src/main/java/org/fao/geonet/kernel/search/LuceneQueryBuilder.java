@@ -178,42 +178,55 @@ public class LuceneQueryBuilder {
 	 * Creates a query for all tokens in the search param. 'Required' does not mean that this is
 	 * a required search parameter; rather it means that if this parameter is present, the query
 	 * must select only results where each of the tokens in the search param is present.
-     *
-     * @param searchParam search parameter
-     * @param luceneIndexField index field
-     * @param similarity fuzziness
-     * @return boolean clause
-     */
-	private BooleanClause requiredTextField(String searchParam, String luceneIndexField, String similarity) {
-		BooleanClause booleanClause  = null;
-		BooleanClause.Occur occur = LuceneUtils.convertRequiredAndProhibitedToOccur(true, false);
-		if(searchParam != null) {
-			searchParam = searchParam.trim();
-			if(searchParam.length() > 0) {
-				// tokenize searchParam
-			    StringTokenizer st = new StringTokenizer(searchParam);
-			    if(st.countTokens() == 1) {
-			        String token = st.nextToken();
-			        Query subQuery = textFieldToken(token, luceneIndexField, similarity);
-                    if(subQuery != null) {
-				    booleanClause = new BooleanClause(subQuery, occur);
-			    }
-			    }
-			    else {
-					BooleanQuery booleanQuery = new BooleanQuery();
-				    while (st.hasMoreTokens()) {
-				        String token = st.nextToken();
-				        Query subQuery = textFieldToken(token, luceneIndexField, similarity);
-						if(subQuery != null) {
-						BooleanClause subClause = new BooleanClause(subQuery, occur);
-						booleanQuery.add(subClause);
-				    }
-				    }
-				    booleanClause = new BooleanClause(booleanQuery, occur);
-			    }
-			}
-		}
-		return booleanClause;
+	 *
+	 * @param searchParam search parameter
+	 * @param luceneIndexField index field
+	 * @param similarity fuzziness
+	 * @return boolean clause
+	 */
+	private BooleanClause requiredTextField(String searchParam, String luceneIndexField, String similarity)
+	{
+	    return requiredTextField(searchParam, luceneIndexField, similarity, true);
+	}
+
+	private BooleanClause requiredTextField(String searchParam, String luceneIndexField, String similarity, boolean isTokenized) {
+	    BooleanClause booleanClause  = null;
+	    BooleanClause.Occur occur = LuceneUtils.convertRequiredAndProhibitedToOccur(true, false);
+	    if(searchParam != null) {
+	        searchParam = searchParam.trim();
+	        if(searchParam.length() > 0  && isTokenized) {
+	            // tokenize searchParam
+	            StringTokenizer st = new StringTokenizer(searchParam);
+	            if(st.countTokens() == 1) {
+	                String token = st.nextToken();
+	                Query subQuery = textFieldToken(token, luceneIndexField, similarity);
+	                if(subQuery != null) {
+	                    booleanClause = new BooleanClause(subQuery, occur);
+	                }
+	            }
+	            else {
+	                BooleanQuery booleanQuery = new BooleanQuery();
+	                while (st.hasMoreTokens()) {
+	                    String token = st.nextToken();
+	                    Query subQuery = textFieldToken(token, luceneIndexField, similarity);
+	                    if(subQuery != null) {
+	                        BooleanClause subClause = new BooleanClause(subQuery, occur);
+	                        booleanQuery.add(subClause);
+	                    }
+	                }
+	                booleanClause = new BooleanClause(booleanQuery, occur);
+	            }
+	        }
+	        // not tokenized field
+	        else if (searchParam.length() > 0)
+	        {
+	            Query subQuery = textFieldToken(searchParam, luceneIndexField, similarity);
+	            if(subQuery != null) {
+	                booleanClause = new BooleanClause(subQuery, occur);
+	            }
+	        }
+	    }
+	    return booleanClause;
 	}
 
 	public Query build(LuceneQueryInput luceneQueryInput) {
@@ -490,7 +503,11 @@ public class LuceneQueryBuilder {
 			BooleanClause categoriesClause = null;
             for (String category : categories) {
                 if (category != null) {
-                    category = category.trim();
+                	category = category.trim();
+                	// PIGMA issue #2034:
+                	// During lucene indexation, categories are lowercased
+                	category = category.toLowerCase();
+                	
                     if (category.length() > 0) {
                         BooleanClause categoryClause = notRequiredTextField(category, LuceneIndexField.CAT, similarity);
                         if (categoryClause != null) {
@@ -723,6 +740,21 @@ public class LuceneQueryBuilder {
 			query.add(sourceQuery);
 		}
 
+		// PMT c2c GeoOrchestra
+
+		// _orgName is not tokenized, and does not come from user input
+		// we can consider similarity null or == 1.
+		BooleanClause orgNameQuery = requiredTextField(luceneQueryInput.getOrgName(), "_orgName", null, false);
+		if(orgNameQuery != null) {
+		    query.add(orgNameQuery);
+		}
+		BooleanClause topicCatQuery = requiredTextField(luceneQueryInput.getTopicCat(), "topicCat", similarity);
+		if(topicCatQuery != null) {
+		    query.add(topicCatQuery);
+		}
+
+
+
         //
         // themekey
         //
@@ -744,7 +776,12 @@ public class LuceneQueryBuilder {
                         if (token.endsWith("\"")) {
                             token = token.substring(0, token.length() - 1);
                         }
-                        //
+                        String [] special = {"Ôo","Âa","ôo","ée","èe","çc","àa","âa"};
+                        for(String p : special ) {
+                            token = token.replace(p.charAt(0), p.charAt(1));
+                        }
+                        token = token.toLowerCase();
+
                         TermQuery keywordQuery = new TermQuery(new Term(LuceneIndexField.KEYWORD, token));
                         BooleanClause keywordClause = new BooleanClause(keywordQuery, keywordOccur);
                         allkeywordsQuery.add(keywordClause);

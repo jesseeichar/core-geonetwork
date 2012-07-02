@@ -24,6 +24,7 @@
 package org.fao.geonet.kernel.search;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import jeeves.resources.dbms.Dbms;
 import jeeves.server.ServiceConfig;
@@ -114,6 +115,8 @@ public class LuceneSearcher extends MetaSearcher
 	private String        _resultType;
   private String        _language;
 
+  private static String	_lucenePath;
+  
 	private HashSet<String>	_tokenizedFieldSet;
     private Set<String> _integerFieldSet;
     private Set<String> _longFieldSet;
@@ -175,6 +178,7 @@ public class LuceneSearcher extends MetaSearcher
                 }
 			}
 		}
+		_lucenePath = _sm.getLucenePath();
 	}
 
 	//--------------------------------------------------------------------------------
@@ -370,6 +374,15 @@ public class LuceneSearcher extends MetaSearcher
             else {
                 // Construct Lucene query (Java)
                 LuceneQueryInput luceneQueryInput = new LuceneQueryInput(request);
+
+                // PMT PIGMA issue #2457: increase max clause count to 16384
+                // (default: 1024) to avoid "Too many clauses" exception
+                //
+                // Note: This might clearly not be the good way to do,
+                // anyway this is what is done in GeoNetwork trunk.
+
+                BooleanQuery.setMaxClauseCount(16384);
+
                 _query = new LuceneQueryBuilder(_tokenizedFieldSet, SearchManager.getAnalyzer()).build(luceneQueryInput);
                 Log.debug(Geonet.SEARCH_ENGINE,"Lucene query: " + _query);
                  //System.out.println("** query:\n"+ _query);
@@ -483,7 +496,12 @@ public class LuceneSearcher extends MetaSearcher
         String geomWKT = Util.getParam(request, Geonet.SearchResult.GEOMETRY, null);
         if (geomWKT != null) {
             WKTReader reader = new WKTReader();
-            return reader.read(geomWKT);
+            try {
+                return reader.read(geomWKT);
+            } catch (ParseException e) {
+                // ignore
+                Log.debug(Geonet.SEARCH_ENGINE, "[LuceneSearcher.getGeometry] Cannot parse geometry: "+geomWKT);
+            }
         }
         return null;
     }
@@ -1012,7 +1030,8 @@ public class LuceneSearcher extends MetaSearcher
 
 			MapFieldSelector selector = new MapFieldSelector(fieldnames); 
 
-			File luceneDir = new File(appPath + "WEB-INF/lucene/nonspatial");
+			//File luceneDir = new File(appPath + "WEB-INF/lucene/nonspatial");
+			File luceneDir = new File(_lucenePath);
 			IndexReader reader = IndexReader.open(luceneDir);
       Searcher searcher = new IndexSearcher(reader);
 

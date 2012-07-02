@@ -81,18 +81,21 @@ public class Download implements Service
 		if (access.equals(Params.Access.PRIVATE))
 		{
 			Lib.resource.checkPrivilege(context, id, AccessManager.OPER_DOWNLOAD);
-			doNotify = true;
+			// Deactivating the mail notification
+			//doNotify = true;
+			
+			Lib.resource.downloadFormFilled(context, id, fname);
 		}
-
 		// Build the response
 		File dir = new File(Lib.resource.getDir(context, access, id));
 		File file= new File(dir, fname);
 
 		context.info("File is : " +file);
 
-		if (!file.exists())
-			throw new ResourceNotFoundEx(fname);
-
+		if (!file.exists()) {
+			return BinaryFile.encode(404, context.getAppPath() + "/images/file_broken.png");
+			//throw new ResourceNotFoundEx(fname);
+		}
 		GeonetContext  gc = (GeonetContext) context.getHandlerContext(Geonet.CONTEXT_NAME);
 		SettingManager sm = gc.getSettingManager();
 		DataManager    dm = gc.getDataManager();
@@ -126,10 +129,10 @@ public class Download implements Service
 				query.append("SELECT g.id, g.name, g.email ");
 				query.append("FROM   OperationAllowed oa, Groups g ");
 				query.append("WHERE  oa.operationId =" + AccessManager.OPER_NOTIFY + " ");
-				query.append("AND    oa.metadataId = " + id + " ");
+				query.append("AND    oa.metadataId = ? ");
 				query.append("AND    oa.groupId = g.id");
 
-				Element groups = dbms.select(query.toString());
+				Element groups = dbms.select(query.toString(), new Integer(id));
 
 				for (Iterator i = groups.getChildren().iterator(); i.hasNext(); )
 				{
