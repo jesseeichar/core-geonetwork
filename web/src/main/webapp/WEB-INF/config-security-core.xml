@@ -25,17 +25,20 @@
 				<sec:filter-chain pattern="/scripts/**" filters="" />
 				<sec:filter-chain pattern="/pdf/**" filters="" />
 				<sec:filter-chain pattern="/loc/**" filters="" />
-				<sec:filter-chain pattern="/**" filters="formLoginFilter,
+ 				<sec:filter-chain pattern="/**" filters="securityContextPersistenceFilter,
+ 				logoutFilter,
+ 				formLoginFilter,
 	            basicAuthenticationFilter,
+ 				requestCacheFilter,
+ 				anonymousFilter,
+ 				sessionMgmtFilter,
 	            exceptionTranslationFilter,
 	            filterSecurityInterceptor" />
-<!-- 				<sec:filter-chain pattern="/**" filters="${securityFilters}" /> -->
 			</list>
 		</constructor-arg>
 	</bean>
 
-	<bean id="securityContextPersistenceFilter"
-		class="org.springframework.security.web.context.SecurityContextPersistenceFilter">
+	<bean id="securityContextPersistenceFilter" class="org.springframework.security.web.context.SecurityContextPersistenceFilter">
 		<property name="securityContextRepository" ref="securityContextRepository" />
 	</bean>
 
@@ -87,6 +90,8 @@
 			</list>
 		</constructor-arg>
 	</bean>
+
+    <bean id="requestCacheFilter" class="org.springframework.security.web.savedrequest.RequestCacheAwareFilter" />
 
 	<bean id="exceptionTranslationFilter"
 		class="org.springframework.security.web.access.ExceptionTranslationFilter">
@@ -149,4 +154,16 @@
 	    </property>
 	</bean>
 
+	<bean id="anonymousFilter" class="org.springframework.security.web.authentication.AnonymousAuthenticationFilter" >
+	    <property name="key" value="GeonetworkAnonymousUser" />
+	    <property name="userAttribute" value="anonymousUser,ROLE_ANONYMOUS" />
+	</bean>
+
+    <bean id="anonymousProvider" class="org.springframework.security.authentication.AnonymousAuthenticationProvider">
+        <property name="key" value="GeonetworkAnonymousUser" />
+    </bean>
+
+	<bean id="sessionMgmtFilter" class="org.springframework.security.web.session.SessionManagementFilter" >
+	    <constructor-arg ref="securityContextRepository" />
+	</bean>
 </beans>
