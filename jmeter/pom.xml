@@ -65,6 +65,16 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <port>9000</port>
+          <tempWebappDirectory>${basedir}/target/site-web</tempWebappDirectory>
+        </configuration>
+      </plugin>
+      
     </plugins>
   </build>
   <reporting>
@@ -76,15 +86,16 @@
         <configuration>
           <description>This is the description of the generated report</description>
           <title>Report title</title>
-          <showaverage>false</showaverage>
-          <showpercentile>false</showpercentile>
-          <showinfotable>false</showinfotable>
-          <showtimeinfo>false</showtimeinfo>
+          <outputDirectory>target/site-web</outputDirectory>
+          <showaverage>true</showaverage>
+          <showpercentile>truw</showpercentile>
+          <showinfotable>truw</showinfotable>
+          <showtimeinfo>true</showtimeinfo>
           <showsummary>true</showsummary>
-          <showdetails>false</showdetails>
+          <showdetails>true</showdetails>
           <showresponse>true</showresponse>
           <showhistogram>true</showhistogram>
-          <showthroughput>false</showthroughput>
+          <showthroughput>true</showthroughput>
           <showgc>false</showgc>
         </configuration>
       </plugin>
