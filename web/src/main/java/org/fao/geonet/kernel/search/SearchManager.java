@@ -54,6 +54,7 @@ import jeeves.utils.Log;
 import jeeves.utils.Util;
 import jeeves.utils.Xml;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.CompareToBuilder;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.KeywordAnalyzer;
@@ -778,8 +779,8 @@ public class SearchManager {
 
            StringBuilder sb = new StringBuilder();
 			allText(metadata, sb);
-			SearchManager.addField(xmlDoc, LuceneIndexField.TITLE, title, true, true);
-			SearchManager.addField(xmlDoc, LuceneIndexField.ANY, sb.toString(), true, true);
+			SearchManager.addField(defaultDoc, LuceneIndexField.TITLE, title, true, true);
+			SearchManager.addField(defaultDoc, LuceneIndexField.ANY, sb.toString(), true, true);
 		}
         else {
             if(Log.isDebugEnabled(Geonet.INDEX_ENGINE))
@@ -1045,7 +1046,7 @@ public class SearchManager {
 					if (!term.term().field().equals(fieldName) || (++i > maxNumberOfTerms)) {
 						break;
                     }
-					if (term.docFreq() >= threshold && term.term().text().contains(searchValue)) {
+					if (term.docFreq() >= threshold && StringUtils.containsIgnoreCase(term.term().text(), searchValue)) {
 						TermFrequency freq = new TermFrequency(term.term().text(), term.docFreq());
 						termList.add(freq);
 					} 
