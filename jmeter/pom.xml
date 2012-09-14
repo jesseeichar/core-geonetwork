@@ -16,13 +16,17 @@
     Performance testing module
   </description>
   <properties>
+    <!-- properties for jmeter test -->
     <testserver.host>localhost</testserver.host>
-    <testserver.port>8080</testserver.port>
+    <testserver.port>9234</testserver.port>
     <testserver.protocol>http</testserver.protocol>
     <admin.username>admin</admin.username>
     <admin.password>admin</admin.password>
-    <admin.password>admin</admin.password>
+    <base.url>/geonetwork/srv/eng</base.url>
     <base.loc.url>/geonetwork/srv/eng</base.loc.url>
+    
+    <!-- jetty properties -->
+    <geonetworkWar>${basedir}/target/geonetworkWar</geonetworkWar>
   </properties>
   <build>
     <plugins>
@@ -43,16 +47,6 @@
         <executions>
           <execution>
             <phase>integration-test</phase>
-            <id>setup_performance_test</id>
-            <goals>
-              <goal>jmeter</goal>
-            </goals>
-            <configuration>
-              <input>${basedir}/src/main/resources/jmeter_setup</input>
-            </configuration>
-          </execution>
-          <execution>
-            <phase>integration-test</phase>
             <id>main_performance_test</id>
             <goals>
               <goal>jmeter</goal>
@@ -60,7 +54,7 @@
               <goal>savehistory</goal>
             </goals>
             <configuration>
-              <input>${basedir}/src/main/resources/jmeter_configurations</input>
+              <input>${basedir}/src/main/resources/jmeter_test_plan.jmx</input>
             </configuration>
           </execution>
         </executions>
@@ -84,26 +78,26 @@
         <artifactId>chronos-report-maven-plugin</artifactId>
         <version>1.1.0</version>
         <configuration>
-          <description>This is the description of the generated report</description>
-          <title>Report title</title>
+          <title>Performance Report</title>
+          <description>The following reports are the result from running the jmeter testplan ${basedir}/src/main/resources/jmeter_test_plan.jmx</description>
           <outputDirectory>target/site-web</outputDirectory>
           <showaverage>true</showaverage>
-          <showpercentile>truw</showpercentile>
-          <showinfotable>truw</showinfotable>
+          <showpercentile>true</showpercentile>
+          <showinfotable>true</showinfotable>
           <showtimeinfo>true</showtimeinfo>
           <showsummary>true</showsummary>
           <showdetails>true</showdetails>
           <showresponse>true</showresponse>
           <showhistogram>true</showhistogram>
           <showthroughput>true</showthroughput>
-          <showgc>false</showgc>
+          <showgc>true</showgc>
         </configuration>
       </plugin>
     </plugins>
   </reporting>
   <profiles>
     <profile>
-      <id>pitest</id>
+      <id>jmeterjetty</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
