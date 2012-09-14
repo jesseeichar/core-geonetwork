@@ -504,6 +504,15 @@ ${__eval(${METADATAXML})}&#xd;
             </ResponseAssertion>
             <hashTree/>
           </hashTree>
+          <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="Title Random Variable" enabled="true">
+            <stringProp name="maximumValue">9999999999999999</stringProp>
+            <stringProp name="minimumValue">0</stringProp>
+            <stringProp name="outputFormat">0000000000000000</stringProp>
+            <boolProp name="perThread">true</boolProp>
+            <stringProp name="randomSeed"></stringProp>
+            <stringProp name="variableName">TITLEVAR</stringProp>
+          </RandomVariableConfig>
+          <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Edit Request" enabled="true">
             <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
@@ -572,7 +581,9 @@ ${__eval(${METADATAXML})}&#xd;
     &lt;csw:Delete&gt;&#xd;
         &lt;csw:Constraint version=&quot;1.0.0&quot;&gt;&#xd;
           &lt;ogc:Filter&gt;&#xd;
-            {filter}&#xd;
+            &lt;ogc:PropertyIsEqualTo&gt;&#xd;
+                &lt;ogc:PropertyName&gt;Identifier&lt;/ogc:PropertyName&gt; &lt;ogc:Literal&gt;${UUID}&lt;/ogc:Literal&gt;&#xd;
+            &lt;/ogc:PropertyIsEqualTo&gt;&#xd;
           &lt;/ogc:Filter&gt;&#xd;
         &lt;/csw:Constraint&gt;&#xd;
     &lt;/csw:Delete&gt;&#xd;
@@ -603,7 +614,7 @@ ${__eval(${METADATAXML})}&#xd;
             <hashTree/>
             <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
               <collectionProp name="Asserion.test_strings">
-                <stringProp name="1564643784">&lt;csw:totalInserted&gt;1&lt;/csw:totalInserted&gt;</stringProp>
+                <stringProp name="1649057868">&lt;csw:totalDeleted&gt;1&lt;/csw:totalDeleted&gt;</stringProp>
               </collectionProp>
               <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
               <boolProp name="Assertion.assume_success">false</boolProp>
