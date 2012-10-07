@@ -19,7 +19,7 @@ import java.io.IOException;
  */
 public class LocalServiceRequest extends ServiceRequest
 {
-	private static final Element NULL_PARAMS = new Element("params");
+	private static final Element NULL_PARAMS = new Element("request");
 	private StringBuffer outputBuffer = new StringBuffer(128);
 
 	//---------------------------------------------------------------------------
@@ -162,7 +162,7 @@ public class LocalServiceRequest extends ServiceRequest
 		String queryPart = urlParts[1];
 
 		String[] nvPairs = queryPart.split("\\&");
-		Element result = new Element("params");
+		Element result = new Element("request");
 		String[] nvPair;
 		Element param;
 		String name, value;
