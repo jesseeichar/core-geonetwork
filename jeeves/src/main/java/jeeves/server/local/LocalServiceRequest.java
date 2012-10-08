@@ -101,7 +101,11 @@ public class LocalServiceRequest extends ServiceRequest
 			return null;
 		}
 
-		url = url.substring(1);
+		if (url.contains("://")) {
+			url = url.substring(url.indexOf("://")+3);
+		} else if (url.startsWith("/")){
+			url = url.substring(1);
+		}
 
 		int pos = url.indexOf('/');
 
@@ -136,7 +140,7 @@ public class LocalServiceRequest extends ServiceRequest
 
 		if (pos == -1)
 		{
-			return null;
+			return url;
 		}
 
 		return url.substring(pos + 1);

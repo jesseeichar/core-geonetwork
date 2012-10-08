@@ -175,7 +175,9 @@ public final class Processor {
 				if(uri.startsWith(XLink.LOCAL_PROTOCOL)) {
 					LocalServiceRequest request = LocalServiceRequest.create(uri.replaceAll("&amp;", "&"));
 					request.setDebug(false);
-					request.setLanguage("eng");
+					if(request.getLanguage() == null) {
+						request.setLanguage(srvContext.getLanguage());
+					}
 					request.setInputMethod(InputMethod.GET);
 					remoteFragment = srvContext.execute(request);
 				} else {
