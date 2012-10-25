@@ -101,6 +101,10 @@ public class LocalServiceRequest extends ServiceRequest
 			return null;
 		}
 
+		int indexOfParams = url.indexOf('?');
+        if(indexOfParams > -1) {
+		    url = url.substring(0,indexOfParams);
+		}
 		if (url.contains("://")) {
 			url = url.substring(url.indexOf("://")+3);
 		} else if (url.startsWith("/")){
