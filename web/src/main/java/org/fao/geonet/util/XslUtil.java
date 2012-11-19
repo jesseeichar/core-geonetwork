@@ -1,5 +1,7 @@
 package org.fao.geonet.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -11,6 +13,11 @@ import javax.servlet.ServletContext;
 import jeeves.server.context.ServiceContext;
 import jeeves.utils.Log;
 
+import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.om.UnfailingIterator;
+
+import org.eclipse.mylyn.wikitext.core.parser.MarkupParser;
+import org.eclipse.mylyn.wikitext.core.parser.markup.MarkupLanguage;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.kernel.search.LuceneSearcher;
 import org.springframework.security.core.Authentication;
@@ -19,6 +26,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.WebInvocationPrivilegeEvaluator;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import net.sf.saxon.om.DocumentInfo;
+import net.sf.saxon.om.SingletonIterator;
+import net.sf.saxon.trans.XPathException;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+
 
 /**
  * These are all extension methods for calling from xsl docs.  Note:  All
@@ -43,6 +56,16 @@ public final class XslUtil
         return result;
     }
 
+    public static UnfailingIterator parseWikiText(Object src, Object markupLanguage) throws InstantiationException, IllegalAccessException, ClassNotFoundException, XPathException, UnsupportedEncodingException {
+        NodeInfo info = (NodeInfo) src;
+        MarkupLanguage language = (MarkupLanguage) Class.forName(markupLanguage.toString()).newInstance();
+        String html = new MarkupParser(language).parseToHtml(src.toString());
+        Source xmlSource = new StreamSource(new ByteArrayInputStream(html.getBytes("UTF-8")));
+        DocumentInfo doc = info.getConfiguration().buildDocument(xmlSource);
+
+        return SingletonIterator.makeIterator(doc);
+    }
+    
     /**
      * Returns 'true' if the pattern matches the src
      */
