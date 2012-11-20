@@ -26,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.WebInvocationPrivilegeEvaluator;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import net.sf.saxon.om.Axis;
 import net.sf.saxon.om.DocumentInfo;
 import net.sf.saxon.om.SingletonIterator;
 import net.sf.saxon.trans.XPathException;
@@ -56,10 +57,13 @@ public final class XslUtil
         return result;
     }
 
-    public static UnfailingIterator parseWikiText(Object src, Object markupLanguage) throws InstantiationException, IllegalAccessException, ClassNotFoundException, XPathException, UnsupportedEncodingException {
-        NodeInfo info = (NodeInfo) src;
+    public static UnfailingIterator parseWikiText(NodeInfo node, String src, String markupLanguage) throws InstantiationException, IllegalAccessException, ClassNotFoundException, XPathException, UnsupportedEncodingException {
+        NodeInfo info = (NodeInfo) node;
         MarkupLanguage language = (MarkupLanguage) Class.forName(markupLanguage.toString()).newInstance();
         String html = new MarkupParser(language).parseToHtml(src.toString());
+        int startIndex = html.indexOf("<body>");
+        int endIndex = html.indexOf("</html");
+        html = html.substring(startIndex, endIndex).replace("<body", "<span").replace("</body", "</span");
         Source xmlSource = new StreamSource(new ByteArrayInputStream(html.getBytes("UTF-8")));
         DocumentInfo doc = info.getConfiguration().buildDocument(xmlSource);
 
