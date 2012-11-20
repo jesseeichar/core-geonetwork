@@ -7,10 +7,9 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	xmlns:svrl="http://purl.oclc.org/dsdl/svrl" 
 	xmlns:date="http://exslt.org/dates-and-times"
-    xmlns:java="java:org.fao.geonet.util.XslUtil"
 	xmlns:saxon="http://saxon.sf.net/"
 	extension-element-prefixes="saxon"
-	exclude-result-prefixes="exslt xlink gco gmd geonet svrl saxon date java">
+	exclude-result-prefixes="exslt xlink gco gmd geonet svrl saxon date">
 
   <xsl:import href="text-utilities.xsl"/>
   
@@ -819,26 +818,13 @@
 			</th>
 			<td class="padded" valign="top">
 			
-				<xsl:variable name="allowMarkup">
-					<xsl:apply-templates mode="permitMarkup" select="."/>
-				</xsl:variable>
-				<xsl:variable name="textnode" select="exslt:node-set($text)"/>
 				<xsl:choose>
 					<xsl:when test="$edit">
 						<xsl:copy-of select="$text"/>
 					</xsl:when>
-					<xsl:when test="count($textnode/*) &gt; 0">
-					<!-- In some templates, text already contains HTML (eg. codelist, link for download).
-						In that case copy text content and does not resolve
-						hyperlinks. -->
-						<xsl:copy-of select="$text"/>
-					</xsl:when>
-					<xsl:when test="/root/gui/env/wiki/markup != 'none' and $allowMarkup = 'true'">
-						<xsl:copy-of select="java:parseWikiText($text, string($text), string(/root/gui/env/wiki/markup))"></xsl:copy-of>
-					</xsl:when>
 					<xsl:otherwise>
-						<xsl:call-template name="addLineBreaksAndHyperlinks">
-							<xsl:with-param name="txt" select="$text"/>
+						<xsl:call-template name="processText">
+							<xsl:with-param name="text" select="$text"/>
 						</xsl:call-template>
 					</xsl:otherwise>
 				</xsl:choose>

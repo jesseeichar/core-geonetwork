@@ -7,8 +7,10 @@
 	xmlns:gmx="http://www.isotc211.org/2005/gmx" 
 	xmlns:srv="http://www.isotc211.org/2005/srv"
 	xmlns:gml="http://www.opengis.net/gml">
-	
-	<xsl:template mode="permitMarkup" match="gmd:abstract | gmd:title | gmd:description | gmd:lineage">
+	<xsl:template mode="permitMarkup" priority="10" match="gmd:abstract | gmd:description | gmd:statement | gmd:purpose | gmd:supplementalInformation">
 		<xsl:value-of select="true()" />
+	</xsl:template>
+	<xsl:template mode="permitMarkup" match="*">
+		<xsl:value-of select="name(.)" />
 	</xsl:template>
 </xsl:stylesheet>
