@@ -69,7 +69,10 @@ public final class XslUtil
 
         return SingletonIterator.makeIterator(doc);
     }
-    
+    public static String markupToolTip(String template, String name, String syntaxLink) {
+        String link = "<a href=\"javascript:openPage('"+syntaxLink+"')\">"+syntaxLink+"</a>";
+        return template.replace("@@markupName@@", name).replace("@@syntaxLink@@", link);
+    }
     /**
      * Returns 'true' if the pattern matches the src
      */

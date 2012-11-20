@@ -39,7 +39,7 @@ function showMarkupToolTip(spanId, htmlTip, markupName, syntaxLink) {
 	var elem = $(spanId);
 	if (elem.childElements().length == 0) {
 		var link = '<a href="javascript:openPage(\''+syntaxLink+'\')">'+syntaxLink+'</a>';
-		var tipText = htmlTip.replace("{markupName}", markupName).replace("{syntaxLink}", link);
+		var tipText = htmlTip.replace("@@markupName@@", markupName).replace("@@syntaxLink@@", link);
 		showSimpleToolTip(elem, tipText);
 	} else { 
 		childs = elem.childElements();

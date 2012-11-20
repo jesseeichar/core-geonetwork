@@ -1406,7 +1406,8 @@
 	<concealed>Concealed</concealed>
 	<serviceNotAllowed>You do not have the correct permissions to access the following service {1}</serviceNotAllowed>
 	<markup>
-	  <tip>{markupName} markup can be used for formatting the text in this element.&lt;p>For help on the syntax visit: &lt;ul> &lt;li> {syntaxLink}&lt;/li>&lt;/ul>&lt;/p></tip>
+	  <title>Markup</title>
+	  <tip>@@markupName@@ markup can be used for formatting the text in this element.&lt;p>For help on the syntax visit: &lt;div> @@syntaxLink@@ &lt;/div>&lt;/p></tip>
 	  <link>
 	    <org.eclipse.mylyn.wikitext.confluence.core.ConfluenceLanguage>https://confluence.atlassian.com/display/CONF43/Confluence+Wiki+Markup</org.eclipse.mylyn.wikitext.confluence.core.ConfluenceLanguage>
 	    <org.eclipse.mylyn.wikitext.mediawiki.core.MediaWikiLanguage>http://www.mediawiki.org/wiki/Help:Formatting</org.eclipse.mylyn.wikitext.mediawiki.core.MediaWikiLanguage>

@@ -991,6 +991,7 @@ GeoNetwork.editor.EditorPanel = Ext.extend(Ext.Panel, {
         Ext.each(formElements, function(item, index, allItems){
             var e = Ext.get(item);
             var id = e.getAttribute('id');
+            var markupTip = e.getAttribute('markupTip');
             if (e.is('TH')) {
                 var section = e.up('FIELDSET');
                 var helplinks = e.parent().select(".helplink");
@@ -999,12 +1000,12 @@ GeoNetwork.editor.EditorPanel = Ext.extend(Ext.Panel, {
                   } else {
 	                // TODO : register event on custom widgets like Bbox
 	                e.parent().on('mouseover', function(){
-	                    this.helpPanel.updateHelp(id, section);
+	                    this.helpPanel.updateHelp(id, section, markupTip);
 	                }, this);
             	}
             } else {
                 e.on('mouseover', function(){
-                    this.helpPanel.updateHelp(id);
+                    this.helpPanel.updateHelp(id, undefined, markupTip);
                 }, this);
             }
         }, this);
@@ -1017,7 +1018,7 @@ GeoNetwork.editor.EditorPanel = Ext.extend(Ext.Panel, {
             var section = e.up('FIELDSET');
 
             e.on('mouseover', function(){
-                this.helpPanel.updateHelp(id, section);
+                this.helpPanel.updateHelp(id);
             }, this);
         }, this);
         

@@ -8,6 +8,7 @@
   xmlns:geonet="http://www.fao.org/geonetwork" xmlns:xlink="http://www.w3.org/1999/xlink"
   xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:date="http://exslt.org/dates-and-times"
   xmlns:saxon="http://saxon.sf.net/" extension-element-prefixes="saxon"
+    xmlns:java="java:org.fao.geonet.util.XslUtil"
 	xmlns:gmx="http://www.isotc211.org/2005/gmx"
   exclude-result-prefixes="#all">
 
@@ -1281,6 +1282,9 @@
     <xsl:variable name="isXLinked" select="count(ancestor-or-self::node()[@xlink:href]) > 0
                     and (name(.) != 'gmx:Anchor' and name(..) != 'gmx:Anchor')"/>
     <xsl:variable name="geonet" select="starts-with(name(.),'geonet:')"/>
+    <xsl:variable name="allowMarkup">
+		<xsl:apply-templates mode="permitMarkup" select="."/>
+	</xsl:variable>
 
     <tr id="{$id}">
       <xsl:if test="not($visible)">
@@ -1298,6 +1302,14 @@
           <xsl:if test="$isXLinked">xlinked</xsl:if>
           <xsl:if test="geonet:element/@min='1' and $edit">mandatory</xsl:if>
         </xsl:attribute>
+	 	<xsl:if test="$allowMarkup = 'true'">
+		  <xsl:attribute name="markupTip">
+		  	<xsl:variable name="tip" select="concat('&lt;div class=&quot;help&quot;>&lt;span class=&quot;title&quot;>&lt;div>', /root/gui/strings/markup/title,'&lt;/div>&lt;/span>',/root/gui/strings/markup/tip,'&lt;/div>')"></xsl:variable>
+		  	<xsl:variable name="name" select="string(/root/gui/strings/markup/name/*[name() = /root/gui/env/wiki/markup])"></xsl:variable>
+		  	<xsl:variable name="link" select="string(/root/gui/strings/markup/link/*[name() = /root/gui/env/wiki/markup])"></xsl:variable>
+		  	<xsl:value-of select="java:markupToolTip($tip, $name, $link)"/>
+		  </xsl:attribute>
+		</xsl:if>
         <label
           for="_{if (gco:CharacterString) then gco:CharacterString/geonet:element/@ref else if (gmd:file) then '' else ''}">
           <xsl:choose>
