@@ -102,6 +102,7 @@ import org.fao.geonet.kernel.setting.SettingInfo;
 import org.fao.geonet.languages.LanguageDetector;
 import org.fao.geonet.services.util.SearchDefaults;
 import org.fao.geonet.util.JODAISODate;
+import org.fao.geonet.util.MarkupParserCache;
 import org.fao.geonet.util.XslUtil;
 import org.jdom.Element;
 
@@ -1393,7 +1394,6 @@ public class LuceneSearcher extends MetaSearcher {
 	 */
 	private static Element getMetadataFromIndex(ServiceContext srvContext, Document doc, String id, boolean dumpAllField, Map<String, DumpField> dumpFields){
         // Retrieve the info element
-        String root       = doc.get("_root");
         String schema     = doc.get("_schema");
         String source     = doc.get("_source");
         String uuid       = doc.get("_uuid");
@@ -1406,12 +1406,7 @@ public class LuceneSearcher extends MetaSearcher {
         String markupClass = srvContext.getHandlerContext(GeonetContext.class).getSettingManager().getValue(Geonet.Settings.WIKI_SYNTAX);
         MarkupParser markupParser = null;
         if (!markupClass.equalsIgnoreCase("none")) {
-            try {
-                MarkupLanguage markupLanguage = (MarkupLanguage) Class.forName(markupClass).newInstance();
-                markupParser = new MarkupParser(markupLanguage);
-            } catch (Exception e) {
-                Log.error("Markup class setting is invalid:"+markupClass+".  The class must extend MarkupLanguage and must have a 0 arg constructor.", e);
-            }
+            markupParser = MarkupParserCache.lookup(markupClass);
         }
         
         // Root element is using root element name if not using only the index content (ie. dumpAllField)

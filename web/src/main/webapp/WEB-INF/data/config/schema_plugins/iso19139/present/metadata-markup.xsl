@@ -10,7 +10,4 @@
 	<xsl:template mode="permitMarkup" priority="10" match="gmd:abstract | gmd:description | gmd:statement | gmd:purpose | gmd:supplementalInformation">
 		<xsl:value-of select="true()" />
 	</xsl:template>
-	<xsl:template mode="permitMarkup" match="*">
-		<xsl:value-of select="name(.)" />
-	</xsl:template>
 </xsl:stylesheet>

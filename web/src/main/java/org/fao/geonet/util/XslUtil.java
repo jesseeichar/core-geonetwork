@@ -67,8 +67,7 @@ public final class XslUtil
 
     public static UnfailingIterator parseWikiText(NodeInfo node, String src, String markupLanguage) throws InstantiationException, IllegalAccessException, ClassNotFoundException, XPathException, UnsupportedEncodingException {
         NodeInfo info = (NodeInfo) node;
-        MarkupLanguage language = (MarkupLanguage) Class.forName(markupLanguage.toString()).newInstance();
-        MarkupParser markupParser = new MarkupParser(language);
+        MarkupParser markupParser = MarkupParserCache.lookup(markupLanguage);
         String html = parseMarkupToText(src, markupParser);
         Source xmlSource = new StreamSource(new ByteArrayInputStream(html.getBytes("UTF-8")));
         DocumentInfo doc = info.getConfiguration().buildDocument(xmlSource);
