@@ -27,9 +27,17 @@ import org.springframework.security.web.access.WebInvocationPrivilegeEvaluator;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import net.sf.saxon.om.Axis;
+import net.sf.saxon.om.AxisIterator;
 import net.sf.saxon.om.DocumentInfo;
+import net.sf.saxon.om.Item;
+import net.sf.saxon.om.MutableNodeInfo;
 import net.sf.saxon.om.SingletonIterator;
+import net.sf.saxon.pattern.NodeKindTest;
+import net.sf.saxon.pattern.NodeTest;
+import net.sf.saxon.tinytree.TinyTextImpl;
 import net.sf.saxon.trans.XPathException;
+import net.sf.saxon.value.StringValue;
+
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
@@ -60,14 +68,20 @@ public final class XslUtil
     public static UnfailingIterator parseWikiText(NodeInfo node, String src, String markupLanguage) throws InstantiationException, IllegalAccessException, ClassNotFoundException, XPathException, UnsupportedEncodingException {
         NodeInfo info = (NodeInfo) node;
         MarkupLanguage language = (MarkupLanguage) Class.forName(markupLanguage.toString()).newInstance();
-        String html = new MarkupParser(language).parseToHtml(src.toString());
-        int startIndex = html.indexOf("<body>");
-        int endIndex = html.indexOf("</html");
-        html = html.substring(startIndex, endIndex).replace("<body", "<span").replace("</body", "</span");
+        MarkupParser markupParser = new MarkupParser(language);
+        String html = parseMarkupToText(src, markupParser);
         Source xmlSource = new StreamSource(new ByteArrayInputStream(html.getBytes("UTF-8")));
         DocumentInfo doc = info.getConfiguration().buildDocument(xmlSource);
 
         return SingletonIterator.makeIterator(doc);
+    }
+
+    public static String parseMarkupToText(String src, MarkupParser markupParser) {
+        String html = markupParser.parseToHtml(src.toString());
+        int startIndex = html.indexOf("<body>");
+        int endIndex = html.indexOf("</html");
+        html = html.substring(startIndex, endIndex).replace("<body", "<span").replace("</body", "</span");
+        return html;
     }
     public static String markupToolTip(String template, String name, String syntaxLink) {
         String link = "<a href=\"javascript:openPage('"+syntaxLink+"')\">"+syntaxLink+"</a>";
