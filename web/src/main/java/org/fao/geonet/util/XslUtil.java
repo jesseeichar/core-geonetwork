@@ -83,7 +83,7 @@ public final class XslUtil
         return html;
     }
     public static String markupToolTip(String template, String name, String syntaxLink) {
-        String link = "<a href=\"javascript:openPage('"+syntaxLink+"')\">"+syntaxLink+"</a>";
+        String link = "<a href=\"javascript:window.open('"+syntaxLink+"', '_markupHelp')\">"+syntaxLink+"</a>";
         return template.replace("@@markupName@@", name).replace("@@syntaxLink@@", link);
     }
     /**
