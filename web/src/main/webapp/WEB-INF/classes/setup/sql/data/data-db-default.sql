@@ -892,6 +892,7 @@ INSERT INTO Settings VALUES (20,1,'server',NULL);
 INSERT INTO Settings VALUES (21,20,'host','localhost');
 INSERT INTO Settings VALUES (22,20,'port','8080');
 INSERT INTO Settings VALUES (23,20,'protocol','http');
+INSERT INTO Settings VALUES (24,20,'securePort','8443');
 INSERT INTO Settings VALUES (30,1,'intranet',NULL);
 INSERT INTO Settings VALUES (31,30,'network','127.0.0.1');
 INSERT INTO Settings VALUES (32,30,'netmask','255.0.0.0');
@@ -1012,8 +1013,6 @@ INSERT INTO Settings VALUES (955,952,'ignored','true');
 INSERT INTO Settings VALUES (956,1,'hidewithheldelements',NULL);
 INSERT INTO Settings VALUES (957,956,'enable','false');
 INSERT INTO Settings VALUES (958,956,'keepMarkedElement','true');
-INSERT INTO Settings VALUES (960,1,'wiki',NULL);
-INSERT INTO Settings VALUES (961,960,'markup','none');
 
 
 -- ======================================================================

@@ -3,31 +3,30 @@ package org.fao.geonet.kernel;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
 import jeeves.constants.Jeeves;
+import jeeves.guiservices.session.JeevesUser;
 import jeeves.resources.dbms.Dbms;
 import jeeves.server.ProfileManager;
 import jeeves.server.UserSession;
 import jeeves.server.context.ServiceContext;
 import jeeves.utils.Xml;
 
-
 import org.apache.commons.io.IOUtils;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.kernel.setting.SettingManager;
 import org.jdom.Element;
-import org.jdom.JDOMException;
 import org.junit.Test;
-
-import com.sun.tools.javac.util.Context;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 public class XmlSerializerTest {
 	
@@ -169,7 +168,16 @@ public class XmlSerializerTest {
 			} else {
 				profile = editorProfile;
 			}
-			userSession.authenticate(userId, "username", "name", "surname", profile, "");
+			SecurityContextImpl secContext = new SecurityContextImpl();
+			JeevesUser user = new JeevesUser(profileManager);
+			user.setId(userId);
+			user.setUsername("username");
+			user.setProfile(profile);
+			Authentication authentication = new UsernamePasswordAuthenticationToken(user, null);
+            secContext.setAuthentication(authentication);
+			SecurityContextHolder.setContext(secContext);
+		} else {
+		    SecurityContextHolder.clearContext();
 		}
 		when(context.getUserSession()).thenReturn(userSession);
 
