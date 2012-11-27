@@ -174,6 +174,14 @@ public class Geonet {
         public static final String SERVER_SECURE_PORT = "system/server/securePort";
         public static final String SERVER_PROTOCOL = "system/server/protocol";
         public static final String WIKI_SYNTAX = "system/wiki/markup";
+        public static final String WIKI_MEFOUTPUT = "system/wiki/mefoutput";
+        public static final String WIKI_OUTPUT = "system/wiki/output";
+        
+        public class Values {
+            public static final String STRIP_MARKUP = "strip";
+            public static final String KEEP_MARKUP = "keep";
+            
+        }
     }
 
     /**

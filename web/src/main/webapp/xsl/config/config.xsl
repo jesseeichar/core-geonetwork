@@ -579,6 +579,24 @@
 						</select>
 					</td>
 				</tr>
+				<tr id="wiki.output.row">
+					<td class="padded" width="{$width}"><label for="wiki.output"><xsl:value-of select="/root/gui/config/wikiOutput"/></label></td>
+					<td class="padded">
+						<select id="wiki.output" name="wiki.output" class="content">
+							<option value="strip"><xsl:value-of select="/root/gui/config/removeStyling"/></option>
+							<option value="keep"><xsl:value-of select="/root/gui/config/keepStyling"/></option>
+						</select>
+					</td>
+				</tr>
+				<tr id="wiki.mefoutput.row">
+					<td class="padded" width="{$width}"><label for="wiki.mefoutput"><xsl:value-of select="/root/gui/config/wikiMEFOutput"/></label></td>
+					<td class="padded">
+						<select id="wiki.mefoutput" name="wiki.mefoutput" class="content">
+							<option value="strip"><xsl:value-of select="/root/gui/config/removeStyling"/></option>
+							<option value="keep"><xsl:value-of select="/root/gui/config/keepStyling"/></option>
+						</select>
+					</td>
+				</tr>
 			</table>
 		</div>
 	</xsl:template>

@@ -222,6 +222,8 @@ public class Set implements Service
         new ConfigEntry(ConfigEntry.Type.STRING, false, "shib/defaultGroup",            "system/shib/defaultGroup"),
         
         new ConfigEntry(ConfigEntry.Type.STRING, true,  "wiki/markup",      "system/wiki/markup"),
+        new ConfigEntry(ConfigEntry.Type.STRING, true,  "wiki/output",      "system/wiki/output"),
+        new ConfigEntry(ConfigEntry.Type.STRING, true,  "wiki/mefoutput",   "system/wiki/mefoutput"),
 
 
 	};

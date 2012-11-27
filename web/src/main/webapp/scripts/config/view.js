@@ -163,8 +163,23 @@ function ConfigView(strLoader)
         }
 
     });
+    
+    Event.observe($('wiki.markup'), 'change', this.setWikiOutputFieldVisibility);
 }
 
+
+//=====================================================================================
+
+ConfigView.prototype.setWikiOutputFieldVisibility = function()
+{
+	if ($('wiki.markup').value !== 'none') {
+    	$("wiki.output.row").show();
+    	$("wiki.mefoutput.row").show();
+	} else {
+    	$("wiki.output.row").hide();
+    	$("wiki.mefoutput.row").hide();		
+	}
+}
 
 //=====================================================================================
 
@@ -225,6 +240,10 @@ ConfigView.prototype.setData = function(data)
 	var hyperlinks = $('clickablehyperlinks.enable');
 	hyperlinks.checked = data['CLICKABLE_HYPERLINKS'] == 'true';
 	$('wiki.markup').value = data['WIKI_MARKUP'];
+	$('wiki.output').value = data['WIKI_OUTPUT'];
+	$('wiki.mefoutput').value = data['WIKI_MEFOUTPUT'];
+
+	this.setWikiOutputFieldVisibility();
 
 	$('localrating.enable').checked = data['LOCAL_RATING'] == 'true';
 	$('autofixing.enable').checked = data['AUTO_FIXING'] == 'true';
@@ -342,6 +361,8 @@ ConfigView.prototype.getData = function()
 
 		CLICKABLE_HYPERLINKS : $('clickablehyperlinks.enable').checked,
 		WIKI_MARKUP : $F('wiki.markup'),
+		WIKI_OUTPUT : $F('wiki.output'),
+		WIKI_MEFOUTPUT : $F('wiki.mefoutput'),
 		
 		LOCAL_RATING : $('localrating.enable').checked,
 		AUTO_FIXING : $('autofixing.enable').checked,
