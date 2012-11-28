@@ -23,7 +23,6 @@
 
 package org.fao.geonet.kernel.mef;
 
-import static java.io.File.separator;
 import jeeves.exceptions.BadInputEx;
 import jeeves.exceptions.BadParameterEx;
 import jeeves.resources.dbms.Dbms;
@@ -37,8 +36,8 @@ import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.exceptions.MetadataNotFoundEx;
 import org.fao.geonet.kernel.AccessManager;
 import org.fao.geonet.kernel.DataManager;
-import org.fao.geonet.kernel.setting.SettingManager;
 import org.fao.geonet.util.ISODate;
+import org.fao.geonet.util.XslUtil;
 import org.jdom.Document;
 import org.jdom.Element;
 
@@ -51,7 +50,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -244,24 +242,15 @@ public class MEFLib {
         boolean withEditorValidationErrors = false;
         Element metadata = dm.getMetadata(context, id, forEditing, withEditorValidationErrors, !removeXlinkAttribute);
         metadata.removeChild("info", Edit.NAMESPACE);
-        SettingManager settingManager = context.getHandlerContext(GeonetContext.class).getSettingManager();
-        String mefOutput = settingManager.getValue(Geonet.Settings.WIKI_MEFOUTPUT);
-        String markupType = settingManager.getValue(Geonet.Settings.WIKI_SYNTAX);
-        if(!"none".equals(markupType) && Geonet.Settings.Values.STRIP_MARKUP.equals(mefOutput)) {
-            String styleSheetPath = context.getAppPath() + separator + "/" + separator + "xsl" + separator + "strip-wiki-markup.xsl";
-            
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("markupType", markupType);
-            params.put("outputType", mefOutput);
-            metadata = Xml.transform(metadata, styleSheetPath, params);
-        }
+        String outputParamPath = Geonet.Settings.WIKI_MEFOUTPUT;
+        metadata = XslUtil.controlForMarkup(context, metadata, outputParamPath);
         Element mdEl = new Element("data").setText(Xml.getString(metadata));
         record.addContent(mdEl);
 
         return record;
 	}
 
-	/**
+    /**
 	 * Add an entry to ZIP file
 	 * 
 	 * @param zos
