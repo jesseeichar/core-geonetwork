@@ -133,7 +133,7 @@ public class Show implements Service
 			elMd = dm.enumerateTree(elMd);
 		}
 
-		if (isExport) {
+		if (isExport || Util.getParam(params, "isExport", false)) {
 		    elMd = XslUtil.controlForMarkup(context, elMd, Geonet.Settings.WIKI_OUTPUT);
 		}
 		//
