@@ -8,6 +8,7 @@
 	
 	<xsl:param name="markupType">Default</xsl:param>
 	<xsl:param name="outputType"/>
+	<xsl:param name="wysiwygEnabled"/>
 
 	<xsl:template priority="100" match="@*|node()">
 	
@@ -51,6 +52,7 @@
 				<xsl:with-param name="node" select="$node"/>
 				<xsl:with-param name="text" select="."/>
 				<xsl:with-param name="markupType" select="$markupType"/>
+				<xsl:with-param name="wysiwygEnabled" select="$wysiwygEnabled"/>
 			</xsl:call-template>
 		</xsl:variable>
 		<xsl:copy>

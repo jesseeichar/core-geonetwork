@@ -176,6 +176,7 @@ public class Set implements Service
         new ConfigEntry(ConfigEntry.Type.STRING, false, "csw/metadataPublic",                          "system/csw/metadataPublic"),
 
 		new ConfigEntry(ConfigEntry.Type.BOOL,   true,  "clickablehyperlinks/enable", "system/clickablehyperlinks/enable"),
+		new ConfigEntry(ConfigEntry.Type.BOOL,   true,  "wysiwyg/enable", "system/wysiwyg/enable"),
 		
 		new ConfigEntry(ConfigEntry.Type.BOOL,   true,  "localrating/enable", "system/localrating/enable"),
         new ConfigEntry(ConfigEntry.Type.BOOL,   true,  "autofixing/enable", "system/autofixing/enable"),

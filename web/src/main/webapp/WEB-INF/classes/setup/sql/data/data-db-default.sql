@@ -1019,6 +1019,8 @@ INSERT INTO Settings VALUES (961,960,'markup','none');
 INSERT INTO Settings VALUES (962,960,'output','strip');
 INSERT INTO Settings VALUES (963,960,'mefoutput','strip');
 
+INSERT INTO Settings VALUES (964,1,'wysiwyg',NULL);
+INSERT INTO Settings VALUES (965,964,'enable','false');
 
 -- ======================================================================
 -- === Table: Users

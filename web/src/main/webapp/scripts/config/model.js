@@ -74,6 +74,7 @@ ConfigModel.prototype.getConfig_OK = function(node)
 
 			
             CLICKABLE_HYPERLINKS         : xml.evalXPath(node, 'clickablehyperlinks/enable'),
+            WYSIWYG             		 : xml.evalXPath(node, 'wysiwyg/enable'),
             WIKI_MARKUP         		 : xml.evalXPath(node, 'wiki/markup'),
             WIKI_OUTPUT         		 : xml.evalXPath(node, 'wiki/output'),
             WIKI_MEFOUTPUT         		 : xml.evalXPath(node, 'wiki/mefoutput'),
@@ -217,6 +218,9 @@ ConfigModel.updateTemp =
 '	<clickablehyperlinks>' +
 '		<enable>{CLICKABLE_HYPERLINKS}</enable>'+
 '	</clickablehyperlinks>' +
+'	<wysiwyg>' +
+'		<enable>{WYSIWYG}</enable>'+
+'	</wysiwyg>' +
 '	<wiki>' +
 '		<markup>{WIKI_MARKUP}</markup>'+
 '		<output>{WIKI_OUTPUT}</output>'+

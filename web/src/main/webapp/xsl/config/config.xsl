@@ -567,6 +567,10 @@
 					<td class="padded"><input id="clickablehyperlinks.enable" class="content" type="checkbox" value=""/></td>
 				</tr>
 				<tr>
+					<td class="padded" width="{$width}"><label for="wysiwyg.enable"><xsl:value-of select="/root/gui/config/wysiwyg"/></label></td>
+					<td class="padded"><input id="wysiwyg.enable" class="content" type="checkbox" value=""/></td>
+				</tr>
+				<tr>
 					<td class="padded" width="{$width}"><label for="wiki.markup"><xsl:value-of select="/root/gui/config/markup"/></label></td>
 					<td class="padded">
 						<select id="wiki.markup" name="wiki.markup" class="content">
