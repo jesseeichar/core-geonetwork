@@ -1,10 +1,12 @@
 package org.fao.geonet.services.region;
 
+import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.util.HashMap;
 
 import org.fao.geonet.csw.common.util.Xml;
 import org.geotools.gml2.GMLConfiguration;
+import org.geotools.xml.Encoder;
 import org.geotools.xml.Parser;
 import org.jdom.Element;
 
@@ -33,10 +35,15 @@ public enum GeomFormat {
         GMLConfiguration gml2Config = new GMLConfiguration();
         org.geotools.gml3.GMLConfiguration gml3Config = new org.geotools.gml3.GMLConfiguration();
         org.geotools.gml3.v3_2.GMLConfiguration gml32Config = new org.geotools.gml3.v3_2.GMLConfiguration();
-        GMLWriter writer = new GMLWriter(true);
         @Override
         public Element toElement(Geometry geom) throws Exception {
-            return Xml.loadString(writer.write(geom), true);
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            final Encoder encoder = new Encoder(gml3Config);
+            encoder.setIndenting(false);
+            encoder.encode(geom, org.geotools.gml3.GML.geometryMember, outputStream);
+            String gmlString = outputStream.toString();
+
+            return Xml.loadString(gmlString, false);
         }
 
         @SuppressWarnings("rawtypes")

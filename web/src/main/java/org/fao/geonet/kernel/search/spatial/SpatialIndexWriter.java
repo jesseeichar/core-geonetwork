@@ -48,6 +48,7 @@ import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
 import org.geotools.data.memory.MemoryFeatureCollection;
+import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.GeoTools;
 import org.geotools.feature.FeatureIterator;
@@ -92,7 +93,7 @@ public class SpatialIndexWriter implements FeatureListener
 
     private final Parser                              _parser;
     private final Transaction                         _transaction;
-    private final  int                                _maxWrites;
+    private  int                                 _maxWrites;
     private final Lock                                _lock;
     private FeatureStore<SimpleFeatureType, SimpleFeature> _featureStore;
     private STRtree                                   _index;
@@ -158,7 +159,7 @@ public class SpatialIndexWriter implements FeatureListener
             Geometry geometry = extractGeometriesFrom(
                     schemaDir, metadata, _parser, errorMessage);
 
-            if (geometry != null) {
+            if (geometry != null && !geometry.getEnvelopeInternal().isNull()) {
                 MemoryFeatureCollection features = new MemoryFeatureCollection(_featureStore.getSchema());
                 SimpleFeatureType schema = _featureStore.getSchema();
                 
@@ -168,11 +169,7 @@ public class SpatialIndexWriter implements FeatureListener
                 template.setAttribute(_IDS_ATTRIBUTE_NAME, id);
                 features.add(template);
 
-                List<FeatureId> ids = _featureStore.addFeatures(features);
-                for (FeatureId featureId : ids) {
-	                String id2 = featureId.getID();
-					SpatialFilter.getJCSCache().remove(id2);
-                }
+                _featureStore.addFeatures(features);
 
                 _writes++;
 

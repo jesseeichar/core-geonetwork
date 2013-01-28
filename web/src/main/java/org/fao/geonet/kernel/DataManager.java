@@ -369,7 +369,7 @@ public class DataManager {
                     Thread.sleep(10000); // sleep 10 seconds
                 }
                 Dbms dbms = (Dbms) context.getResourceManager().openDirect(Geonet.Res.MAIN_DB);
-                if(user != null) {
+                if(user != null && !context.getUserSession().isAuthenticated()) {
                     context.getUserSession().loginAs(user);
                 }
                 try {
