@@ -2,6 +2,7 @@ package jeeves.server;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -10,49 +11,37 @@ import jeeves.utils.Xml;
 
 import org.jdom.Element;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.ReflectionUtils;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+public class SpringPropertyOverrides {
 
-public class ConfigurationOverridesPostProcessor implements BeanPostProcessor, ApplicationContextAware {
-
-    Multimap<String, PropertyUpdater> updaters = HashMultimap.create();
-    private ApplicationContext applicationContext;
+    List<PropertyUpdater> updaters = new LinkedList<PropertyUpdater>();
     private Properties properties;
 
-    public ConfigurationOverridesPostProcessor(List<Element> add, List<Element> set, Properties properties) {
+    public SpringPropertyOverrides(List<Element> add, List<Element> set, Properties properties) {
         this.properties = properties;
         for (Element element : set) {
             PropertyUpdater updater = PropertyUpdater.create(element);
-            this.updaters.put(updater.getBeanName(), updater);
+            this.updaters.add(updater);
         }
         for (Element element : add) {
             PropertyUpdater updater = PropertyUpdater.create(element);
-            this.updaters.put(updater.getBeanName(), updater);
+            this.updaters.add(updater);
         }
     }
 
-    @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        return null;
-    }
-
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        for (PropertyUpdater updater : updaters.get(beanName)) {
-            updater.update(applicationContext, properties, bean);
+    public void applyOverrides(ApplicationContext applicationContext) throws BeansException {
+        for (PropertyUpdater updater : updaters) {
+            Object bean = applicationContext.getBean(updater.beanName);
+            if(bean != null) {
+                updater.update(applicationContext, properties, bean);
+            } else {
+                Log.warning(Log.JEEVES, "Unable apply override to bean: "+updater.beanName+" because bean was not found");
+            }
         }
-        return null;
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
     private static abstract class PropertyUpdater {
 
         public static PropertyUpdater create(Element element) {
@@ -69,6 +58,8 @@ public class ConfigurationOverridesPostProcessor implements BeanPostProcessor, A
             ValueLoader valueLoader;
             if(element.getAttributeValue("ref") != null) {
                 valueLoader = new RefValueLoader(element.getAttributeValue("ref"));
+            }else if(element.getAttributeValue("value") != null) {
+                valueLoader = new ValueValueLoader(element.getAttributeValue("value"));
             } else {
                 throw new IllegalArgumentException(Xml.getString(element)+" does not have a value associated with it that is recognized. Excepted ref or value attribute");
             }
@@ -78,7 +69,13 @@ public class ConfigurationOverridesPostProcessor implements BeanPostProcessor, A
 
         public Object update(ApplicationContext applicationContext, Properties properties, Object bean) {
             Object value = valueLoader.load(applicationContext, properties);
+            if (value instanceof String) {
+                String string = (String) value;
+                value = ConfigurationOverrides.updatePropertiesInText(properties, string);
+            }
+
             Field field = ReflectionUtils.findField(bean.getClass(), propertyName);
+            field.setAccessible(true);
             return doUpdate(applicationContext, bean, field, value);
         }
         protected abstract Object doUpdate(ApplicationContext applicationContext, Object bean, Field field, Object value);
@@ -95,10 +92,6 @@ public class ConfigurationOverridesPostProcessor implements BeanPostProcessor, A
         }
         private void setBeanName(String beanName) {
             this.beanName = beanName;
-        }
-
-        public String getBeanName() {
-            return beanName;
         }
     }
     private static class SetPropertyUpdater extends PropertyUpdater {
@@ -121,6 +114,8 @@ public class ConfigurationOverridesPostProcessor implements BeanPostProcessor, A
             if (originalValue instanceof Collection) {
                 Collection<Object> coll = (Collection<Object>) originalValue;
                 coll.add(value);
+            } else {
+                throw new IllegalArgumentException(originalValue+" is not a collection as expected");
             }
             return bean;
         }
@@ -129,6 +124,20 @@ public class ConfigurationOverridesPostProcessor implements BeanPostProcessor, A
     
     private static interface ValueLoader {
         Object load(ApplicationContext context, Properties properties);
+    }
+    private static class ValueValueLoader implements ValueLoader {
+
+        private String value;
+
+        public ValueValueLoader(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String load(ApplicationContext context, Properties properties) {
+            return this.value;
+        }
+        
     }
     private static class RefValueLoader implements ValueLoader {
         private String beanName;
@@ -142,10 +151,6 @@ public class ConfigurationOverridesPostProcessor implements BeanPostProcessor, A
             Object bean = context.getBean(beanName);
             if(bean == null) {
                 throw new IllegalArgumentException("Could not find a bean with id: "+beanName);
-            }
-            if (bean instanceof String) {
-                String string = (String) bean;
-                bean = ConfigurationOverrides.updatePropertiesInText(properties, string);
             }
             return bean;
         }

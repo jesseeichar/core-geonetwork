@@ -102,7 +102,7 @@ public class ConfigurationOveridesTest {
     public void updateSpringConfiguration() throws JDOMException, IOException {
         JeevesApplicationContext applicationContext = new JeevesApplicationContext();
         applicationContext.setAppPath(appPath);
-        applicationContext.setConfigLocation("test-spring-config.xml");
+        applicationContext.setConfigLocation("classpath:test-spring-config.xml");
         System.setProperty("geonetwork."+ConfigurationOverrides.OVERRIDES_KEY, ",/WEB-INF/test-spring-config-overrides.xml");
         applicationContext.refresh();
 
@@ -116,9 +116,9 @@ public class ConfigurationOveridesTest {
         
         assertEquals("overriddenProp", testBean.getBasicProp());
         assertEquals(testBean2, testBean.getSimpleRef());
-        assertTrue("testbean has a testbean added to one of its collections", testBean.getCollectionRef().contains(testBean3));
+        assertTrue("testbean should have a testbean added to one of its collections", testBean.getCollectionRef().contains(testBean3));
         assertEquals("astring", testBean.getBasicProp2());
-        assertTrue("testBeans contains 'newString' in its collection of strings", testBean.getCollectionProp().contains("newString"));
+        assertTrue("testBeans doesn't contain 'newString' in its collection of strings", testBean.getCollectionProp().contains("newString"));
     }
 
     @Test

@@ -5,7 +5,8 @@
 	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <ctx:property-override location="test-spring-overrides.properties"/>
+	<import resource="classpath:correct-webapp/spring/imported-config2.xml"/>
+    <ctx:property-override location="classpath:correct-webapp/spring/test-spring-overrides.properties"/>
     
     <bean id="testBean2" class="jeeves.server.TestBean"/>
     <bean id="astring" class="java.lang.String">
