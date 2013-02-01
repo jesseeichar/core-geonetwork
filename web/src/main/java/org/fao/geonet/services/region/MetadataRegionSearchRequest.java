@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import jeeves.resources.dbms.Dbms;
 import jeeves.server.context.ServiceContext;
 import jeeves.utils.Xml;
 
@@ -149,9 +150,16 @@ public class MetadataRegionSearchRequest extends Request {
     }
 
     private Element findMetadata(String fileId) throws Exception {
-        GeonetContext gc = (GeonetContext) context.getHandlerContext(Geonet.CONTEXT_NAME);
+ GeonetContext gc = (GeonetContext) context.getHandlerContext(Geonet.CONTEXT_NAME);
         
         String mdId = Utils.lookupMetadataIdFromFileId(gc, fileId);
+        if (mdId == null) {
+            Dbms dbms = (Dbms) context.getResourceManager().open(Geonet.Res.MAIN_DB);
+            mdId = gc.getDataManager().getMetadataId(dbms, fileId);
+        }
+
+        Lib.resource.checkPrivilege(context, mdId, AccessManager.OPER_VIEW);
+
         boolean withEditorValidationErrors = false;
         boolean keepXlinkAttributes = true;
         
