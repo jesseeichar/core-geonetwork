@@ -2,7 +2,7 @@ package jeeves.config.springutil;
 
 import java.io.IOException;
 
-import jeeves.server.ConfigurationOverrides;
+import jeeves.server.overrides.ConfigurationOverrides;
 
 import org.jdom.JDOMException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;

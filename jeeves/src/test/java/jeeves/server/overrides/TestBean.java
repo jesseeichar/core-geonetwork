@@ -1,4 +1,4 @@
-package jeeves.server;
+package jeeves.server.overrides;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +8,7 @@ public class TestBean {
     private String basicProp2;
     private List<String> collectionProp = new ArrayList<String>();
     private List<String> collectionProp2 = new ArrayList<String>();
-    private TestBean simpleRef;
+    private TestBean simpleRefOtherNameForTesting;
     private List<TestBean> collectionRef = new ArrayList<TestBean>();
 
     public TestBean() {
@@ -34,10 +34,10 @@ public class TestBean {
         this.collectionProp = collectionProp;
     }
     public TestBean getSimpleRef() {
-        return simpleRef;
+        return simpleRefOtherNameForTesting;
     }
     public void setSimpleRef(TestBean simpleRef) {
-        this.simpleRef = simpleRef;
+        this.simpleRefOtherNameForTesting = simpleRef;
     }
     public List<TestBean> getCollectionRef() {
         return collectionRef;

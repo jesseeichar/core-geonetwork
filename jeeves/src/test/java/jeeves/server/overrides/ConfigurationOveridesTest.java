@@ -1,20 +1,22 @@
-package jeeves.server;
+package jeeves.server.overrides;
 
 
+import jeeves.config.springutil.GeonetworkFilterSecurityInterceptor;
 import jeeves.config.springutil.JeevesApplicationContext;
+import jeeves.server.overrides.ConfigurationOverrides;
 import jeeves.utils.Xml;
 import org.apache.log4j.Level;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.junit.Test;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.security.access.ConfigAttribute;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -104,6 +106,15 @@ public class ConfigurationOveridesTest {
         applicationContext.setAppPath(appPath);
         applicationContext.setConfigLocation("classpath:test-spring-config.xml");
         System.setProperty("geonetwork."+ConfigurationOverrides.OVERRIDES_KEY, ",/WEB-INF/test-spring-config-overrides.xml");
+        updateAndPerformSpringAssertions(applicationContext);
+        
+        // make sure refresh works multiple times
+        updateAndPerformSpringAssertions(applicationContext);
+        
+        // make sure refresh works multiple times
+        updateAndPerformSpringAssertions(applicationContext);
+    }
+    private void updateAndPerformSpringAssertions(JeevesApplicationContext applicationContext) {
         applicationContext.refresh();
 
         TestBean testBean = applicationContext.getBean("testBean", TestBean.class); 
@@ -119,6 +130,18 @@ public class ConfigurationOveridesTest {
         assertTrue("testbean should have a testbean added to one of its collections", testBean.getCollectionRef().contains(testBean3));
         assertEquals("astring", testBean.getBasicProp2());
         assertTrue("testBeans doesn't contain 'newString' in its collection of strings", testBean.getCollectionProp().contains("newString"));
+        
+        GeonetworkFilterSecurityInterceptor filterSecurityInterceptor = applicationContext.getBean("filterSecurityInterceptor", GeonetworkFilterSecurityInterceptor.class);
+        Collection<ConfigAttribute> attributes = filterSecurityInterceptor.getSecurityMetadataSource().getAllConfigAttributes();
+        String expectedExp = "hasRole('Administrator')";
+        boolean found = false;
+        for (ConfigAttribute configAttribute : attributes) {
+            if(configAttribute.toString().equals(expectedExp)) {
+                found = true;
+            }
+        }
+        
+        assertTrue(attributes+" does not contain "+expectedExp, found);
     }
 
     @Test

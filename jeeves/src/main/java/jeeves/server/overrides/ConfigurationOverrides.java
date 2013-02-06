@@ -1,4 +1,4 @@
-package jeeves.server;
+package jeeves.server.overrides;
 
 import jeeves.config.springutil.JeevesApplicationContext;
 import jeeves.utils.Log;
@@ -147,7 +147,7 @@ public class ConfigurationOverrides {
     }
 
     static String LOGFILE_XPATH = "logging/logFile";
-    static String OVERRIDES_KEY = "jeeves.configuration.overrides.file";
+    public static String OVERRIDES_KEY = "jeeves.configuration.overrides.file";
     private static String ATTNAME_ATTR_NAME = "attName";
     private static String VALUE_ATTR_NAME = "value";
     private static String XPATH_ATTR_NAME = "xpath";
@@ -995,18 +995,18 @@ public class ConfigurationOverrides {
             return;
         }
         
-        List<Element> add = new ArrayList<Element>();
-        List<Element> set = new ArrayList<Element>();
-        for(Element e: (List<Element>) overrides.getChildren("spring")) {
-            add.addAll(e.getChildren("add"));
-            set.addAll(e.getChildren("set"));
-        }
-        
         Properties properties = loadProperties(overrides);
-        
-        
-        new SpringPropertyOverrides(add,set,properties).applyOverrides(jeevesApplicationContext);
+        List<Element> updateEls = new ArrayList<Element>();
+        List<Element> spring = new ArrayList<Element>(overrides.getChildren("spring"));
+        for (Element el: spring) {
+            for (Element element : (List<Element>) el.getChildren()) {
+                if(!element.getName().equals("import")) {
+                    updateEls.add(element);
+                }
+                
+            }
+        }
+        new SpringPropertyOverrides(updateEls, properties).applyOverrides(jeevesApplicationContext);
     }
-
 
 }

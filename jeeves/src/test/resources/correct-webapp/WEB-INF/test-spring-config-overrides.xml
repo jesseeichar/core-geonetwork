@@ -10,5 +10,6 @@
 		<set bean="testBean" property="basicProp2" ref="astring"/>
 		<add bean="testBean" property="collectionProp" value="${db}" />
 		<add bean="testBean" property="collectionRef" ref="testBean3" />
+		<addInterceptUrl bean="filterSecurityInterceptor" pattern="/monitor/.*" access="hasRole('Administrator')"/>
 	</spring>
 </overrides>
