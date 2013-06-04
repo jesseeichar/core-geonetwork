@@ -454,6 +454,40 @@ CREATE TABLE spatialIndex
     primary key(fid)
   );
 
+REM ======================================================================
+
+CREATE TABLE MaintenanceReport
+  (
+    id         varchar2(256) NOT NULL,
+	taskClass  varchar2(64),
+    category   NUMBER(10) NOT NULL,
+	severity   NUMBER(10) NOT NULL,
+	ignored    CHAR(1) NOT NULL,
+	CONSTRAINT MaintenanceReport_pk PRIMARY KEY(id)
+  );
+  
+CREATE TABLE MaintenanceReportLocalization 
+  (
+    reportid        NUMBER(10),
+    langid			varchar2(3) NOT NULL,
+	name            varchar2(32) NOT NULL,
+    description     varchar2(1048),
+
+	CONSTRAINT MaintenanceReportLocal_pk PRIMARY KEY(reportId, langid),
+    CONSTRAINT MaintenanceReportLocal_fk FOREIGN KEY(reportid) references MaintenanceReport(id)
+  );
+ 
+CREATE TABLE MaintenanceParams
+  (
+    reportid        NUMBER(10),
+	id				NUMBER(10),
+	name			varchar(32),
+	"value"			varchar(256),
+
+	CONSTRAINT MaintenanceParams_pk PRIMARY KEY(id),
+    CONSTRAINT MaintenanceParams_fk FOREIGN KEY(reportid) references MaintenanceReport(id)
+  );
+  
 CREATE INDEX spatialIndexNDX1 ON spatialIndex(id);
 DELETE FROM user_sdo_geom_metadata WHERE TABLE_NAME = 'SPATIALINDEX';
 INSERT INTO user_sdo_geom_metadata (TABLE_NAME, COLUMN_NAME, DIMINFO, SRID) VALUES ( 'SPATIALINDEX', 'the_geom', SDO_DIM_ARRAY( SDO_DIM_ELEMENT('Longitude', -180, 180, 10), SDO_DIM_ELEMENT('Latitude', -90, 90, 10)), 8307);

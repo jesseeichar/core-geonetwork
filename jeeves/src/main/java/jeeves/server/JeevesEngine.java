@@ -165,7 +165,7 @@ public class JeevesEngine
 
 			// obtain application context so we can configure the serviceManager with it but we will configure it a bit later
             JeevesApplicationContext jeevesAppContext = (JeevesApplicationContext) WebApplicationContextUtils.getWebApplicationContext(servletContext);
-            
+
 			serviceMan.setAppPath(appPath);
 			serviceMan.setProviderMan(providerMan);
 			serviceMan.setMonitorMan(monitorManager);
@@ -193,6 +193,12 @@ public class JeevesEngine
             jeevesAppContext.getBeanFactory().registerSingleton("resourceManager", new ResourceManager(this.monitorManager, this.providerMan));
             jeevesAppContext.getBeanFactory().registerSingleton("profileManager", profileManager);
             jeevesAppContext.getBeanFactory().registerSingleton("serialFactory", serialFact);
+            jeevesAppContext.getBeanFactory().registerSingleton("serviceManager", serviceMan);
+
+            // Because we have to set several beans into the jeevesAppContext here we need
+            // to obtain the all beans with the PostJeevesInitialization iterface in order to have them
+            // created at a time that the application context is initialized.
+            jeevesAppContext.getBeansOfType(PostJeevesInitialization.class);
 
 			//--- handlers must be started here because they may need the context
 			//--- with the ProfileManager already loaded

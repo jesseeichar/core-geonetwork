@@ -20,8 +20,6 @@ import jeeves.utils.IO;
 import jeeves.utils.Log;
 import jeeves.utils.Util;
 
-import jeeves.utils.Xml;
-
 import org.apache.commons.io.IOUtils;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.services.NotInReadOnlyModeService;

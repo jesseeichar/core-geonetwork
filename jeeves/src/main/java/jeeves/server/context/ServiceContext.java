@@ -33,6 +33,7 @@ import jeeves.interfaces.Logger;
 import jeeves.monitor.MonitorManager;
 import jeeves.server.ProfileManager;
 import jeeves.server.UserSession;
+import jeeves.server.dispatchers.ServiceManager;
 import jeeves.server.dispatchers.guiservices.XmlCacheManager;
 import jeeves.server.local.LocalServiceRequest;
 import jeeves.server.resources.ProviderManager;
@@ -119,7 +120,9 @@ public class ServiceContext extends BasicContext
 	//---
 	//--------------------------------------------------------------------------
 
-	public ServiceContext(String service, JeevesApplicationContext jeevesApplicationContext, XmlCacheManager cacheManager, MonitorManager mm, ProviderManager pm, SerialFactory sf, ProfileManager p, Map<String, Object> contexts)
+	public ServiceContext(String service, JeevesApplicationContext jeevesApplicationContext, 
+	        XmlCacheManager cacheManager, MonitorManager mm, ProviderManager pm, 
+	        SerialFactory sf, ProfileManager p, Map<String, Object> contexts)
 	{
 		super(jeevesApplicationContext, mm, pm, sf, contexts);
 
@@ -129,7 +132,12 @@ public class ServiceContext extends BasicContext
 
         setResponseHeaders(new HashMap<String, String>());
 	}
-
+	
+    public static ServiceContext create(JeevesApplicationContext jeevesApplicationContext) {
+        ServiceManager servMan = jeevesApplicationContext.getBean(ServiceManager.class);
+        return servMan.createServiceContext("Dummy context", jeevesApplicationContext);
+    }
+	
 	//--------------------------------------------------------------------------
 	//---
 	//--- API methods

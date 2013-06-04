@@ -32,6 +32,7 @@ public interface Logger
 	public void info   (String message);
 	public void warning(String message);
 	public void error  (String message);
+	public void error(String string, Exception e);
 	public void fatal  (String message);
     public String getModule();
 }

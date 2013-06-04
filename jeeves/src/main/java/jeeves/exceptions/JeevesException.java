@@ -126,11 +126,11 @@ public abstract class JeevesException extends AuthenticationException
 			at.setAttribute("method", (meth == null) ? "???" : meth);
 
 
-            if (--depth >= 0 || 
+            if (clas != null && (--depth >= 0 || 
                     clas.startsWith("org.fao") || 
                     clas.startsWith("org.wfp") || 
                     clas.startsWith("jeeves")  ||
-                    clas.startsWith("org.geonetwork")) {
+                    clas.startsWith("org.geonetwork"))) {
                 writing = true;
                 stack.addContent(at);
             } else if (writing) {

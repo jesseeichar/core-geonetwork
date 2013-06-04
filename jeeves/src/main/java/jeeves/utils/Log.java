@@ -165,6 +165,7 @@ public final class Log
 			@Override public void error  (String message) { Log.error  (module, message); }
 			@Override public void fatal  (String message) { Log.fatal  (module, message); }
 			@Override public String getModule() {return module;}
+            @Override public void error(String message, Exception e) { Log.debug  (module, message, e); }
 		};
 	}
 
