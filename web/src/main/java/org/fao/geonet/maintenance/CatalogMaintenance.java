@@ -22,13 +22,11 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 /**
- * This class is responsible for running tasks that will scan the catalog
- * looking for problems in the data or even configuration.
+ * This class is responsible for running tasks that will scan the catalog looking for problems in the data or even configuration.
  * 
- * The maintenance thread will run waiting for times of little CPU usage
- * and when it is determined that there is only a light load on the system
- * the maintenance tasks will be ran.
- *
+ * The maintenance thread will run waiting for times of little CPU usage and when it is determined that there is only a light load on the
+ * system the maintenance tasks will be ran.
+ * 
  * @author Jesse
  */
 @Component
@@ -43,7 +41,7 @@ public class CatalogMaintenance implements ApplicationContextAware, PostJeevesIn
         }
     }
 
-    public static final Logger LOGGER = Log.createLogger(Geonet.GEONETWORK+".maintenance");
+    public static final Logger LOGGER = Log.createLogger(Geonet.GEONETWORK + ".maintenance");
 
     private final ThreadFactory _threadFactory = new MaintenanceThreadFactory();
 
@@ -56,33 +54,39 @@ public class CatalogMaintenance implements ApplicationContextAware, PostJeevesIn
     private int _checkInterval = 500;
 
     private int _timeSinceLogging = 30000;
-    
+
+    private CpuMonitorTask _cpuMonitorTask;
+
+    private CatalogMaintenanceTaskRunner _taskRunner;
+
     /**
-     * Set the executor for executing tasks.
-     * It will have 2 tasks submitted.  The maintenance
-     * thread and a watchdog thread.
+     * Set the executor for executing tasks. It will have 2 tasks submitted. The maintenance thread and a watchdog thread.
      * 
-     * Default value is an fixed sized executor pool with 2 threads
-     * and both threads named after the runnable class and in the
-     * 'Catalog Maintenance' threadgroup.
+     * Default value is an fixed sized executor pool with 2 threads and both threads named after the runnable class and in the 'Catalog
+     * Maintenance' threadgroup.
      */
     public void setExecutorService(ExecutorService executor) {
         this._executor = executor;
     }
-    
+
     @PostConstruct
     public void start() throws BeansException, Exception {
         ResourceManager manager = _springAppContext.getBean(ResourceManager.class);
-        CpuMonitorTask cpuMonitorTask = new CpuMonitorTask(manager, _timeSinceLogging, _checkInterval, _maximumCpuUsage);
-        _executor.execute(cpuMonitorTask);
-        
+        _cpuMonitorTask = new CpuMonitorTask(manager, _timeSinceLogging, _checkInterval, _maximumCpuUsage);
+        _executor.execute(_cpuMonitorTask);
+
         Map<String, MaintenanceTask> tasks = _springAppContext.getBeansOfType(MaintenanceTask.class);
         ServiceContext context = ServiceContext.create((JeevesApplicationContext) _springAppContext);
-        _executor.execute(new CatalogMaintenanceTask(context, cpuMonitorTask, tasks));
+        _taskRunner = new CatalogMaintenanceTaskRunner(context, _cpuMonitorTask, tasks);
+        _executor.execute(_taskRunner);
     }
-    
+
     @PreDestroy
     public void end() {
+        _cpuMonitorTask.stop();
+        _taskRunner.stop();
+        _cpuMonitorTask = null;
+        _taskRunner = null;
         _executor.shutdownNow();
     }
 

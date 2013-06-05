@@ -83,6 +83,16 @@
 		<Method name="serviceSpecificExec"/>
 	</Match>
 	<Match>
+		<Class name="org.fao.geonet.maintenance.CpuMonitorTask" />
+		<Bug pattern="UW_UNCOND_WAIT" />
+		<Method name="run"/>
+	</Match>
+	<Match>
+		<Class name="org.fao.geonet.maintenance.CpuMonitorTask" />
+		<Bug pattern="NN_NAKED_NOTIFY" />
+		<Method name="close"/>
+	</Match>
+	<Match>
 		<Bug pattern="SE_COMPARATOR_SHOULD_BE_SERIALIZABLE" />
 	</Match>
 	

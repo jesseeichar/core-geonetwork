@@ -26,14 +26,14 @@ public class CpuMonitorTask implements Runnable, MaintenanceMonitor {
     private static final String GROUP_ID_PARAM_NAME = "groupId";
     private static final Object USER_ID_PARAM_NAME = "userId";
     private static final String FIXLINK_ID_PARAM_NAME = "fixLinkId";
-    
+
     private static final int LOG_INTERVAL = 30000;
     private static final String REPORTS_TABLE = "MaintenanceReports";
     private static final String REPORTS_LOCAL_TABLE = "MaintenanceReportLocalization";
     private static final String REPORTS_PARAMS_TABLE = "MaintenanceParams";
     private BlockingQueue<MaintenanceReport> _reports = new ArrayBlockingQueue<MaintenanceReport>(20);
     private final AtomicBoolean _canRun = new AtomicBoolean(false);
-    private int _timeSinceLogging;
+    private long _timeSinceLogging;
     private int _checkInterval;
 
     private Map<Long, ThreadTime> _threadTimeMap = new HashMap<Long, ThreadTime>();
@@ -42,6 +42,7 @@ public class CpuMonitorTask implements Runnable, MaintenanceMonitor {
     private double _maximumCpuUsage;
     private ResourceManager _resourceManager;
     private SerialFactory _serialFactory = new SerialFactory();
+    private volatile boolean _stopped = true;
 
     public CpuMonitorTask(ResourceManager resourceManager, int _timeSinceLogging, int _checkInterval, double _maximumCpuUsage) {
         super();
@@ -53,7 +54,7 @@ public class CpuMonitorTask implements Runnable, MaintenanceMonitor {
 
     @Override
     public void run() {
-        while (!Thread.interrupted()) {
+        while (!_stopped && !Thread.interrupted()) {
 
             Set<Long> mappedIds;
             mappedIds = new HashSet<Long>(_threadTimeMap.keySet());
@@ -71,20 +72,23 @@ public class CpuMonitorTask implements Runnable, MaintenanceMonitor {
                 threadTime.setCurrent(_threadBean.getThreadCpuTime(threadTime.getId()));
             }
 
-            double avarageUsagePerCPU = getAvarageUsagePerCPU();
+            double avarageUsagePerCPU = getAverageUsagePerCPU();
             if (avarageUsagePerCPU > this._maximumCpuUsage) {
                 _canRun.set(false);
             } else {
                 if (_reports.isEmpty()) {
-                    _canRun.set(true);
-                    notifyAll();
+                    synchronized (this) {
+                        _canRun.set(true);
+                        notifyAll();
+                    }
                 } else {
                     handleNextReport();
                 }
             }
 
-            if (LOGGER.isDebugEnabled() && _timeSinceLogging > LOG_INTERVAL) {
-                LOGGER.debug("Maintenance can run: " + _canRun + "\n CPU usage: "+avarageUsagePerCPU);
+            if (LOGGER.isDebugEnabled() && System.currentTimeMillis() - _timeSinceLogging > LOG_INTERVAL) {
+                LOGGER.debug("Maintenance can run: " + _canRun + "\n CPU usage: " + avarageUsagePerCPU);
+                _timeSinceLogging = System.currentTimeMillis();
             }
 
             try {
@@ -107,36 +111,41 @@ public class CpuMonitorTask implements Runnable, MaintenanceMonitor {
                 dbms = (Dbms) _resourceManager.openDirect(Geonet.Res.MAIN_DB);
                 String id = report.getId();
                 String taskClass = report.getTaskClass();
-                String insertIntoReportSQL = "INSERT INTO "+REPORTS_TABLE+" (id, taskClass, category, severity) VALUES (?,?,?)";
-                String insertIntoLocalSQL = "INSERT INTO "+REPORTS_LOCAL_TABLE+" (reportid, landid, name, description) VALUES (?,?,?,?,?)";
-                String insertIntoParamsSQL = "INSERT INTO "+REPORTS_PARAMS_TABLE+" (reportid, id, name, value) VALUES (?,?,?,?)";
-                
+                String insertIntoReportSQL = "INSERT INTO " + REPORTS_TABLE + " (id, taskClass, category, severity) VALUES (?,?,?)";
+                String insertIntoLocalSQL = "INSERT INTO " + REPORTS_LOCAL_TABLE
+                        + " (reportid, landid, name, description) VALUES (?,?,?,?,?)";
+                String insertIntoParamsSQL = "INSERT INTO " + REPORTS_PARAMS_TABLE + " (reportid, id, name, value) VALUES (?,?,?,?)";
+
                 dbms.execute(insertIntoReportSQL, id, report.getCategory().ordinal(), report.getSeverity().ordinal());
                 for (MaintenanceIssueDescription desc : report.getDescription().values()) {
                     dbms.execute(insertIntoLocalSQL, id, taskClass, desc._lang, desc._name, desc._description);
                 }
 
                 for (int groupId : report.getGroupIds()) {
-                    int groupIdParam = _serialFactory.getSerial(dbms, REPORTS_PARAMS_TABLE); 
+                    int groupIdParam = _serialFactory.getSerial(dbms, REPORTS_PARAMS_TABLE);
                     dbms.execute(insertIntoParamsSQL, id, groupIdParam, GROUP_ID_PARAM_NAME, groupId);
                 }
                 for (int userId : report.getUserIds()) {
-                    int userIdParam = _serialFactory.getSerial(dbms, REPORTS_PARAMS_TABLE); 
+                    int userIdParam = _serialFactory.getSerial(dbms, REPORTS_PARAMS_TABLE);
                     dbms.execute(insertIntoParamsSQL, id, userIdParam, USER_ID_PARAM_NAME, userId);
                 }
                 for (URL fixLink : report.getFixLink()) {
-                    int fixLinkIdParam = _serialFactory.getSerial(dbms, REPORTS_PARAMS_TABLE); 
+                    int fixLinkIdParam = _serialFactory.getSerial(dbms, REPORTS_PARAMS_TABLE);
                     dbms.execute(insertIntoParamsSQL, id, fixLinkIdParam, FIXLINK_ID_PARAM_NAME, fixLink);
                 }
+                dbms.commit();
             } catch (Exception e) {
-                LOGGER.error("There was an error while attempting to use dbms: "+dbms,e);
+                if (dbms != null) {
+                    dbms.abort();
+                }
+                LOGGER.error("There was an error while attempting to use dbms: " + dbms, e);
             } finally {
                 try {
                     _resourceManager.close(Geonet.Res.MAIN_DB, dbms);
                 } catch (Exception e) {
                     _canRun.set(false);
                     _reports.add(report);
-                    LOGGER.error("There was an error while attempting to close the dbms: ",e);
+                    LOGGER.error("There was an error while attempting to close the dbms: ", e);
                 }
             }
         }
@@ -148,12 +157,12 @@ public class CpuMonitorTask implements Runnable, MaintenanceMonitor {
 
         double usage = 0D;
         for (ThreadTime threadTime : values) {
-            usage += ((double)(threadTime.getCurrent() - threadTime.getLast())) / ((double)_checkInterval * 10000);
+            usage += ((double) (threadTime.getCurrent() - threadTime.getLast())) / ((double) _checkInterval * 10000);
         }
         return usage;
     }
 
-    private double getAvarageUsagePerCPU() {
+    private double getAverageUsagePerCPU() {
         return getTotalUsage() / _opBean.getAvailableProcessors();
     }
 
@@ -183,8 +192,10 @@ public class CpuMonitorTask implements Runnable, MaintenanceMonitor {
         if (Thread.interrupted()) {
             throw new InterruptedException("A trigger has been sent indicating we must shutdown");
         }
-        while (!_canRun.get()) {
-            wait();
+        synchronized (this) {
+            while (!_canRun.get() && !_stopped) {
+                wait();
+            }
         }
     }
 
@@ -226,6 +237,14 @@ public class CpuMonitorTask implements Runnable, MaintenanceMonitor {
 
         public void setCurrent(long current) {
             this.current = current;
+        }
+    }
+
+    public void stop() {
+        synchronized (this) {
+            _reports.clear();
+            this._stopped = true;
+            notifyAll();
         }
     }
 }

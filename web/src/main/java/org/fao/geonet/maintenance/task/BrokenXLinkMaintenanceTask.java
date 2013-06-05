@@ -44,17 +44,31 @@ public class BrokenXLinkMaintenanceTask implements MaintenanceTask {
     private static final class ElementToIdTransformFunction implements Function<Element, String> {
         @Override
         @Nullable
-        public String apply(@Nonnull Element input) {
-            return input.getChildText("id");
+        public String apply(@Nullable Element input) {
+            if (input != null) {
+                return input.getChildText("id");
+            } else {
+                throw new IllegalArgumentException();
+            }
+            
         }
     }
 
     private static Pattern LINK_PATTERN = Pattern.compile("(https://|http://)[^\\s<>]*\\w");
 
-    private static final int LOAD_IDS = 0;
-    private static final int LOAD_METADATA = 1;
-    private static final int FIND_XLINKS = 2;
-    private static final int TEST_XLINKS = 3;
+    private enum State {
+    LOAD_IDS, LOAD_METADATA, FIND_LINKS, TEST_LINKS, SLEEP;
+
+    public static State valueOf(int state) {
+        for (State s : values()) {
+            if(s.ordinal() == state) {
+                return s;
+            }
+        }
+        return LOAD_IDS;
+    }
+    
+    }
     private List<String> _ids;
     private String _currentMetadataId;
     private Element _metadata;
@@ -64,24 +78,24 @@ public class BrokenXLinkMaintenanceTask implements MaintenanceTask {
     @Override
     public int performTaskStep(int state, ServiceContext serviceContext, @Nonnull MaintenanceReporting reporting) throws 
             Exception {
-        switch (state) {
+        switch (State.valueOf(state)) {
         case LOAD_IDS:
             loadIds(serviceContext);
-            return LOAD_METADATA;
+            return State.LOAD_METADATA.ordinal();
         case LOAD_METADATA:
             loadMetadata(serviceContext);
-            return FIND_XLINKS;
-        case FIND_XLINKS:
+            return State.FIND_LINKS.ordinal();
+        case FIND_LINKS:
             findXLinks(serviceContext, reporting);
-            return TEST_XLINKS;
-        case TEST_XLINKS:
-            return testXLinks(serviceContext, reporting);
+            return State.TEST_LINKS.ordinal();
+        case TEST_LINKS:
+            return testXLinks(serviceContext, reporting).ordinal();
         default:
-            return 0;
+            return State.FIND_LINKS.ordinal();
         }
     }
 
-    private int testXLinks(ServiceContext serviceContext, MaintenanceReporting reporting) throws MalformedURLException, InterruptedException {
+    private State testXLinks(ServiceContext serviceContext, MaintenanceReporting reporting) throws MalformedURLException, InterruptedException {
         String url = _links.keySet().iterator().next();
         String xpath = _links.remove(url);
         try {
@@ -111,7 +125,11 @@ public class BrokenXLinkMaintenanceTask implements MaintenanceTask {
         } catch (Exception e) {
             reportError(serviceContext, e.getMessage(), url, xpath, reporting);
         }
-        return 0;
+        if (_links.isEmpty()) {
+            return State.SLEEP;
+        } else {
+            return State.TEST_LINKS;
+        }
     }
 
     private void reportError(ServiceContext context, String errorName, String url, String xpath, MaintenanceReporting reporting) throws MalformedURLException, InterruptedException {
@@ -166,7 +184,7 @@ public class BrokenXLinkMaintenanceTask implements MaintenanceTask {
     }
 
     private void loadMetadata(ServiceContext serviceContext) throws Exception {
-        Dbms dbms = (Dbms) serviceContext.getResourceManager().openDirect(Geonet.Res.MAIN_DB);
+        Dbms dbms = (Dbms) serviceContext.getResourceManager().open(Geonet.Res.MAIN_DB);
         _currentMetadataId = _ids.remove(_ids.size() - 1);
         GeonetContext geonetContext = (GeonetContext) serviceContext.getHandlerContext(Geonet.CONTEXT_NAME);
         _metadata = geonetContext.getDataManager().getMetadata(dbms, _currentMetadataId);
@@ -174,7 +192,7 @@ public class BrokenXLinkMaintenanceTask implements MaintenanceTask {
 
     private void loadIds(ServiceContext serviceContext) throws Exception {
 
-        Dbms dbms = (Dbms) serviceContext.getResourceManager().openDirect(Geonet.Res.MAIN_DB);
+        Dbms dbms = (Dbms) serviceContext.getResourceManager().open(Geonet.Res.MAIN_DB);
         
         @SuppressWarnings("unchecked")
         List<Element> ids = dbms.select("SELECT id from Metadata").getChildren();
