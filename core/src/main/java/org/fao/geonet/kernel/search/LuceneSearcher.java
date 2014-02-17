@@ -29,6 +29,8 @@ import jeeves.constants.Jeeves;
 import jeeves.server.ServiceConfig;
 import jeeves.server.UserSession;
 import jeeves.server.context.ServiceContext;
+import org.apache.lucene.facet.params.FacetSearchParams;
+import org.apache.lucene.facet.search.*;
 import org.fao.geonet.domain.ISODate;
 import org.fao.geonet.domain.Metadata;
 import org.fao.geonet.domain.Profile;
@@ -42,14 +44,6 @@ import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.DocumentStoredFieldVisitor;
-import org.apache.lucene.facet.search.FacetsCollector;
-import org.apache.lucene.facet.search.params.CountFacetRequest;
-import org.apache.lucene.facet.search.params.FacetRequest;
-import org.apache.lucene.facet.search.params.FacetRequest.SortBy;
-import org.apache.lucene.facet.search.params.FacetRequest.SortOrder;
-import org.apache.lucene.facet.search.params.FacetSearchParams;
-import org.apache.lucene.facet.search.results.FacetResult;
-import org.apache.lucene.facet.search.results.FacetResultNode;
 import org.apache.lucene.facet.taxonomy.CategoryPath;
 import org.apache.lucene.facet.taxonomy.TaxonomyReader;
 import org.apache.lucene.index.CorruptIndexException;
@@ -1216,7 +1210,7 @@ public class LuceneSearcher extends MetaSearcher implements MetadataRecordSelect
         if (taxonomyReader != null && buildSummary) {
         	// configure facets from configuration file
         	FacetSearchParams fsp = buildFacetSearchParams(summaryConfig);
-        	FacetsCollector facetCollector = new FacetsCollector(fsp,
+        	FacetsCollector facetCollector = FacetsCollector.create(fsp,
         			reader, taxonomyReader);
         	
         	searcher.search(query, cFilter, MultiCollector.wrap(tfc, facetCollector));
@@ -1258,9 +1252,9 @@ public class LuceneSearcher extends MetaSearcher implements MetadataRecordSelect
         try {
             for (Iterator<FacetResult> iterator = facetCollector
                     .getFacetResults().iterator(); iterator.hasNext();) {
-                FacetResult result = (FacetResult) iterator.next();
+                FacetResult result = iterator.next();
 
-                String label = result.getFacetResultNode().getLabel()
+                String label = result.getFacetResultNode().label
                         .toString();
                 FacetConfig config = summaryConfigValues.get(label);
                 String facetName = config.getPlural();
@@ -1281,17 +1275,17 @@ public class LuceneSearcher extends MetaSearcher implements MetadataRecordSelect
                 
                 Element facets = new Element(facetName);
                 FacetResultNode frn = result.getFacetResultNode();
-                if (frn.getNumSubResults() != 0) {
+                if (frn.subResults.size() != 0) {
 
                     Map<String, Double> facetValues = new LinkedHashMap<String, Double>();
 
                     // facetValues = new TreeMap<String, Double>(comparator)
-                    for (Iterator<? extends FacetResultNode> subresults = frn.getSubResults().iterator(); subresults
+                    for (Iterator<? extends FacetResultNode> subresults = frn.subResults.iterator(); subresults
                             .hasNext();) {
                         FacetResultNode node = (FacetResultNode) subresults
                                 .next();
-                        facetValues.put(node.getLabel().components[node.getLabel().length-1],
-                                node.getValue());
+                        facetValues.put(node.label.components[node.label.length-1],
+                                node.value);
                     }
                     List<Entry<String, Double>> entries = new ArrayList<Entry<String, Double>>(
                             facetValues.entrySet());
@@ -1411,8 +1405,8 @@ public class LuceneSearcher extends MetaSearcher implements MetadataRecordSelect
 			
 			FacetRequest facetRequest = new CountFacetRequest(
 					new CategoryPath(key), max);
-			facetRequest.setSortBy(SortBy.VALUE);
-			facetRequest.setSortOrder(SortOrder.DESCENDING);
+			facetRequest.setResultMode(FacetRequest.ResultMode.GLOBAL_FLAT);
+			facetRequest.setSortOrder(FacetRequest.SortOrder.DESCENDING);
 			requests.add(facetRequest);
 		}
 		return new FacetSearchParams(requests);

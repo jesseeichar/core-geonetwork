@@ -1015,7 +1015,7 @@ public class SearchManager {
         IndexAndTaxonomy indexAndTaxonomy = getNewIndexReader(null);
         try {
             @SuppressWarnings("resource")
-            AtomicReader reader = new SlowCompositeReaderWrapper(indexAndTaxonomy.indexReader);
+            AtomicReader reader = SlowCompositeReaderWrapper.wrap(indexAndTaxonomy.indexReader);
             Terms terms = reader.terms(fld);
             if (terms != null) {
                 TermsEnum enu = terms.iterator(null);

@@ -1,16 +1,14 @@
 package org.fao.geonet.kernel.search;
 
-import java.io.IOException;
-import java.text.Collator;
-
 import org.apache.lucene.index.AtomicReaderContext;
-import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.index.SortedDocValues;
 import org.apache.lucene.search.FieldCache;
-import org.apache.lucene.search.FieldCache.DocTermsIndex;
 import org.apache.lucene.search.FieldComparator;
 import org.apache.lucene.search.FieldComparatorSource;
 import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.packed.PackedInts.Reader;
+
+import java.io.IOException;
+import java.text.Collator;
 
 public class CaseInsensitiveFieldComparatorSource extends FieldComparatorSource {
 
@@ -32,22 +30,7 @@ public class CaseInsensitiveFieldComparatorSource extends FieldComparatorSource 
 
     public static final class CaseInsensitiveFieldComparator extends FieldComparator<String> {
 
-        private static final DocTermsIndex EMPTY_TERMS = new DocTermsIndex(){
-
-            @Override
-            public BytesRef getTerm(int docID, BytesRef ret) {
-                return null;
-            }
-
-            @Override
-            public int size() {
-                return 0;
-            }
-
-            @Override
-            public BytesRef lookup(int ord, BytesRef reuse) {
-                return null;
-            }
+        private static final SortedDocValues EMPTY_TERMS = new SortedDocValues(){
 
             @Override
             public int getOrd(int docID) {
@@ -55,28 +38,22 @@ public class CaseInsensitiveFieldComparatorSource extends FieldComparatorSource 
             }
 
             @Override
-            public int numOrd() {
+            public void lookupOrd(int ord, BytesRef result) {
+                // do nothign
+            }
+
+            @Override
+            public int getValueCount() {
                 return 0;
             }
-
-            @Override
-            public TermsEnum getTermsEnum() {
-                return null;
-            }
-
-            @Override
-            public Reader getDocToOrd() {
-                return null;
-            }
-            
         };
         private String[]     values;
-        private DocTermsIndex     currentReaderValues;
+        private SortedDocValues     currentReaderValues;
         private final String field;
         private String       bottom;
         private String searchLang;
         private Collator collator;
-        private DocTermsIndex shadowValues;
+        private SortedDocValues shadowValues;
 
         CaseInsensitiveFieldComparator(int numHits, String searchLang, String field) {
             values = new String[numHits];
@@ -125,12 +102,14 @@ public class CaseInsensitiveFieldComparatorSource extends FieldComparatorSource 
             String term = null;
             int ord = shadowValues.getOrd(doc);
             if(ord != 0) {
-                term = shadowValues.lookup(ord, ref).utf8ToString().trim();
+                shadowValues.lookupOrd(ord, ref);
+                term = ref.utf8ToString().trim();
             }
             if(term == null || term.isEmpty()) {
                 ord = currentReaderValues.getOrd(doc);
                 if (ord != 0) {
-                    term = currentReaderValues.lookup(ord, ref).utf8ToString().trim();
+                    currentReaderValues.lookupOrd(ord, ref);
+                    term = ref.utf8ToString().trim();
                 } else {
                     return null;
                 }

@@ -249,7 +249,7 @@ public class GetDomain extends AbstractOperation implements CatalogService
 	
 					// check if params asked is in the index using getFieldNames ?
 					@SuppressWarnings("resource")
-                    FieldInfos fi = new SlowCompositeReaderWrapper(reader).getFieldInfos();
+                    FieldInfos fi = SlowCompositeReaderWrapper.wrap(reader).getFieldInfos();
 					if (fi.fieldInfo(property) == null)
 						continue;
 					

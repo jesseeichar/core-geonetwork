@@ -5,7 +5,6 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.facet.taxonomy.CategoryPath;
 import org.apache.lucene.facet.taxonomy.TaxonomyWriter;
 import org.apache.lucene.index.*;
-import org.apache.lucene.search.NRTManager.TrackingIndexWriter;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.fao.geonet.constants.Geonet;
@@ -15,10 +14,6 @@ import org.fao.geonet.kernel.search.SearchManager;
 import org.fao.geonet.kernel.search.index.GeonetworkNRTManager.AcquireResult;
 import org.fao.geonet.utils.Log;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.*;
@@ -130,6 +125,15 @@ public class LuceneIndexLanguageTracker {
     }
 
     /**
+     * Do a commit and force all readers and writers to complete their action and retrieve a new reference to the index.
+     */
+    public void maybeRefreshBlocking() throws IOException {
+        commit();
+        for (GeonetworkNRTManager geonetworkNRTManager : searchManagers.values()) {
+            geonetworkNRTManager.maybeRefreshBlocking();
+        }
+    }
+    /**
      * Get {@linkplain org.apache.lucene.index.MultiReader}.
      *
      * @param versionToken A token indicating which state of search should be obtained
@@ -148,7 +152,7 @@ public class LuceneIndexLanguageTracker {
             if (!luceneConfig.useNRTManagerReopenThread()
                 || Boolean.parseBoolean(System.getProperty(LuceneConfig.USE_NRT_MANAGER_REOPEN_THREAD))) {
                 commit();
-                manager.maybeRefresh();
+                manager.maybeRefreshBlocking();
             }
             AcquireResult result = manager.acquire(versionToken, versionTracker);
             lastVersionUpToDate = lastVersionUpToDate && result.lastVersionUpToDate;
@@ -194,7 +198,7 @@ public class LuceneIndexLanguageTracker {
     }
 
     public synchronized void addDocument(String language, Document doc, List<CategoryPath> categories)
-            throws CorruptIndexException, LockObtainFailedException, IOException {
+            throws IOException {
         lazyInit();
         if (Log.isDebugEnabled(Geonet.INDEX_ENGINE)) {
             Log.debug(Geonet.INDEX_ENGINE, "Adding document to " + language + " index");
