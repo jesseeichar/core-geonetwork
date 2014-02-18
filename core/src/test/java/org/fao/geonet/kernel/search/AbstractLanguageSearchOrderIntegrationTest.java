@@ -276,8 +276,9 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
         int lastIndex = -1;
         for (String expectedValue : expectedValues) {
             int index = list.indexOf(expectedValue);
-            assertTrue(index != -1);
-            assertTrue(index > lastIndex);
+            final String message = "Expected " + expectedValues + " but got " + list;
+            assertTrue(message, index != -1);
+            assertTrue(message, index > lastIndex);
             lastIndex = index;
         }
     }

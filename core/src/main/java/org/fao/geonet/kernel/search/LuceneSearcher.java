@@ -29,6 +29,7 @@ import jeeves.constants.Jeeves;
 import jeeves.server.ServiceConfig;
 import jeeves.server.UserSession;
 import jeeves.server.context.ServiceContext;
+import org.apache.commons.io.IOUtils;
 import org.apache.lucene.facet.params.FacetSearchParams;
 import org.apache.lucene.facet.search.*;
 import org.fao.geonet.domain.ISODate;
@@ -1717,9 +1718,10 @@ public class LuceneSearcher extends MetaSearcher implements MetadataRecordSelect
 		
 
 		List<String> tokenList = new ArrayList<String>();
-		try {
-		    TokenStream ts = a.tokenStream(field, new StringReader(requestStr));
-		    ts.reset();
+        TokenStream ts = null;
+        try {
+            ts = a.tokenStream(field, new StringReader(requestStr));
+            ts.reset();
 		    CharTermAttribute termAtt = ts.addAttribute(CharTermAttribute.class);
 			while (ts.incrementToken()) {
 				String string = termAtt.toString();
@@ -1729,7 +1731,9 @@ public class LuceneSearcher extends MetaSearcher implements MetadataRecordSelect
         catch (Exception e) {
             // TODO why swallow
 			e.printStackTrace();
-		}
+		} finally {
+            IOUtils.closeQuietly(ts);
+        }
 
 		StringBuilder result = new StringBuilder();
 

@@ -139,7 +139,7 @@ public class LuceneIndexLanguageTracker {
      * @param versionToken A token indicating which state of search should be obtained
      * @return an index reader for reading from all indices
      */
-    public synchronized IndexAndTaxonomy acquire(final String preferedLang, final long versionToken) throws IOException {
+    public synchronized IndexAndTaxonomy acquire(final String preferredLang, final long versionToken) throws IOException {
         lazyInit();
 
         if (!luceneConfig.useNRTManagerReopenThread()
@@ -160,7 +160,7 @@ public class LuceneIndexLanguageTracker {
             lastVersionUpToDate = lastVersionUpToDate && result.lastVersionUpToDate;
             tokenExpired = tokenExpired || result.newSearcher;
 
-            if ((preferedLang != null && preferedLang.equalsIgnoreCase(manager.language)) || i >= readers.length) {
+            if ((preferredLang != null && preferredLang.equalsIgnoreCase(manager.language)) || i >= readers.length) {
                 readers[0] = result.searcher.getIndexReader();
             } else {
                 readers[i] = result.searcher.getIndexReader();
