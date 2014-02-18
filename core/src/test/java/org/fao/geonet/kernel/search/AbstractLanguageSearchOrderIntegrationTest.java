@@ -276,7 +276,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
         int lastIndex = -1;
         for (String expectedValue : expectedValues) {
             int index = list.indexOf(expectedValue);
-            final String message = "Expected " + expectedValues + " but got " + list;
+            final String message = "Expected " + Arrays.toString(expectedValues) + " but got " + list;
             assertTrue(message, index != -1);
             assertTrue(message, index > lastIndex);
             lastIndex = index;

@@ -111,8 +111,6 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
     @Before
     public void configureAppContext() throws Exception {
 
-
-
         System.setProperty(LuceneConfig.USE_NRT_MANAGER_REOPEN_THREAD, Boolean.toString(true));
         // clear out datastore
         for (Name name : _datastore.getNames()) {
@@ -155,6 +153,7 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
                 serviceConfig, null);
 
         _directoryFactory.resetIndex();
+        _directoryFactory.resetTaxonomy();
 
         final String schemaPluginsDir = geonetworkDataDirectory.getSchemaPluginsDir().getPath();
         final String resourcePath = geonetworkDataDirectory.getResourcesDir().getPath();
@@ -175,6 +174,8 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
         assertTrue(schemaManager.existsSchema("dublin-core"));
 
         _applicationContext.getBean(SearchManager.class).init(false, false, "", 100);
+        _applicationContext.getBean(SearchManager.class).rebuildIndex(createServiceContext(), false, false);
+
         _applicationContext.getBean(DataManager.class).init(createServiceContext(), false);
 
         String siteUuid = _dataDirectory.getName();
