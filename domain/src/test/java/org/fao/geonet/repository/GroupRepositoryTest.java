@@ -26,8 +26,6 @@ public class GroupRepositoryTest extends AbstractSpringDataTest {
     @PersistenceContext
     EntityManager _entityManager;
 
-    private AtomicInteger _nextId = new AtomicInteger();
-
     @Test
     public void test_Save_Count_FindOnly_DeleteAll() throws Exception {
         assertEquals(0, _repo.count());
@@ -150,7 +148,7 @@ public class GroupRepositoryTest extends AbstractSpringDataTest {
     }
 
     private Group newGroup() {
-        return newGroup(_nextId);
+        return newGroup(_inc);
     }
 
     public static Group newGroup(AtomicInteger nextId) {

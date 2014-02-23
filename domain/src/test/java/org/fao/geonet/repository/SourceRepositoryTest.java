@@ -21,8 +21,6 @@ public class SourceRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     private SourceRepository _repo;
 
-    private AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOneByName() throws Exception {
         Source source1 = _repo.save(newSource());

@@ -17,8 +17,6 @@ public class MetadataNotifierRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     MetadataNotifierRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         MetadataNotifier notifier1 = newMetadataNotifier();

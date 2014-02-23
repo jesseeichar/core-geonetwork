@@ -34,8 +34,6 @@ public class SearchRequestParamSpecsTest extends AbstractSpringDataTest {
     @Autowired
     SearchRequestRepository _requestRepo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testHasTermField() throws Exception {
         final SearchRequestParam param = _paramRepo.save(SearchRequestParamRepositoryTest.newRequestParam(_inc));

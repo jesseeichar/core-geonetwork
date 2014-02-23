@@ -60,6 +60,8 @@ import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
+import static org.junit.Assert.assertNotNull;
+
 /**
  * A helper class for testing services.  This super-class loads in the spring beans for Spring-data repositories and mocks for
  * some of the system that is required by services.
@@ -110,8 +112,6 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
     }
     @Before
     public void configureAppContext() throws Exception {
-
-
 
         System.setProperty(LuceneConfig.USE_NRT_MANAGER_REOPEN_THREAD, Boolean.toString(true));
         // clear out datastore
@@ -167,11 +167,12 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
             _applicationContext.getBean(LuceneConfig.class).configure("WEB-INF/config-lucene.xml");
             SchemaManager.registerXmlCatalogFiles(webappDir, schemaPluginsCatalogFile);
 
-            schemaManager.configure(webappDir, resourcePath,
+            schemaManager.configure(_applicationContext, webappDir, resourcePath,
                     schemaPluginsCatalogFile, schemaPluginsDir, "eng", "iso19139", true);
         }
 
         assertTrue(schemaManager.existsSchema("iso19139"));
+        assertTrue(schemaManager.existsSchema("iso19115"));
         assertTrue(schemaManager.existsSchema("dublin-core"));
 
         _applicationContext.getBean(SearchManager.class).init(false, false, "", 100);

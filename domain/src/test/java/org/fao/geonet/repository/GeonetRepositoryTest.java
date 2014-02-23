@@ -35,8 +35,6 @@ public class GeonetRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     MetadataRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test(expected = JpaObjectRetrievalFailureException.class)
     public void testUpdateMetadataBadId() throws Exception {
         _repo.update(123123325, new Updater<Metadata>() {

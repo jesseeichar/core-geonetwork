@@ -19,8 +19,6 @@ public class CswCapabilitiesInfoFieldRepositoryTest extends AbstractSpringDataTe
     @Autowired
     CswCapabilitiesInfoFieldRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         CswCapabilitiesInfoField info1 = newCswServerCapabilitiesInfo();

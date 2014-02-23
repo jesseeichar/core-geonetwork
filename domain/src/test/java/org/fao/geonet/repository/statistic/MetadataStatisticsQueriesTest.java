@@ -48,8 +48,6 @@ public class MetadataStatisticsQueriesTest extends AbstractSpringDataTest {
     @Autowired
     OperationAllowedRepository _operationAllowedRepository;
 
-    private AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testGetMetadataCategoryToPopularityMap() throws Exception {
         MetadataCategory category1 = _categoryRepository.save(MetadataCategoryRepositoryTest.newMetadataCategory(_inc));

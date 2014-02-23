@@ -17,8 +17,6 @@ public class LanguageRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     LanguageRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         Language language = newLanguage();

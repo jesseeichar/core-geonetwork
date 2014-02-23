@@ -20,8 +20,6 @@ public class HarvestHistoryRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     HarvestHistoryRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         HarvestHistory history1 = newHarvestHistory();

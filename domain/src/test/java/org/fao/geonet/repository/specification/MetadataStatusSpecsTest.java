@@ -32,8 +32,6 @@ public class MetadataStatusSpecsTest extends AbstractSpringDataTest {
     @Autowired
     private MetadataStatusRepository _repo;
 
-    private AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testHasMetadataId() throws Exception {
         MetadataStatus md1 = _repo.save(newMetadataStatus());

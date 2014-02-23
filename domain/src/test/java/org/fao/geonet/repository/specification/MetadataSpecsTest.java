@@ -34,8 +34,6 @@ public class MetadataSpecsTest extends AbstractSpringDataTest {
     @Autowired
     MetadataCategoryRepository _categoryRepo;
 
-    private AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testHasMetadataId() throws Exception {
         Metadata md1 = _repository.save(newMetadata(_inc));

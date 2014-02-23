@@ -2,8 +2,10 @@
   goog.provide('gn_adminmetadata_controller');
 
 
+  goog.require('gn_schematroneditcriteria_controller');
+
   var module = angular.module('gn_adminmetadata_controller',
-      []);
+    ['gn_schematroneditcriteria_controller']);
 
 
   /**
@@ -37,6 +39,11 @@
               label: 'metadataFormatter',
               icon: 'fa-print',
               href: '#/metadata/formatter'
+            },{
+              type: 'schematron',
+              label: 'schematron',
+              icon: 'fa-eye',
+              href: '#/metadata/schematron'
             }]
       };
 
@@ -57,6 +64,12 @@
           // Trigger load action according to route params
           launchActions();
         });
+      }
+
+      function loadSchematrons() {
+          $http.get('admin.schematrontype@json').success(function(data) {
+              $scope.schematrons = data;
+          }).error(function (data) {console.log(data)}) ;
       }
 
       function launchActions() {
@@ -327,6 +340,8 @@
         loadTemplates();
       } else if ($routeParams.tab === 'formatter') {
         loadFormatter();
+      } else if ($routeParams.tab === 'schematron') {
+        loadSchematrons();
       } else {
         loadSchemas();
       }

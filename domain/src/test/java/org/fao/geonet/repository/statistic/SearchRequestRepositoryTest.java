@@ -43,8 +43,6 @@ public class SearchRequestRepositoryTest extends AbstractSpringDataTest {
     @PersistenceContext
     EntityManager _entityManager;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() throws Exception {
         SearchRequest searchRequest1 = newSearchRequest();

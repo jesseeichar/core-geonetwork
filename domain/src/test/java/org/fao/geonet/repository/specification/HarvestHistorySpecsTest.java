@@ -26,8 +26,6 @@ public class HarvestHistorySpecsTest extends AbstractSpringDataTest {
     @Autowired
     HarvestHistoryRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testHasHarvesterUuid() throws Exception {
         HarvestHistory history1 = newHarvestHistory();

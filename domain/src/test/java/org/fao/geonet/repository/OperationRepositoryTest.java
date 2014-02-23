@@ -24,8 +24,6 @@ public class OperationRepositoryTest extends AbstractSpringDataTest {
     @PersistenceContext
     EntityManager _entityManager;
 
-    private AtomicInteger _nextId = new AtomicInteger(20);
-
     @Test
     public void test_Save_Count_FindOnly_DeleteAll() throws Exception {
         assertEquals(0, _repo.count());
@@ -121,7 +119,7 @@ public class OperationRepositoryTest extends AbstractSpringDataTest {
     }
 
     private Operation newOperation() {
-        return newOperation(_nextId);
+        return newOperation(_inc);
     }
     public static Operation newOperation(AtomicInteger inc) {
         int id = inc.incrementAndGet();

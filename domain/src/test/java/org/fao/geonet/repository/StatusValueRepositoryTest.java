@@ -16,8 +16,6 @@ public class StatusValueRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     StatusValueRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         StatusValue status = newStatusValue();

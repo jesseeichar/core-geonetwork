@@ -17,8 +17,6 @@ public class IsoLanguageRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     IsoLanguageRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         IsoLanguage isolang1 = newIsoLanguage();

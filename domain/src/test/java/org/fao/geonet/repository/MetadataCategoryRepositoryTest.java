@@ -26,8 +26,6 @@ public class MetadataCategoryRepositoryTest extends AbstractSpringDataTest {
     @PersistenceContext
     EntityManager _entityManager;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         MetadataCategory category1 = newMetadataCategory();

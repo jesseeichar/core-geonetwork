@@ -29,8 +29,6 @@ public class SearchRequestSpecsTest extends AbstractSpringDataTest {
     @Autowired
     SearchRequestRepository _requestRepo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testIsMoreRecentThanOrEqualTo() throws Exception {
         SearchRequest request1 = SearchRequestRepositoryTest.newSearchRequest(_inc);

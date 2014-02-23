@@ -16,7 +16,7 @@ module.exports = function(grunt) {
       api : {
         src : [ '../web-ui/src/main/resources/catalog/components/**/*.js' ],
         title : 'API Documentation'
-      },
+      }
     },
     connect : {
       options : {

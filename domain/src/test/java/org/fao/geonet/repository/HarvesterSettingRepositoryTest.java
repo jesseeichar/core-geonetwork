@@ -22,8 +22,6 @@ public class HarvesterSettingRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     HarvesterSettingRepository _repo;
 
-    private AtomicInteger _nextId = new AtomicInteger(20);
-
     private String[] _skipProps = new String[]{"getValueAsInt", "getValueAsBool"};
 
     @Test
@@ -234,7 +232,7 @@ public class HarvesterSettingRepositoryTest extends AbstractSpringDataTest {
     }
 
     private HarvesterSetting newSetting() {
-        return newSetting(_nextId);
+        return newSetting(_inc);
     }
     public static HarvesterSetting newSetting(AtomicInteger inc) {
         int id = inc.incrementAndGet();

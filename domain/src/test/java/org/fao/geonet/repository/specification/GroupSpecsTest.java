@@ -33,8 +33,6 @@ public class GroupSpecsTest extends AbstractSpringDataTest {
     @Autowired
     GroupRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testIsNotReserved() throws Exception {
         for (ReservedGroup reservedGroup : ReservedGroup.values()) {

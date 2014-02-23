@@ -24,8 +24,6 @@ public class UserGroupRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     GroupRepository _groupRepo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindUserIds() {
         UserGroup ug1 = _repo.save(newUserGroup());

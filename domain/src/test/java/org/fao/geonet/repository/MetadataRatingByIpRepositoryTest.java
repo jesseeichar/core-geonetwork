@@ -18,8 +18,6 @@ public class MetadataRatingByIpRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     MetadataRatingByIpRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         MetadataRatingByIp rating1 = newMetadataRatingByIp();

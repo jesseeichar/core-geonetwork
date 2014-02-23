@@ -34,8 +34,6 @@ public class UserSpecsTest extends AbstractSpringDataTest {
     @Autowired
     UserRepository _userRepo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testHasUserId() throws Exception {
         User user1 = _userRepo.save(newUser(_inc));

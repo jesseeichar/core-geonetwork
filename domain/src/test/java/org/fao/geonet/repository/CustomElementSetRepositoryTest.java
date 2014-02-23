@@ -16,8 +16,6 @@ public class CustomElementSetRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     CustomElementSetRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         CustomElementSet info1 = newCustomElementSet();

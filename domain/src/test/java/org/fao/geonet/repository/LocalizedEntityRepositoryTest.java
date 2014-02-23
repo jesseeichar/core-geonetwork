@@ -32,8 +32,6 @@ public class LocalizedEntityRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     private IsoLanguageRepository _repository;
 
-    private AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindAllAsXml() throws Exception {
         IsoLanguage language = IsoLanguageRepositoryTest.createIsoLanguage(_inc);

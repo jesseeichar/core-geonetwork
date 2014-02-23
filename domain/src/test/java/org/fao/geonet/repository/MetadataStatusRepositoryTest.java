@@ -22,8 +22,6 @@ public class MetadataStatusRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     MetadataStatusRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         MetadataStatus status = newMetadataStatus();

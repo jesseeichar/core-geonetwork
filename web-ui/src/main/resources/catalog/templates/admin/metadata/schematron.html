@@ -1,0 +1,54 @@
+<div data-ng-controller="GnAdminMetadataController">
+    <div data-ng-controller="GnSchematronEditCriteriaController">
+        <div id="schematronList" class="col-md-4">
+            <div data-ng-repeat="schema in schematrons">
+                <h4>{{schema.name}} schematrons</h4>
+                <div class="list-group">
+                    <a class="list-group-item" data-ng-repeat="schematron in schema.schematron" data-ng-click="selectSchematron(schematron)"
+                            data-ng-class="{active: selectedSchematron === schematron}">
+                        {{schematron.rulename}} <span class="badge">{{schematron.groupNumber}}</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div  class="col-md-8" data-ng-show="selectedSchematron">
+              <form id="criteriaEditForm" data-ng-submit="addOrEditCriteria()" data-role="form" class="form-horizontal">
+                  <fieldset class="form-group" >
+                      <legend>Add or edit a Schematron Criteria</legend>
+                          <input type="hidden" data-ng-model="editForm.criteriaId" >
+                          <label>Group Name:</label>
+                          <input class="form-control" type="text" data-ng-model="editForm.groupName" data-ng-minlength="3" placeholder="Group Name" required/>
+                          <label>Criteria Type:</label>
+                          <input class="form-control" type="text" data-ng-model="editForm.type" data-ng-minlength="3" placeholder="type" required/>
+                          <label>Criteria Value:</label>
+                          <input class="form-control" type="text" data-ng-model="editForm.value" data-ng-minlength="3" placeholder="value" required/>
+                  </fieldset>
+                  <button type="button" class="btn btn-primary">
+                      <span data-ng-if="editForm.id">Update</span>
+                      <span data-ng-if="!editForm.id">Add</span>
+                  </button>
+                  <fieldset>
+                      <legend style="padding-top: 2em;">Schematron Application Criteria
+                          <a class="fa fa-question-circle"
+                             data-ng-mouseover="isShowSchematronGroupHelp = true"
+                             data-ng-mouseleave="isShowSchematronGroupHelp = false"></a> </legend>
+                      <p data-ng-show="isShowSchematronGroupHelp">
+                          Schematron <em>{{selectedSchematron.rulename}}</em> will be used to validate a metadata when all the criteria in one of
+                          the following groups evaluate to true for the metadata.
+                      </p>
+                      <ul class="list-unstyled">
+                          <li data-ng-repeat="group in schematronGroups">
+                              <h4>{{group.id.name}} Group</h4>
+                              <h4><small>Evaluates to true when all the following are true</small></h4>
+                              <div class="list-group">
+                                  <div class="list-group-item" data-ng-repeat="criteria in group.criteria">
+                                      {{describeCriteria(criteria)}}
+                                  </div>
+                              </div>
+                          </li>
+                      </ul>
+                  </fieldset>
+              </form>
+        </div>
+    </div>
+</div>

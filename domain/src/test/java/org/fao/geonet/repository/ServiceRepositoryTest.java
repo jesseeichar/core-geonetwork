@@ -23,8 +23,6 @@ public class ServiceRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     ServiceRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() throws Exception {
         Service service = newService();

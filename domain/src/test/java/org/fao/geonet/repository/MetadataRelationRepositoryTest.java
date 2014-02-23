@@ -21,8 +21,6 @@ public class MetadataRelationRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     MetadataRepository _metadataRepo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         MetadataRelation relation = newMetadataRelation();

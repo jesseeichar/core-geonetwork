@@ -17,8 +17,6 @@ public class AddressRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     AddressRepository _repo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testFindOne() {
         Address address1 = newAddress();

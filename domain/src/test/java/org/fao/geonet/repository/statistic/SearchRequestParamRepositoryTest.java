@@ -25,8 +25,6 @@ public class SearchRequestParamRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     SearchRequestParamRepository _paramRepo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testGetTermTextToRequestCount() {
         SearchRequestParam param3 = _paramRepo.save(newRequestParam(_inc));

@@ -33,8 +33,6 @@ public class UserRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     UserRepository _userRepo;
 
-    AtomicInteger _inc = new AtomicInteger();
-
     @Test
     public void testNodeIdIsSetOnLoad() {
         User user = newUser();
