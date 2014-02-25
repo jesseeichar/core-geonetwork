@@ -15,12 +15,17 @@
     module.controller('GnSchematronEditCriteriaController', [
         '$scope', '$http',
         function($scope, $http) {
-            $scope.selectedSchematron = null;
+            $scope.selection = {
+                schema: null,
+                schematron : null
+            };
+
             $scope.schematronGroups = null;
             $scope.isShowSchematronGroupHelp = false;
-            $scope.isSelected = function(schematron) {return $scope.selectedSchematron === schematron;};
-            $scope.selectSchematron = function(schematron) {
-                $scope.selectedSchematron = schematron;
+            $scope.isSelected = function(schematron) {return $scope.selection.schematron === schematron;};
+            $scope.selectSchematron = function(schema, schematron) {
+                $scope.selection.schema = schema;
+                $scope.selection.schematron = schematron;
                 $scope.loadCriteria();
             };
 
@@ -31,7 +36,7 @@
                     url: 'admin.schematroncriteriagroup.list@json',
                     params: {
                         includeCriteria: true,
-                        schematronId: $scope.selectedSchematron.id
+                        schematronId: $scope.selection.schematron.id
                     }
                 }).success(function (data) {
                     $scope.schematronGroups = data;

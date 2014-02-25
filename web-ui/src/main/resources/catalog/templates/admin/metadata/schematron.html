@@ -1,54 +1,86 @@
 <div data-ng-controller="GnAdminMetadataController">
     <div data-ng-controller="GnSchematronEditCriteriaController">
-        <div id="schematronList" class="col-md-4">
-            <div data-ng-repeat="schema in schematrons">
-                <h4>{{schema.name}} schematrons</h4>
-                <div class="list-group">
-                    <a class="list-group-item" data-ng-repeat="schematron in schema.schematron" data-ng-click="selectSchematron(schematron)"
-                            data-ng-class="{active: selectedSchematron === schematron}">
-                        {{schematron.rulename}} <span class="badge">{{schematron.groupNumber}}</span>
-                    </a>
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading" data-translate="">schematrons</div>
+                    <div class="panel-body" data-ng-repeat="schema in schematrons">
+                        <h5><strong>{{schema.name}}</strong></h5>
+
+                        <div class="list-group">
+                            <a class="list-group-item" data-ng-repeat="schematron in schema.schematron"
+                               data-ng-click="selectSchematron(schema, schematron)"
+                               data-ng-class="{active: selection.schematron === schematron}">
+                                {{schematron.rulename}} <span class="badge">{{schematron.groupCount}}</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-8" data-ng-show="selection.schematron">
+                <div class="panel panel-default">
+                    <div class="panel-heading"><span data-translate="">schematronApplicationCriteria</span>
+                        <i id="schematronCriteriaGroupsQuestion" class="fa fa-question-circle"
+                             data-ng-mouseover="isShowSchematronGroupHelp = true"
+                             data-ng-mouseleave="isShowSchematronGroupHelp = false"></i>
+                        <div style="padding-left: 2em; padding-top: 1em" data-ng-show="isShowSchematronGroupHelp">
+                            Schematron <em>{{selection.schematron.rulename}}</em> will be used to validate a metadata when all the criteria in
+                            one of the following groups evaluate to true for the metadata.
+                        </div>
+                    </div>
+                    <div class="panel-body" data-ng-repeat="group in schematronGroups">
+                        <h5><strong>{{group.id.name}}</strong></h5>
+
+                        <div class="list-group">
+                            <a class="list-group-item" data-ng-repeat="criteria in group.criteria">
+                                {{describeCriteria(criteria)}}
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div  class="col-md-8" data-ng-show="selectedSchematron">
-              <form id="criteriaEditForm" data-ng-submit="addOrEditCriteria()" data-role="form" class="form-horizontal">
-                  <fieldset class="form-group" >
-                      <legend>Add or edit a Schematron Criteria</legend>
-                          <input type="hidden" data-ng-model="editForm.criteriaId" >
-                          <label>Group Name:</label>
-                          <input class="form-control" type="text" data-ng-model="editForm.groupName" data-ng-minlength="3" placeholder="Group Name" required/>
-                          <label>Criteria Type:</label>
-                          <input class="form-control" type="text" data-ng-model="editForm.type" data-ng-minlength="3" placeholder="type" required/>
-                          <label>Criteria Value:</label>
-                          <input class="form-control" type="text" data-ng-model="editForm.value" data-ng-minlength="3" placeholder="value" required/>
-                  </fieldset>
-                  <button type="button" class="btn btn-primary">
-                      <span data-ng-if="editForm.id">Update</span>
-                      <span data-ng-if="!editForm.id">Add</span>
-                  </button>
-                  <fieldset>
-                      <legend style="padding-top: 2em;">Schematron Application Criteria
-                          <a class="fa fa-question-circle"
-                             data-ng-mouseover="isShowSchematronGroupHelp = true"
-                             data-ng-mouseleave="isShowSchematronGroupHelp = false"></a> </legend>
-                      <p data-ng-show="isShowSchematronGroupHelp">
-                          Schematron <em>{{selectedSchematron.rulename}}</em> will be used to validate a metadata when all the criteria in one of
-                          the following groups evaluate to true for the metadata.
-                      </p>
-                      <ul class="list-unstyled">
-                          <li data-ng-repeat="group in schematronGroups">
-                              <h4>{{group.id.name}} Group</h4>
-                              <h4><small>Evaluates to true when all the following are true</small></h4>
-                              <div class="list-group">
-                                  <div class="list-group-item" data-ng-repeat="criteria in group.criteria">
-                                      {{describeCriteria(criteria)}}
-                                  </div>
-                              </div>
-                          </li>
-                      </ul>
-                  </fieldset>
-              </form>
+        <div class="row">
+            <div class="col-sm-12"  data-ng-show="selection.schematron">
+                <div class="panel panel-default">
+                    <div class="panel-heading" data-translate="">addEditSchematronCriteria</div>
+                    <div class="panel-body">
+                        <form class="form-horizontal" role="form" name="editCriteria" data-ng-submit="addOrEditCriteria">
+                            <div class="form-group">
+                                <label for="groupName" class="col-sm-3 control-label" data-translate="">criteriaGroupName</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="groupName"
+                                           placeholder="{{'criteriaGroupName' | translate}}"
+                                           data-ng-model="editForm.groupName">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="criteriaType" class="col-sm-3 control-label" data-translate="">criteriaType</label>
+                                <div class="col-sm-9">
+                                    <select class="form-control" id="criteriaType"
+                                            data-ng-model="editForm.criteriaType"
+                                            data-ng-options="c.type as c.name for c in selection.schema.criteriaTypes">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="requiredCriteriaValue" class="col-sm-3 control-label" data-translate="">requiredCriteriaValue</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="requiredCriteriaValue"
+                                           placeholder="{{'requiredCriteriaValue' | translate}}"
+                                           data-ng-model="editForm.groupName">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-9">
+                                    <button type="submit" class="btn btn-default" data-translate="" data-ng-show="editCriteria.id">Edit</button>
+                                    <button type="submit" class="btn btn-default" data-translate="" data-ng-hide="editCriteria.id">Add</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
