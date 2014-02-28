@@ -4,8 +4,8 @@ import org.jdom.Element;
 import org.jdom.Namespace;
 import org.springframework.context.ApplicationContext;
 
-import javax.annotation.Nonnull;
 import javax.persistence.*;
+import java.util.IdentityHashMap;
 import java.util.List;
 
 /**
@@ -129,8 +129,17 @@ public class SchematronCriteria extends GeonetEntity {
         this.group = group;
     }
 
-    public boolean accepts(ApplicationContext applicationContext, Element metadata, List<Namespace> metadataNamespaces) {
-        return getType().accepts(applicationContext, getValue(), metadata, metadataNamespaces);
+    public boolean accepts(ApplicationContext applicationContext, int metadataId, Element metadata, List<Namespace> metadataNamespaces) {
+        return getType().accepts(applicationContext, getValue(), metadataId, metadata, metadataNamespaces);
     }
 
+    @Override
+    protected Element asXml(IdentityHashMap<Object, Void> alreadyEncoded) {
+        final Element element = super.asXml(alreadyEncoded);
+        String valueElText = element.getChildText("value");
+        if (valueElText.length() == 0) {
+            element.getChild("value").setText("''");
+        }
+        return element;
+    }
 }

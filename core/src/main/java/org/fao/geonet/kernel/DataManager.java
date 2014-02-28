@@ -30,7 +30,6 @@ package org.fao.geonet.kernel;
 import static org.fao.geonet.kernel.schema.MetadataSchema.SCHEMATRON_DIR;
 import static org.fao.geonet.repository.specification.MetadataSpecs.hasMetadataUuid;
 
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -1780,7 +1779,7 @@ public class DataManager {
             try {
                 editLib.enumerateTree(md);
                 //Apply custom schematron rules
-                Element errors = applyCustomSchematronRules(schema, doc.getRootElement(), lang, valTypeAndStatus);
+                Element errors = applyCustomSchematronRules(schema, Integer.parseInt(metadataId), doc.getRootElement(), lang, valTypeAndStatus);
                 valid = valid && errors == null;
                 editLib.removeEditingInfo(md);
             } catch (Exception e) {
@@ -1806,19 +1805,19 @@ public class DataManager {
      *
      * @param session
      * @param schema
-     * @param id
+     * @param metadataId
      * @param md
      * @param lang
      * @param forEditing TODO
      * @return
      * @throws Exception
      */
-    public Pair <Element, String> doValidate(UserSession session, String schema, String id, Element md, String lang, boolean forEditing) throws Exception {
+    public Pair <Element, String> doValidate(UserSession session, String schema, String metadataId, Element md, String lang, boolean forEditing) throws Exception {
         String version = null;
         if(Log.isDebugEnabled(Geonet.DATA_MANAGER))
-            Log.debug(Geonet.DATA_MANAGER, "Creating validation report for record #" + id + " [schema: " + schema + "].");
+            Log.debug(Geonet.DATA_MANAGER, "Creating validation report for record #" + metadataId + " [schema: " + schema + "].");
 
-        Element sessionReport = (Element)session.getProperty(Geonet.Session.VALIDATION_REPORT + id);
+        Element sessionReport = (Element)session.getProperty(Geonet.Session.VALIDATION_REPORT + metadataId);
         if (sessionReport != null && !forEditing) {
             if(Log.isDebugEnabled(Geonet.DATA_MANAGER))
                 Log.debug(Geonet.DATA_MANAGER, "  Validation report available in session.");
@@ -1828,7 +1827,7 @@ public class DataManager {
 
         Map<String, Integer[]> valTypeAndStatus = new HashMap<String, Integer[]>();
         Element errorReport = new Element("report", Edit.NAMESPACE);
-        errorReport.setAttribute("id", id, Edit.NAMESPACE);
+        errorReport.setAttribute("id", metadataId, Edit.NAMESPACE);
 
         //-- get an XSD validation report and add results to the metadata
         //-- as geonet:xsderror attributes on the affected elements
@@ -1859,10 +1858,10 @@ public class DataManager {
                 Log.debug(Geonet.DATA_MANAGER, "  - Schematron in editing mode.");
             //-- now expand the elements and add the geonet: elements
             editLib.expandElements(schema, md);
-            version = editLib.getVersionForEditing(schema, id, md);
+            version = editLib.getVersionForEditing(schema, metadataId, md);
 
             //Apply custom schematron rules
-            error = applyCustomSchematronRules(schema, md, lang, valTypeAndStatus);
+            error = applyCustomSchematronRules(schema, Integer.parseInt(metadataId), md, lang, valTypeAndStatus);
         } else {
             try {
                 // enumerate the metadata xml so that we can report any problems found
@@ -1870,14 +1869,14 @@ public class DataManager {
                 editLib.enumerateTree(md);
 
                 //Apply custom schematron rules
-                error = applyCustomSchematronRules(schema, md, lang, valTypeAndStatus);
+                error = applyCustomSchematronRules(schema, Integer.parseInt(metadataId), md, lang, valTypeAndStatus);
 
                 // remove editing info added by enumerateTree
                 editLib.removeEditingInfo(md);
 
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.error(Geonet.DATA_MANAGER, "Could not run schematron validation on metadata " + id + ": " + e.getMessage());
+                Log.error(Geonet.DATA_MANAGER, "Could not run schematron validation on metadata " + metadataId + ": " + e.getMessage());
             }
         }
 
@@ -1887,10 +1886,10 @@ public class DataManager {
 
         // Save report in session (invalidate by next update) and db
         try {
-            saveValidationStatus(id, valTypeAndStatus, new ISODate().toString());
+            saveValidationStatus(metadataId, valTypeAndStatus, new ISODate().toString());
         } catch (Exception e) {
             e.printStackTrace();
-            Log.error(Geonet.DATA_MANAGER, "Could not save validation status on metadata " + id + ": " + e.getMessage());
+            Log.error(Geonet.DATA_MANAGER, "Could not save validation status on metadata " + metadataId + ": " + e.getMessage());
         }
 
         return Pair.read(errorReport, version);
@@ -1905,13 +1904,14 @@ public class DataManager {
      *
      * Returns null if no error on validation.
      *
+     *
      * @param schema
-     * @param md
+     * @param metadataId
+     *@param md
      * @param lang
-     * @param valTypeAndStatus
-     * @return errors
+     * @param valTypeAndStatus    @return errors
      */
-    public Element applyCustomSchematronRules(String schema, Element md,
+    public Element applyCustomSchematronRules(String schema, int metadataId, Element md,
                                               String lang, Map<String, Integer[]> valTypeAndStatus) {
         MetadataSchema metadataSchema = getSchema(schema);
         final String schemaDir = this.schemaMan.getSchemaDir(schema);
@@ -1941,7 +1941,7 @@ public class DataManager {
                     List<SchematronCriteria> criterias = criteriaGroup.getCriteria();
                     boolean apply = false;
                     for(SchematronCriteria criteria : criterias) {
-                        boolean tmpApply = criteria.accepts(_applicationContext, md, metadataSchema.getSchemaNS());
+                        boolean tmpApply = criteria.accepts(_applicationContext, metadataId, md, metadataSchema.getSchemaNS());
 
                         if(!tmpApply) {
                             apply = false;

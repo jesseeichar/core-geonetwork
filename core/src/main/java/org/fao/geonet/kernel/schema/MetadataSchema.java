@@ -415,7 +415,7 @@ public class MetadataSchema
                     schematronCriteriaGroup.setRequirement(schematron.getDefaultRequirement());
 
                     SchematronCriteria criteria = new SchematronCriteria();
-                    criteria.setValue("");
+                    criteria.setValue("_ignored_");
                     criteria.setType(SchematronCriteriaType.ALWAYS_ACCEPT);
 
                     schematronCriteriaGroup.addCriteria(criteria);

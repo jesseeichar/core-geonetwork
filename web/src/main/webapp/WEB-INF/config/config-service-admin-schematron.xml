@@ -135,7 +135,8 @@
               Parameters are:
                  * groupName: (Optional) filter listed criteria to those containing the groupName (it is recommended to be used in conjuction with schematronId)
                  * schematrongId: (Optional) filter listed criteria to those containing the schematronId (it is recommended to be used in conjuction with groupName)
-                 * includeGroup: (Optional) if true then each criteria will also contain the SchematronCriteriaGroup data
+                 * includeCriteria: (Optional) if true then each criteria data (instead of just the ids) will be included in the group
+                 * includeSchematron: (Optional) if true the schematron data (instead of just the ids) will be included in the group
               ]]>
           </documentation>
           <class name=".services.metadata.schema.SchematronCriteriaGroupService">

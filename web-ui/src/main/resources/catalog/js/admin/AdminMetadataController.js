@@ -2,10 +2,10 @@
   goog.provide('gn_adminmetadata_controller');
 
 
-  goog.require('gn_schematroneditcriteria_controller');
+  goog.require('gn_schematronadmin_controller');
 
   var module = angular.module('gn_adminmetadata_controller',
-    ['gn_schematroneditcriteria_controller']);
+    ['gn_schematronadmin_controller']);
 
 
   /**

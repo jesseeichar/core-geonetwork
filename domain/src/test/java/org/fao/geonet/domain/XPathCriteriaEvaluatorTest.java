@@ -42,36 +42,37 @@ public class XPathCriteriaEvaluatorTest {
     }
 
     private static final List<Namespace> NAMESPACES = Collections.emptyList();
+    private final int metadataId = -1;
 
     @Test
     public void testSlashSlashAtRoot() throws Exception {
-        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "//debug/text() = 'true'", testMetadata, NAMESPACES));
-        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "//general/debug/text() = 'true'", testMetadata, NAMESPACES));
+        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "//debug/text() = 'true'", metadataId, testMetadata, NAMESPACES));
+        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "//general/debug/text() = 'true'", metadataId, testMetadata, NAMESPACES));
 
     }
 
     @Test
     public void testAcceptsXPathBoolean() throws Exception {
-        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "geonet/*/debug/text() = 'true'", testMetadata, NAMESPACES));
-        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "/*/debug/text() = 'true'", testMetadata, NAMESPACES));
-        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*/debug/text() = 'true'", testMetadata, NAMESPACES));
-        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//debug/text() = 'true'", testMetadata, NAMESPACES));
-        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//debug/text() = 'false'", testMetadata, NAMESPACES));
-        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//missing/text() = 'false'", testMetadata, NAMESPACES));
+        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "geonet/*/debug/text() = 'true'", metadataId, testMetadata, NAMESPACES));
+        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "/*/debug/text() = 'true'", metadataId, testMetadata, NAMESPACES));
+        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*/debug/text() = 'true'", metadataId, testMetadata, NAMESPACES));
+        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//debug/text() = 'true'", metadataId, testMetadata, NAMESPACES));
+        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//debug/text() = 'false'", metadataId, testMetadata, NAMESPACES));
+        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//missing/text() = 'false'", metadataId, testMetadata, NAMESPACES));
     }
     @Test
     public void testAcceptsXPathString() throws Exception {
-        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//debug/text()", testMetadata, NAMESPACES));
-        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//language/text()", testMetadata, NAMESPACES));
-        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//missing/text()", testMetadata, NAMESPACES));
+        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//debug/text()", metadataId, testMetadata, NAMESPACES));
+        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//language/text()", metadataId, testMetadata, NAMESPACES));
+        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//missing/text()", metadataId, testMetadata, NAMESPACES));
     }
     @Test
     public void testAcceptsXPathElement() throws Exception {
-        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//debug", testMetadata, NAMESPACES));
-        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//missing", testMetadata, NAMESPACES));
+        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//debug", metadataId, testMetadata, NAMESPACES));
+        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//missing", metadataId, testMetadata, NAMESPACES));
 
-        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//service[text() = 'main.home']", testMetadata, NAMESPACES));
-        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//service[text() = 'xyz']", testMetadata, NAMESPACES));
+        assertTrue(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//service[text() = 'main.home']", metadataId, testMetadata, NAMESPACES));
+        assertFalse(XPathCriteriaEvaluator.INSTANCE.accepts(null, "*//service[text() = 'xyz']", metadataId, testMetadata, NAMESPACES));
     }
     @Test
     public void testAcceptsXPathError() throws Exception {
@@ -81,31 +82,31 @@ public class XPathCriteriaEvaluatorTest {
                 // do nothing so that the console stays clean
             }
         };
-        assertFalse(xPathCriteriaEvaluator.accepts(null, "*//debug[d = 'da", testMetadata, NAMESPACES));
+        assertFalse(xPathCriteriaEvaluator.accepts(null, "*//debug[d = 'da", metadataId, testMetadata, NAMESPACES));
     }
     @Test
     public void testAcceptsORXPath() throws Exception {
         SchematronCriteria oneGoodOrXPath = XPathCriteriaEvaluator.createOrCriteria("*//language/text()", "*//debug/text()");
-        assertTrue(oneGoodOrXPath.accepts(null, testMetadata, NAMESPACES));
+        assertTrue(oneGoodOrXPath.accepts(null, metadataId, testMetadata, NAMESPACES));
         SchematronCriteria twoGoodOrXPath = XPathCriteriaEvaluator.createOrCriteria("*//language", "*//debug/text()");
-        assertTrue(twoGoodOrXPath.accepts(null, testMetadata, NAMESPACES));
+        assertTrue(twoGoodOrXPath.accepts(null, metadataId, testMetadata, NAMESPACES));
         SchematronCriteria oneGoodOrXPath2 = XPathCriteriaEvaluator.createOrCriteria("*//debug/text() = 'true'", "*//debug/text()");
-        assertTrue(oneGoodOrXPath2.accepts(null, testMetadata, NAMESPACES));
+        assertTrue(oneGoodOrXPath2.accepts(null, metadataId, testMetadata, NAMESPACES));
 
         SchematronCriteria noGoodOrXPath = XPathCriteriaEvaluator.createOrCriteria("*//language/text()", "*//service[text() = 'xyz']");
-        assertFalse(noGoodOrXPath.accepts(null, testMetadata, NAMESPACES));
+        assertFalse(noGoodOrXPath.accepts(null, metadataId, testMetadata, NAMESPACES));
     }
     @Test
     public void testAcceptsANDXPath() throws Exception {
         SchematronCriteria noGoodAndXPath = XPathCriteriaEvaluator.createAndCriteria("*//language/text()", "*//service[text() = 'xyz']");
-        assertFalse(noGoodAndXPath.accepts(null, testMetadata, NAMESPACES));
+        assertFalse(noGoodAndXPath.accepts(null, metadataId, testMetadata, NAMESPACES));
 
         SchematronCriteria oneGoodAndXPath = XPathCriteriaEvaluator.createAndCriteria("*//debug/text()", "*//service[text() = 'xyz']");
-        assertFalse(oneGoodAndXPath.accepts(null, testMetadata, NAMESPACES));
+        assertFalse(oneGoodAndXPath.accepts(null, metadataId, testMetadata, NAMESPACES));
 
         SchematronCriteria twoGoodAndXPath = XPathCriteriaEvaluator.createAndCriteria("*//debug/text()", "*//service[text() = 'main" +
                                                                                                          ".home']");
-        assertTrue(twoGoodAndXPath.accepts(null, testMetadata, NAMESPACES));
+        assertTrue(twoGoodAndXPath.accepts(null, metadataId, testMetadata, NAMESPACES));
     }
 
 
@@ -114,11 +115,11 @@ public class XPathCriteriaEvaluatorTest {
         final Text debugText = (Text) Xml.selectNodes(testMetadata, "*//debug/text()").get(0);
         final Text maxUploadSizeText = (Text) Xml.selectNodes(testMetadata, "*//maxUploadSize/text()").get(0);
         SchematronCriteria criteria = XPathCriteriaEvaluator.createAndCriteria(debugText, maxUploadSizeText);
-        assertTrue(criteria.accepts(null, testMetadata, NAMESPACES));
+        assertTrue(criteria.accepts(null, metadataId, testMetadata, NAMESPACES));
 
         Element missingDebugMetadata = (Element) testMetadata.clone();
         ((Text) Xml.selectNodes(missingDebugMetadata, "*//debug/text()").get(0)).detach();
-        assertFalse(criteria.accepts(null, missingDebugMetadata, NAMESPACES));
+        assertFalse(criteria.accepts(null, metadataId, missingDebugMetadata, NAMESPACES));
     }
 
     @Test
@@ -126,14 +127,14 @@ public class XPathCriteriaEvaluatorTest {
         final Text debugText = (Text) Xml.selectNodes(testMetadata, "*//debug/text()").get(0);
         final Text maxUploadSizeText = (Text) Xml.selectNodes(testMetadata, "*//maxUploadSize/text()").get(0);
         SchematronCriteria criteria = XPathCriteriaEvaluator.createOrCriteria(debugText, maxUploadSizeText);
-        assertTrue(criteria.accepts(null, testMetadata, NAMESPACES));
+        assertTrue(criteria.accepts(null, metadataId, testMetadata, NAMESPACES));
 
         Element missingDebugMetadata = (Element) testMetadata.clone();
         ((Text) Xml.selectNodes(missingDebugMetadata, "*//debug/text()").get(0)).detach();
-        assertTrue(criteria.accepts(null, missingDebugMetadata, NAMESPACES));
+        assertTrue(criteria.accepts(null, metadataId, missingDebugMetadata, NAMESPACES));
 
         ((Text) Xml.selectNodes(missingDebugMetadata, "*//maxUploadSize/text()").get(0)).detach();
-        assertFalse(criteria.accepts(null, missingDebugMetadata, NAMESPACES));
+        assertFalse(criteria.accepts(null, metadataId, missingDebugMetadata, NAMESPACES));
     }
 
 

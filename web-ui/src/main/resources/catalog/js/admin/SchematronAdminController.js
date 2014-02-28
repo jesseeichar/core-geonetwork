@@ -4,9 +4,9 @@
 (function() {
     'use strict';
 
-    goog.provide('gn_schematroneditcriteria_controller');
-
-    var module = angular.module('gn_schematroneditcriteria_controller', []);
+    goog.provide('gn_schematronadmin_controller');
+    goog.require('gn_schematronadmin_editcriteriadirective')
+    var module = angular.module('gn_schematronadmin_controller', ['gn_schematronadmin_editcriteriadirective']);
 
     /**
      * GnAdminMetadataController provides administration tools
@@ -17,7 +17,8 @@
         function($scope, $http) {
             $scope.selection = {
                 schema: null,
-                schematron : null
+                schematron : null,
+                group: null
             };
 
             $scope.schematronGroups = null;
@@ -40,23 +41,17 @@
                     }
                 }).success(function (data) {
                     $scope.schematronGroups = data;
+                    $scope.selection.group = data.length > 0 ? data[0] : null;
                 }).error(function(data, code){
                     alert("Error occured during loading schematron criteria");
                 });
             };
 
-            $scope.describeCriteria = function(criteria){
-                switch (criteria.type) {
-                    case 'ALWAYS_ACCEPT':
-                        return "Always evaluates to true";
-                    case 'XPATH':
-                        return "Evaluates to true when xpath is satisfied: "+criteria.value;
-                    case 'GROUP':
-                        return "Evaluates to true when metadata is owned by group: "+criteria.value;
-                    default:
-                        return "Type: " + criteria.type + " evaluationValue: "+criteria.value;
-                }
+            $scope.requirements=['REQUIRED', 'REQUEST_ONLY', 'DISABLED'];
+
+            $scope.criteriaEditor = {
+                html: null,
+                object: null
             };
         }]);
-
 })();

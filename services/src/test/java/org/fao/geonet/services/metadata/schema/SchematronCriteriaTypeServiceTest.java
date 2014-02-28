@@ -3,6 +3,7 @@ package org.fao.geonet.services.metadata.schema;
 import jeeves.server.context.ServiceContext;
 import net.arnx.jsonic.JSON;
 import org.fao.geonet.domain.Schematron;
+import org.fao.geonet.domain.SchematronCriteriaType;
 import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.repository.SchematronRepository;
@@ -18,6 +19,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 
+import static org.fao.geonet.domain.SchematronCriteriaType.ALWAYS_ACCEPT;
+import static org.fao.geonet.domain.SchematronCriteriaType.GROUP;
+import static org.fao.geonet.domain.SchematronCriteriaType.XPATH;
 import static org.junit.Assert.*;
 
 /**
@@ -95,9 +99,21 @@ public class SchematronCriteriaTypeServiceTest extends AbstractServiceIntegratio
 
         assertEqualsText("iso19139", result, "iso19139/name");
         String resultAsString = Xml.getString(result);
-        assertEquals(resultAsString, 2, Xml.selectNumber(result, "count(iso19139/criteriaTypes/type)").intValue());
-        assertEqualsText("XPATH", result, "iso19139/criteriaTypes/type[1]/type");
+
+        // the number 4 can change depending on the definition of the iso19139 criteria definition.
+        // It should normally be [the number of criteria in criteria-type.xml] + 2(ALL ways true and XPATH)
+        assertEquals(resultAsString, 4, Xml.selectNumber(result, "count(iso19139/criteriaTypes/type)").intValue());
+        assertEqualsText(XPATH.toString(), result, "iso19139/criteriaTypes/type[1]/type");
         assertEqualsText("Keyword", result, "iso19139/criteriaTypes/type[1]/name");
+        assertEquals(resultAsString, 1, Xml.selectNumber(result, "count(iso19139/criteriaTypes/type[type = '" +
+                                                                 ALWAYS_ACCEPT.name() + "'])").intValue());
+        assertEquals(resultAsString, 0, Xml.selectNumber(result, "count(iso19139/criteriaTypes/type[type = '" +
+                                                                 ALWAYS_ACCEPT.name() + "']/value)").intValue());
+        assertTrue(resultAsString, 0 < Xml.selectNumber(result, "count(iso19139/criteriaTypes/type[type = '" +
+                                                                GROUP.name() + "'])").intValue());
+        assertEquals(resultAsString, 1, Xml.selectNumber(result, "count(iso19139/criteriaTypes/type[upper-case(name) = '" +
+                                                                XPATH.name() + "'])").intValue());
+
         assertEquals(resultAsString, 1, Xml.selectNumber(result, "count(iso19139/criteriaTypes/type[1]/service)").intValue());
         assertTrue(resultAsString, 0 < Xml.selectNumber(result, "count(iso19139/schematron)").intValue());
         assertEquals(resultAsString, 1, Xml.selectNumber(result, "count(iso19139/schematron[1]/file)").intValue());

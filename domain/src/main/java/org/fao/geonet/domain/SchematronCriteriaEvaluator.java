@@ -12,6 +12,6 @@ import java.util.List;
  * Created by Jesse on 2/6/14.
  */
 public interface SchematronCriteriaEvaluator {
-    public abstract boolean accepts(ApplicationContext applicationContext, String value, Element metadata,
+    public abstract boolean accepts(ApplicationContext applicationContext, String value, int metadataId, Element metadata,
                                     List<Namespace> metadataNamespaces);
 }

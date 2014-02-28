@@ -36,6 +36,7 @@ import org.jdom.Element;
 import org.jdom.Namespace;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.Specifications;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,14 +48,24 @@ import java.util.List;
  */
 public enum SchematronCriteriaType {
     /**
-     * A criteria where the value must match a group name.
+     * A criteria where the value must match one of the group ids in the value.
+     * Multiple ids can be comma separated.
      */
     GROUP(new SchematronCriteriaEvaluator() {
         @Override
-        public boolean accepts(ApplicationContext applicationContext, String value, Element metadata, List<Namespace> metadataNamespaces) {
-                    Integer groupId = Integer.valueOf(value);
-                    final Specification<Metadata> spec = MetadataSpecs.isOwnedByOneOfFollowingGroups(Arrays.asList(groupId));
-                    return applicationContext.getBean(MetadataRepository.class).count(spec) > 0;
+        public boolean accepts(ApplicationContext applicationContext, String value, int metadataId, Element metadata,
+                               List<Namespace> metadataNamespaces) {
+
+
+            String[] values = value.split(",");
+            Integer[] ids = new Integer[values.length];
+            for (int i = 0; i < values.length; i++) {
+                ids[i] = Integer.valueOf(values[i]);
+            }
+            final Specification<Metadata> correctOwner = MetadataSpecs.isOwnedByOneOfFollowingGroups(Arrays.asList(ids));
+            final Specification<Metadata> correctId = MetadataSpecs.hasMetadataId(metadataId);
+            final Specifications<Metadata> finalSpec = Specifications.where(correctId).and(correctOwner);
+            return applicationContext.getBean(MetadataRepository.class).count(finalSpec) > 0;
         }
     }),
     /**
@@ -62,7 +73,8 @@ public enum SchematronCriteriaType {
      */
     ALWAYS_ACCEPT(new SchematronCriteriaEvaluator() {
         @Override
-        public boolean accepts(ApplicationContext applicationContext, String value, Element metadata, List<Namespace> metadataNamespaces) {
+        public boolean accepts(ApplicationContext applicationContext, String value, int metadataId, Element metadata,
+                               List<Namespace> metadataNamespaces) {
             return true;
         }
     }),
@@ -77,7 +89,8 @@ public enum SchematronCriteriaType {
         this.evaluator = evaluator;
     }
 
-    public boolean accepts(ApplicationContext applicationContext, String value, Element metadata, List<Namespace> metadataNamespaces) {
-        return evaluator.accepts(applicationContext, value, metadata, metadataNamespaces);
+    public boolean accepts(ApplicationContext applicationContext, String value, int metadataId, Element metadata,
+                           List<Namespace> metadataNamespaces) {
+        return evaluator.accepts(applicationContext, value, metadataId, metadata, metadataNamespaces);
     }
 }

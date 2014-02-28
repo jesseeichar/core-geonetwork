@@ -6,16 +6,19 @@ import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
 import org.fao.geonet.constants.Params;
 import org.fao.geonet.domain.SchematronCriteriaGroup;
+import org.fao.geonet.domain.SchematronCriteriaType;
 import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.repository.SchematronCriteriaGroupRepository;
 import org.fao.geonet.repository.specification.SchematronCriteriaGroupSpecs;
 import org.fao.geonet.utils.Xml;
+import org.jdom.Content;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -26,6 +29,9 @@ import java.util.List;
  */
 public class SchematronCriteriaTypeService implements Service {
 
+    private static final String EL_TYPE = "type";
+    private static final String EL_VALUE = "value";
+    private static final String EL_NAME = "name";
     private SchematronService schematronService = new SchematronService();
 
     @Override
@@ -72,7 +78,24 @@ public class SchematronCriteriaTypeService implements Service {
         if (file.exists()) {
             Element criteriaType = Xml.loadFile(file);
             criteriaType.setName("criteriaTypes");
+            criteriaType.addContent(alwaysAcceptCriteriaType());
+            criteriaType.addContent(genericXPathCriteriaType());
             schemaEl.addContent(criteriaType);
         }
+    }
+
+    private Element genericXPathCriteriaType() {
+       return new Element(EL_TYPE).addContent(Arrays.asList(
+               new Element(EL_VALUE).setText("@@value@@"),
+               new Element(EL_TYPE).setText(SchematronCriteriaType.XPATH.name()),
+               new Element(EL_NAME).setText("Xpath"))
+       );
+    }
+
+    private Element alwaysAcceptCriteriaType() {
+        return new Element(EL_TYPE).addContent(Arrays.asList(
+                new Element(EL_TYPE).setText(SchematronCriteriaType.ALWAYS_ACCEPT.name()),
+                new Element(EL_NAME).setText("Always true"))
+        );
     }
 }

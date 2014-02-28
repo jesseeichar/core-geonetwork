@@ -116,7 +116,7 @@ public class XPathCriteriaEvaluator implements SchematronCriteriaEvaluator {
     }
 
     @Override
-    public boolean accepts(ApplicationContext applicationContext, String value, Element metadata, List<Namespace> metadataNamespaces) {
+    public boolean accepts(ApplicationContext applicationContext, String value, int metadataId, Element metadata, List<Namespace> metadataNamespaces) {
         String[] ors = value.split(OR);
         boolean orAccepts = false;
         for (String or : ors) {
