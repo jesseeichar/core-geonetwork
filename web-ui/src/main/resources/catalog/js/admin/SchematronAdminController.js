@@ -39,10 +39,5 @@
             };
 
             $scope.requirements=['REQUIRED', 'REQUEST_ONLY', 'DISABLED'];
-
-            $scope.criteriaEditor = {
-                html: null,
-                object: null
-            };
         }]);
 })();

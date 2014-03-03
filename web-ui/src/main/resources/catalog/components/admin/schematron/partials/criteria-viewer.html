@@ -1,4 +1,5 @@
-<a class="gn-action" data-ng-class="{'list-group-item':criteria.type != 'NEW'}" data-ng-hide="editor.object === criteria" data-ng-click="startEditing()">
+<div>
+<a class="gn-action" data-ng-class="{'list-group-item':criteria.type != 'NEW'}" data-ng-hide="editing" data-ng-click="startEditing()">
     <div class="row">
         <i class="fa fa-edit" data-ng-class="calculateClassOnDirty('col-sm-1', null)" data-ng-show="isDirty()"/>
         <div data-ng-class="calculateClassOnDirty('col-sm-10', 'col-sm-11')">{{describeCriteria()}}</div>
@@ -12,6 +13,31 @@
                data-ng-mouseover="hoverDelete = 'fa-times-circle'"
                data-ng-click="deleteCriteria();$event.stopPropagation()"></i>
         </div>
-
     </div>
 </a>
+<form class="form-inline" role="form" data-ng-show="editing">
+    <div class="row">
+        <div class="form-group col-sm-3">
+            <select
+                    class="form-control"
+                    data-ng-mousedown="handleFocus($event)"
+                    data-ng-blur="handleBlur()"
+                    data-ng-model="criteria.type"
+                    data-ng-options="c.name for c in schema.criteriaTypes">
+                <option data-ng-if="criteria.type === 'NEW'" value="NEW">{{'new'|translate}}</option>
+            </select>
+        </div>
+        <div class="form-group col-sm-7">
+            <input type="text"
+                   class="form-control"
+                   data-ng-mousedown="handleFocus($event)"
+                   data-ng-blur="handleBlur()"
+                   placeholder="{{'criteriaValue' | translate}}"
+                   data-ng-model="criteria.value"
+                    />
+        </div>
+        <a class="gn-action" data-ng-mousedown="handleFocus($event)" data-ng-click="saveEdit()">{{'save' | translate}}</a>
+        <a class="fa fa-times" data-ng-mousedown="handleFocus($event)" data-ng-click="cancelEditing()">{{'cancel' | translate}}</a>
+    </div>
+</form>
+</div>

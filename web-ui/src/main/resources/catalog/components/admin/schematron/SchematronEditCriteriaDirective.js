@@ -10,8 +10,8 @@
      * Display harvester identification section with
      * name, group and icon
      */
-    module.directive('gnCriteriaEditor', ['gnSchematronAdminService', '$compile', '$templateCache', '$q', '$translate',
-        function (gnSchematronAdminService, $compile, $templateCache, $q, $translate) {
+    module.directive('gnCriteriaEditor', ['gnSchematronAdminService', '$compile', '$templateCache', '$q', '$translate', '$http',
+        function (gnSchematronAdminService, $compile, $templateCache, $q, $translate, $http) {
 
             return {
                 restrict: 'E',
@@ -19,7 +19,6 @@
                 transclude: false,
                 scope: {
                     original: '=criteria',
-                    editor: '=',
                     schema: '=',
                     group: '='
                 },
@@ -42,46 +41,10 @@
                             return whenClean;
                         }
                     }
+                    scope.editing = false;
                     scope.startEditing = function () {
-                        scope.editor.object = scope.criteria;
-                        scope.asyncLoadTemplate(scope.editor).then(function success(linkFunc) {
-                            if (scope.editor.html) {
-                                scope.cancelEditing();
-                            }
-                            scope.editor.html = linkFunc(scope);
-                            scope.editor.linkFunction = linkFunc;
-
-                            element.after(scope.editor.html);
-                            scope.editor.html.find("input").focus();
-                        },function error(msg){
-                            alert(msg)}
-                        );
+                        scope.editing = true;
                     };
-                    scope.asyncLoadTemplate = function(editor) {
-                        var deferred = $q.defer();
-                        if (scope.editor.linkFunction) {
-                            deferred.resolve(scope.editor.linkFunction);
-                        } else {
-                            var templateUrl = '../../catalog/components/admin/schematron/partials/criteria-editor.html';
-                            var template = $templateCache.get(templateUrl);
-                            if (!template) {
-                                $http.get(templateUrl).then(
-                                    function success(response){
-                                        var linkFunc = $compile(angular.element(response.data));
-                                        deferred.resolve(linkFunc);
-                                    },
-                                    function failure(){
-                                        deferred.reject('Failed to load template from '+templateUrl)
-                                });
-                            } else {
-                                var linkFunc = $compile(angular.element(template));
-                                deferred.resolve(linkFunc);
-                            }
-                        }
-
-                        return deferred.promise;
-                    };
-
                     scope.describeCriteria = function () {
                         switch (scope.original.type) {
                             case 'ALWAYS_ACCEPT':
@@ -97,22 +60,17 @@
                         }
                     };
 
-                    scope.disposeOfEditHtml = function () {
-                        scope.editor.html.remove();
-                        scope.editor.html = null;
-                        scope.editor.object = null;
-                    }
                     scope.cancelEditing = function () {
                         scope.criteria.type = scope.original.type;
                         scope.criteria.value = scope.original.value;
 
-                        scope.disposeOfEditHtml();
+                        scope.editing = false;
                     };
 
                     scope.newlyFocused = false;
                     scope.handleBlur = function() {
                         if (!scope.newlyFocused) {
-                            scope.disposeOfEditHtml();
+                            scope.editing = false;
                         }
                     };
                     scope.handleFocus = function() {
