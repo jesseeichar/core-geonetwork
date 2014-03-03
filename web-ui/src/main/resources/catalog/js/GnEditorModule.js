@@ -9,7 +9,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
   goog.require('gn');
+  goog.require('gn_batch_service');
   goog.require('gn_draggable_directive');
   goog.require('gn_editor_controller');
   goog.require('gn_geopublisher');
@@ -28,7 +39,8 @@
     'gn_draggable_directive',
     'gn_editor_controller',
     'gn_ows',
-    'gn_geopublisher'
+    'gn_geopublisher',
+    'gn_batch_service'
   ]);
 
   // Define the translation files to load

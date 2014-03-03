@@ -12,8 +12,10 @@ input[type=text], input[type=number], select {
 }
 
 .gn-drawmap-panel {
-  .form-group {
+  table .form-group {
     width: 150px;
+  }
+  .form-group {
     margin-left: 0px;
     margin-right: 0px;
   }
@@ -29,6 +31,14 @@ input[type=text], input[type=number], select {
   .map {
    height: 300px;
    width: 100%;
+  }
+  
+  .gn-proj-select {
+    width: 250px;
+    vertical-align: top;
+  }
+  .gn-region-picker {
+    width: 400px;
   }
 }
 .gn-geopublisher-panel {
@@ -84,9 +94,15 @@ form.gn-editor {
   }
   
   .gn-autocomplete-list {
-    position: absolute; 
-    z-index:2; 
-    max-height: 350px;
+    position: absolute;
+    margin-top: 4px;
+    width: inherit;
+
+    /**/
+    .tt-suggestion:hover {
+      color: #fff;
+      background-color: #0097cf;
+    }
   }
   
   .gn-debug {
@@ -163,6 +179,15 @@ form.gn-editor {
    *[data-gn-keyword-selector] {
        margin-bottom: 10px;
    }
+}
+
+form.gn-tab-inspire {
+  .control-label {
+    color: inherit;
+  }
+  .well {
+    display: none;
+  }
 }
 
 /* Onlinesrc styles */

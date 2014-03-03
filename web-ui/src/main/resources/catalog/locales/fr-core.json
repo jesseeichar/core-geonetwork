@@ -92,11 +92,21 @@
     "selectNone": "Aucun",
     
     "noRecordFound": "Pas d'enregistrement trouvé",
-    
+    "map": "Carte",
+    "dataset": "Données",
+    "service": "Service",
+    "staticMap": "Carte statique",
+    "featureCatalog": "Catalogue d'attributs",
+
     "any": "Plein texte",
-    "orgName": "Contact de la ressource",
-    "createDateYear": "Année de création",
-    "_indexingError": "Erreur d'indexatin",
+    "orgNames": "Contact de la ressource",
+    "createDateYears": "Année de création",
+    "serviceTypes": "Type de service",
+    "denominators": "Niveau d'échelle (dénominateur)",
+    "metadataPOCs": "Contact pour la fiche",
+    "spatialRepresentationTypes": "Type de représentation spatiale",
+    "types": "Type de fiche",
+    "_indexingError": "Erreur d'indexation",
     "_cat": "Catégorie",
     "keyword": "Mot-clé",
     "filter": "Filtre",
@@ -117,7 +127,8 @@
     "msgUserAuthenticated": "L'utilisateur {{username}} est authentifié.",
     "msgNoCatalogInfo": "Ne peut retrouver les informations catalogue",
     "msgNoUserInfo": "Ne peut retrouver les informations utilisateurs",
-    
+
+    "toggleScrollSpy": "Afficher/cacher la navigation défilante",
     "passwordUpdateError": "Erreur lors de la mise à jour du mot de passe",
     "BadParameterEx": "Paramètre incorrect",
     "send": "Envoyer",

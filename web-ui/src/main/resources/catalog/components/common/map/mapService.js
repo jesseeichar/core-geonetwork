@@ -9,13 +9,31 @@
     this.$get = [
       'gnConfig',
       function(gnConfig) {
+        
         var defaultMapConfig = {
           'useOSM': 'true',
           'projection': 'EPSG:3857',
-          'projectionList': ['EPSG:4326', 'EPSG:3857']
+          'projectionList': [{
+            "code":"EPSG:4326",
+            "label":"WGS84 (EPSG:4326)"
+          },{
+            "code":"EPSG:3857",
+            "label":"Google mercator (EPSG:3857)"
+          }]
         };
+        
         return {
 
+          importProj4js: function() {
+            Proj4js.defs['EPSG:3857'] = Proj4js.defs['EPSG:900913'];
+            if(Proj4js && gnConfig['map.proj4js'] && 
+                angular.isArray(gnConfig['map.proj4js'])) {
+              angular.forEach(gnConfig['map.proj4js'], function(item){
+                Proj4js.defs[item.code] = item.value;
+              });
+            }
+          },
+          
           /**
            * Reproject a given extent. Extent is an object
            * defined as
@@ -49,7 +67,7 @@
           },
 
           getMapConfig: function() {
-            if (gnConfig['map.config'] && gnConfig['map.config'].length > 0) {
+            if (gnConfig['map.config'] && angular.isObject(gnConfig['map.config'])) {
               return gnConfig['map.config'];
             } else {
               return defaultMapConfig;

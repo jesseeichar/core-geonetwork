@@ -13,11 +13,11 @@
     '$scope', '$routeParams', '$http', '$rootScope', '$translate', '$compile',
     'gnSearchManagerService',
     'gnUtilityService',
-    'gnNewMetadata',
+    'gnMetadataManager',
     function($scope, $routeParams, $http, $rootScope, $translate, $compile,
             gnSearchManagerService, 
             gnUtilityService,
-            gnNewMetadata) {
+            gnMetadataManager) {
 
       $scope.isTemplate = false;
       $scope.hasTemplates = true;
@@ -53,12 +53,11 @@
 
       var init = function() {
         if ($routeParams.id) {
-          gnNewMetadata.createNewMetadata(
+          gnMetadataManager.create(
               $routeParams.id,
               $routeParams.group,
               fullPrivileges,
               $routeParams.template);
-          // TODO: add fullPrivileges param in UI ?
         } else {
 
           // Metadata creation could be on a template
@@ -157,12 +156,14 @@
         $scope.title = $translate('createA');
       }
 
-      $scope.createNewMetadata = function() {
-        gnNewMetadata.createNewMetadata(
+      $scope.createNewMetadata = function(isPublic) {
+        gnMetadataManager.create(
             $scope.activeTpl['geonet:info'].id,
             $scope.ownerGroup,
-            fullPrivileges,
-            $scope.isTemplate);
+            isPublic || false,
+            $scope.isTemplate,
+            $routeParams.childOf ? true : false
+        );
       };
 
       init();

@@ -167,100 +167,6 @@
   <views>
     <!-- TODO: Add option to configure if view should be displayed or not 
     based on xpath expression ? -->
-    <view name="default">
-      <tab id="default" default="true" mode="flat">
-        <section xpath="/gmd:MD_Metadata/gmd:identificationInfo"/>
-        <section xpath="/gmd:MD_Metadata/gmd:distributionInfo"/>
-        <section xpath="/gmd:MD_Metadata/gmd:dataQualityInfo"/>
-        <section name="gmd:MD_Metadata">
-          <field xpath="/gmd:MD_Metadata/gmd:fileIdentifier"/>
-          <field xpath="/gmd:MD_Metadata/gmd:language" or="language" in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:characterSet"/>
-          <field xpath="/gmd:MD_Metadata/gmd:parentIdentifier" or="parentIdentifier"
-            in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:hierarchyLevel" or="hierarchyLevel"
-            in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:hierarchyLevelName" or="hierarchyLevelName"
-            in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:dateStamp"/>
-          <field xpath="/gmd:MD_Metadata/gmd:metadataStandardName"/>
-          <field xpath="/gmd:MD_Metadata/gmd:metadataStandardVersion"/>
-          <field xpath="/gmd:MD_Metadata/gmd:contact" or="contact" in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:dataSetURI" or="dataSetURI" in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:locale" or="locale" in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:series"/>
-          <field xpath="/gmd:MD_Metadata/gmd:describes"/>
-          <field xpath="/gmd:MD_Metadata/gmd:propertyType"/>
-          <field xpath="/gmd:MD_Metadata/gmd:featureType"/>
-          <field xpath="/gmd:MD_Metadata/gmd:featureAttribute"/>
-        </section>
-      </tab>
-    </view>
-    <view name="advanced">
-      <tab id="identificationInfo" default="true">
-        <section xpath="/gmd:MD_Metadata/gmd:identificationInfo" or="identificationInfo"
-          in="/gmd:MD_Metadata"/>
-      </tab>
-      <tab id="distributionInfo">
-        <section xpath="/gmd:MD_Metadata/gmd:distributionInfo" or="distributionInfo"
-          in="/gmd:MD_Metadata"/>
-      </tab>
-      <tab id="dataQualityInfo">
-        <section xpath="/gmd:MD_Metadata/gmd:dataQualityInfo" or="dataQualityInfo"
-          in="/gmd:MD_Metadata"/>
-      </tab>
-      <tab id="spatialRepresentationInfo">
-        <section xpath="/gmd:MD_Metadata/gmd:spatialRepresentationInfo"
-          or="spatialRepresentationInfo" in="/gmd:MD_Metadata"/>
-      </tab>
-      <tab id="referenceSystemInfo">
-        <section xpath="/gmd:MD_Metadata/gmd:referenceSystemInfo" or="referenceSystemInfo"
-          in="/gmd:MD_Metadata"/>
-      </tab>
-      <tab id="contentInfo" toggle="true">
-        <section xpath="/gmd:MD_Metadata/gmd:contentInfo" or="contentInfo" in="/gmd:MD_Metadata"/>
-      </tab>
-      <tab id="portrayalCatalogueInfo" toggle="true">
-        <section xpath="/gmd:MD_Metadata/gmd:portrayalCatalogueInfo" or="portrayalCatalogueInfo"
-          in="/gmd:MD_Metadata"/>
-      </tab>
-      <tab id="metadata">
-        <section name="gmd:MD_Metadata">
-          <field xpath="/gmd:MD_Metadata/gmd:fileIdentifier"/>
-          <field xpath="/gmd:MD_Metadata/gmd:language" or="language" in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:characterSet"/>
-          <field xpath="/gmd:MD_Metadata/gmd:parentIdentifier" or="parentIdentifier"
-            in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:hierarchyLevel" or="hierarchyLevel"
-            in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:hierarchyLevelName" or="hierarchyLevelName"
-            in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:dateStamp"/>
-          <field xpath="/gmd:MD_Metadata/gmd:metadataStandardName"/>
-          <field xpath="/gmd:MD_Metadata/gmd:metadataStandardVersion"/>
-          <field xpath="/gmd:MD_Metadata/gmd:contact" or="contact" in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:dataSetURI" or="dataSetURI" in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:locale" or="locale" in="/gmd:MD_Metadata"/>
-          <field xpath="/gmd:MD_Metadata/gmd:series"/>
-          <field xpath="/gmd:MD_Metadata/gmd:describes"/>
-          <field xpath="/gmd:MD_Metadata/gmd:propertyType"/>
-          <field xpath="/gmd:MD_Metadata/gmd:featureType"/>
-          <field xpath="/gmd:MD_Metadata/gmd:featureAttribute"/>
-        </section>
-      </tab>
-      <tab id="metadataConstraints" toggle="true">
-        <section xpath="/gmd:MD_Metadata/gmd:metadataConstraints" or="metadataConstraints"
-          in="/gmd:MD_Metadata"/>
-      </tab>
-      <tab id="metadataMaintenance" toggle="true">
-        <section xpath="/gmd:MD_Metadata/gmd:metadataMaintenance" or="metadataMaintenance"
-          in="/gmd:MD_Metadata"/>
-      </tab>
-      <tab id="applicationSchemaInfo" toggle="true">
-        <section xpath="/gmd:MD_Metadata/gmd:applicationSchemaInfo" or="applicationSchemaInfo"
-          in="/gmd:MD_Metadata"/>
-      </tab>
-    </view>
     <view name="inspire" upAndDownControlHidden="true">
       <tab id="inspire" default="true" mode="flat">
         <section name="resource">
@@ -272,10 +178,11 @@
           <field
             xpath="/gmd:MD_Metadata/gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:abstract"
             if="count(gmd:MD_Metadata/gmd:identificationInfo/srv:SV_ServiceIdentification) > 0"/>
-          <field xpath="/gmd:MD_Metadata/gmd:hierarchyLevel"/>
+
+          <field xpath="/gmd:MD_Metadata/gmd:hierarchyLevel" or="hierarchyLevel"
+              in="/gmd:MD_Metadata"/>
 
 
-          <!-- TODO: Service coupledResource / could use relation panel -->
           <field
             xpath="/gmd:MD_Metadata/gmd:identificationInfo/srv:SV_ServiceIdentification/srv:serviceType"/>
 
@@ -359,11 +266,25 @@
             </template>
           </field>
 
+          <action type="add" name="identifier" or="identifier"
+                  in="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:citation/gmd:CI_Citation">
+            <template>
+              <snippet>
+                <gmd:identifier>
+                  <gmd:MD_Identifier>
+                    <gmd:code>
+                      <gco:CharacterString></gco:CharacterString>
+                    </gmd:code>
+                  </gmd:MD_Identifier>
+                </gmd:identifier>
+              </snippet>
+            </template>
+          </action>
+
           <action type="batch" process="add-resource-id" params=""
-            if="count(gmd:MD_Metadata/gmd:identificationInfo/*/gmd:citation/gmd:CI_Citation/
+                  if="count(gmd:MD_Metadata/gmd:identificationInfo/*/gmd:citation/gmd:CI_Citation/
             gmd:identifier[ends-with(gmd:MD_Identifier/gmd:code/gco:CharacterString, //gmd:MD_Metadata/gmd:fileIdentifier/gco:CharacterString)]) = 0"/>
           <!-- [ends-with(gmd:MD_Identifier/gmd:code/gco:CharacterString, root()/gmd:MD_Metadata/gmd:fileIdentifier/gco:CharacterString)] -->
-
 
 
 
@@ -420,16 +341,16 @@
 
           <field
             xpath="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/
-            gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:keyword"
+            gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:keyword[not(../gmd:thesaurusName)]"
             or="keyword"
             in="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/
-            gmd:descriptiveKeywords/gmd:MD_Keywords"> </field>
+            gmd:descriptiveKeywords/gmd:MD_Keywords[not(gmd:thesaurusName)]"> </field>
 
           <!-- INSPIRE Themes -->
           <field
             xpath="/gmd:MD_Metadata/gmd:identificationInfo/*/
             gmd:descriptiveKeywords
-            [contains(gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString, 'INSPIRE themes')]"> </field>
+            [contains(gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString, 'INSPIRE themes')]"/>
           <!-- FIXME: MUST be provided in template and thesaurus available in the catalog, to be displayed properly -->
 
 
@@ -783,6 +704,7 @@
 
 
           <field name="conformity" templateModeOnly="true"
+                 isMissingLabel="notEvaluated"
             xpath="/gmd:MD_Metadata/gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:report/gmd:DQ_DomainConsistency/gmd:result"
             del="../..">
             <template>
@@ -801,6 +723,7 @@
                         gmd:explanation/gco:CharacterString"
                   use="textarea"/>
                 <key label="pass"
+                  use="checkbox"
                   xpath="gmd:DQ_ConformanceResult/
                         gmd:pass/gco:Boolean"/>
               </values>
@@ -1000,168 +923,252 @@
             xpath="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:characterSet"> </field>
 
 
-
-
-
-          <section name="pointOfContact">
-            <field name="pointOfContact" templateModeOnly="true" notDisplayedIfMissing="true"
-              xpath="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact"
-              del="."
-              if="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification) > 0">
-              <template>
-                <values>
-                  <key label="organisationName"
-                    xpath="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>
-                  <key label="electronicMailAddress"
-                    xpath="gmd:CI_ResponsibleParty/gmd:contactInfo/
-                      gmd:CI_Contact/gmd:address/gmd:CI_Address/gmd:electronicMailAddress/gco:CharacterString"
-                    use="email"/>
-                  <key label="role"
-                    xpath="gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue">
-                    <codelist name="gmd:CI_RoleCode"/>
-                  </key>
-                </values>
-                <snippet>
-                  <gmd:pointOfContact>
-                    <gmd:CI_ResponsibleParty>
-                      <gmd:organisationName>
-                        <gco:CharacterString>{{organisationName}}</gco:CharacterString>
-                      </gmd:organisationName>
-                      <gmd:contactInfo>
-                        <gmd:CI_Contact>
-                          <gmd:address>
-                            <gmd:CI_Address>
-                              <gmd:electronicMailAddress>
-                                <gco:CharacterString>{{electronicMailAddress}}</gco:CharacterString>
-                              </gmd:electronicMailAddress>
-                            </gmd:CI_Address>
-                          </gmd:address>
-                        </gmd:CI_Contact>
-                      </gmd:contactInfo>
-                      <gmd:role>
-                        <gmd:CI_RoleCode
-                          codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode"
-                          codeListValue="{{role}}"/>
-                      </gmd:role>
-                    </gmd:CI_ResponsibleParty>
-                  </gmd:pointOfContact>
-                </snippet>
-              </template>
-            </field>
-
-
-            <action type="add" name="pointOfContact" addDirective="data-gn-directory-entry-selector"
-              or="pointOfContact"
-              in="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification"> </action>
-
-
-            <field name="pointOfContact" templateModeOnly="true" notDisplayedIfMissing="true"
-              xpath="/gmd:MD_Metadata/gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:pointOfContact"
-              del="."
-              if="count(gmd:MD_Metadata/gmd:identificationInfo/srv:SV_ServiceIdentification) > 0">
-              <template>
-                <values>
-                  <key label="organisationName"
-                    xpath="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>
-                  <key label="electronicMailAddress"
-                    xpath="gmd:CI_ResponsibleParty/gmd:contactInfo/
+          <field name="pointOfContact" templateModeOnly="true" notDisplayedIfMissing="true"
+            xpath="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:pointOfContact"
+            del="."
+            if="count(gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification) > 0">
+            <template>
+              <values>
+                <key label="organisationName"
+                  xpath="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>
+                <key label="electronicMailAddress"
+                  xpath="gmd:CI_ResponsibleParty/gmd:contactInfo/
                     gmd:CI_Contact/gmd:address/gmd:CI_Address/gmd:electronicMailAddress/gco:CharacterString"
-                    use="email"/>
-                  <key label="role"
-                    xpath="gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue">
-                    <codelist name="gmd:CI_RoleCode"/>
-                  </key>
-                </values>
-                <snippet>
-                  <gmd:pointOfContact>
-                    <gmd:CI_ResponsibleParty>
-                      <gmd:organisationName>
-                        <gco:CharacterString>{{organisationName}}</gco:CharacterString>
-                      </gmd:organisationName>
-                      <gmd:contactInfo>
-                        <gmd:CI_Contact>
-                          <gmd:address>
-                            <gmd:CI_Address>
-                              <gmd:electronicMailAddress>
-                                <gco:CharacterString>{{electronicMailAddress}}</gco:CharacterString>
-                              </gmd:electronicMailAddress>
-                            </gmd:CI_Address>
-                          </gmd:address>
-                        </gmd:CI_Contact>
-                      </gmd:contactInfo>
-                      <gmd:role>
-                        <gmd:CI_RoleCode
-                          codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode"
-                          codeListValue="{{role}}"/>
-                      </gmd:role>
-                    </gmd:CI_ResponsibleParty>
-                  </gmd:pointOfContact>
-                </snippet>
-              </template>
-            </field>
+                  use="email"/>
+                <key label="role"
+                  xpath="gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue">
+                  <codelist name="gmd:CI_RoleCode"/>
+                </key>
+              </values>
+              <snippet>
+                <gmd:pointOfContact>
+                  <gmd:CI_ResponsibleParty>
+                    <gmd:organisationName>
+                      <gco:CharacterString>{{organisationName}}</gco:CharacterString>
+                    </gmd:organisationName>
+                    <gmd:contactInfo>
+                      <gmd:CI_Contact>
+                        <gmd:address>
+                          <gmd:CI_Address>
+                            <gmd:electronicMailAddress>
+                              <gco:CharacterString>{{electronicMailAddress}}</gco:CharacterString>
+                            </gmd:electronicMailAddress>
+                          </gmd:CI_Address>
+                        </gmd:address>
+                      </gmd:CI_Contact>
+                    </gmd:contactInfo>
+                    <gmd:role>
+                      <gmd:CI_RoleCode
+                        codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode"
+                        codeListValue="{{role}}"/>
+                    </gmd:role>
+                  </gmd:CI_ResponsibleParty>
+                </gmd:pointOfContact>
+              </snippet>
+            </template>
+          </field>
 
 
-            <action type="add" name="pointOfContact" addDirective="data-gn-directory-entry-selector"
-              or="pointOfContact"
-              in="/gmd:MD_Metadata/gmd:identificationInfo/srv:SV_ServiceIdentification"> </action>
+          <action type="add" name="pointOfContact" addDirective="data-gn-directory-entry-selector"
+            or="pointOfContact"
+            in="/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification"> </action>
 
-          </section>
+
+          <field name="pointOfContact" templateModeOnly="true" notDisplayedIfMissing="true"
+            xpath="/gmd:MD_Metadata/gmd:identificationInfo/srv:SV_ServiceIdentification/gmd:pointOfContact"
+            del="."
+            if="count(gmd:MD_Metadata/gmd:identificationInfo/srv:SV_ServiceIdentification) > 0">
+            <template>
+              <values>
+                <key label="organisationName"
+                  xpath="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>
+                <key label="electronicMailAddress"
+                  xpath="gmd:CI_ResponsibleParty/gmd:contactInfo/
+                  gmd:CI_Contact/gmd:address/gmd:CI_Address/gmd:electronicMailAddress/gco:CharacterString"
+                  use="email"/>
+                <key label="role"
+                  xpath="gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue">
+                  <codelist name="gmd:CI_RoleCode"/>
+                </key>
+              </values>
+              <snippet>
+                <gmd:pointOfContact>
+                  <gmd:CI_ResponsibleParty>
+                    <gmd:organisationName>
+                      <gco:CharacterString>{{organisationName}}</gco:CharacterString>
+                    </gmd:organisationName>
+                    <gmd:contactInfo>
+                      <gmd:CI_Contact>
+                        <gmd:address>
+                          <gmd:CI_Address>
+                            <gmd:electronicMailAddress>
+                              <gco:CharacterString>{{electronicMailAddress}}</gco:CharacterString>
+                            </gmd:electronicMailAddress>
+                          </gmd:CI_Address>
+                        </gmd:address>
+                      </gmd:CI_Contact>
+                    </gmd:contactInfo>
+                    <gmd:role>
+                      <gmd:CI_RoleCode
+                        codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode"
+                        codeListValue="{{role}}"/>
+                    </gmd:role>
+                  </gmd:CI_ResponsibleParty>
+                </gmd:pointOfContact>
+              </snippet>
+            </template>
+          </field>
+
+
+          <action type="add" name="pointOfContact" addDirective="data-gn-directory-entry-selector"
+            or="pointOfContact"
+            in="/gmd:MD_Metadata/gmd:identificationInfo/srv:SV_ServiceIdentification"> </action>
+
         </section>
+
         <section name="metadata">
 
-          <section name="metadataPointOfContact">
-            <field name="metadataPointOfContact" templateModeOnly="true"
-              notDisplayedIfMissing="true" xpath="/gmd:MD_Metadata/gmd:contact" del=".">
-              <template>
-                <values>
-                  <key label="organisationName"
-                    xpath="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>
-                  <key label="electronicMailAddress"
-                    xpath="gmd:CI_ResponsibleParty/gmd:contactInfo/
-                    gmd:CI_Contact/gmd:address/gmd:CI_Address/gmd:electronicMailAddress/gco:CharacterString"
-                    use="email"/>
-                  <key label="role"
-                    xpath="gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue">
-                    <codelist name="gmd:CI_RoleCode"/>
-                  </key>
-                </values>
-                <snippet>
-                  <gmd:contact>
-                    <gmd:CI_ResponsibleParty>
-                      <gmd:organisationName>
-                        <gco:CharacterString>{{organisationName}}</gco:CharacterString>
-                      </gmd:organisationName>
-                      <gmd:contactInfo>
-                        <gmd:CI_Contact>
-                          <gmd:address>
-                            <gmd:CI_Address>
-                              <gmd:electronicMailAddress>
-                                <gco:CharacterString>{{electronicMailAddress}}</gco:CharacterString>
-                              </gmd:electronicMailAddress>
-                            </gmd:CI_Address>
-                          </gmd:address>
-                        </gmd:CI_Contact>
-                      </gmd:contactInfo>
-                      <gmd:role>
-                        <gmd:CI_RoleCode
-                          codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode"
-                          codeListValue="{{role}}"/>
-                      </gmd:role>
-                    </gmd:CI_ResponsibleParty>
-                  </gmd:contact>
-                </snippet>
-              </template>
-            </field>
+          <field name="metadataPointOfContact" templateModeOnly="true"
+            notDisplayedIfMissing="true"
+            xpath="/gmd:MD_Metadata/gmd:contact[gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue='pointOfContact']" del=".">
+            <template>
+              <values>
+                <key label="pointOfContactName"
+                  xpath="gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString"/>
+                <key label="pointOfContactEmail"
+                  xpath="gmd:CI_ResponsibleParty/gmd:contactInfo/
+                  gmd:CI_Contact/gmd:address/gmd:CI_Address/gmd:electronicMailAddress/gco:CharacterString"
+                  use="email"/>
+              </values>
+              <snippet>
+                <gmd:contact>
+                  <gmd:CI_ResponsibleParty>
+                    <gmd:organisationName>
+                      <gco:CharacterString>{{organisationName}}</gco:CharacterString>
+                    </gmd:organisationName>
+                    <gmd:contactInfo>
+                      <gmd:CI_Contact>
+                        <gmd:address>
+                          <gmd:CI_Address>
+                            <gmd:electronicMailAddress>
+                              <gco:CharacterString>{{electronicMailAddress}}</gco:CharacterString>
+                            </gmd:electronicMailAddress>
+                          </gmd:CI_Address>
+                        </gmd:address>
+                      </gmd:CI_Contact>
+                    </gmd:contactInfo>
+                    <gmd:role>
+                      <gmd:CI_RoleCode
+                        codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode"
+                        codeListValue="{{role}}"/>
+                    </gmd:role>
+                  </gmd:CI_ResponsibleParty>
+                </gmd:contact>
+              </snippet>
+            </template>
+          </field>
 
 
-            <action type="add" name="metadataPointOfContact"
-              addDirective="data-gn-directory-entry-selector" or="contact" in="/gmd:MD_Metadata"> </action>
+          <action type="add" name="metadataPointOfContact"
+            addDirective="data-gn-directory-entry-selector" or="contact" in="/gmd:MD_Metadata"> </action>
 
 
-          </section>
           <field xpath="/gmd:MD_Metadata/gmd:dateStamp"/>
-          <field xpath="/gmd:MD_Metadata/gmd:language"/>
         </section>
+      </tab>
+    </view>
+    <view name="default">
+      <tab id="default" default="true" mode="flat">
+        <section xpath="/gmd:MD_Metadata/gmd:identificationInfo"/>
+        <section xpath="/gmd:MD_Metadata/gmd:distributionInfo"/>
+        <section xpath="/gmd:MD_Metadata/gmd:dataQualityInfo"/>
+        <section name="gmd:MD_Metadata">
+          <field xpath="/gmd:MD_Metadata/gmd:fileIdentifier"/>
+          <field xpath="/gmd:MD_Metadata/gmd:language" or="language" in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:characterSet"/>
+          <field xpath="/gmd:MD_Metadata/gmd:parentIdentifier" or="parentIdentifier"
+                 in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:hierarchyLevel" or="hierarchyLevel"
+                 in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:hierarchyLevelName" or="hierarchyLevelName"
+                 in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:dateStamp"/>
+          <field xpath="/gmd:MD_Metadata/gmd:metadataStandardName"/>
+          <field xpath="/gmd:MD_Metadata/gmd:metadataStandardVersion"/>
+          <field xpath="/gmd:MD_Metadata/gmd:contact" or="contact" in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:dataSetURI" or="dataSetURI" in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:locale" or="locale" in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:series"/>
+          <field xpath="/gmd:MD_Metadata/gmd:describes"/>
+          <field xpath="/gmd:MD_Metadata/gmd:propertyType"/>
+          <field xpath="/gmd:MD_Metadata/gmd:featureType"/>
+          <field xpath="/gmd:MD_Metadata/gmd:featureAttribute"/>
+        </section>
+      </tab>
+    </view>
+    <view name="advanced">
+      <tab id="identificationInfo" default="true">
+        <section xpath="/gmd:MD_Metadata/gmd:identificationInfo" or="identificationInfo"
+                 in="/gmd:MD_Metadata"/>
+      </tab>
+      <tab id="distributionInfo">
+        <section xpath="/gmd:MD_Metadata/gmd:distributionInfo" or="distributionInfo"
+                 in="/gmd:MD_Metadata"/>
+      </tab>
+      <tab id="dataQualityInfo">
+        <section xpath="/gmd:MD_Metadata/gmd:dataQualityInfo" or="dataQualityInfo"
+                 in="/gmd:MD_Metadata"/>
+      </tab>
+      <tab id="spatialRepresentationInfo">
+        <section xpath="/gmd:MD_Metadata/gmd:spatialRepresentationInfo"
+                 or="spatialRepresentationInfo" in="/gmd:MD_Metadata"/>
+      </tab>
+      <tab id="referenceSystemInfo">
+        <section xpath="/gmd:MD_Metadata/gmd:referenceSystemInfo" or="referenceSystemInfo"
+                 in="/gmd:MD_Metadata"/>
+      </tab>
+      <tab id="contentInfo" toggle="true">
+        <section xpath="/gmd:MD_Metadata/gmd:contentInfo" or="contentInfo" in="/gmd:MD_Metadata"/>
+      </tab>
+      <tab id="portrayalCatalogueInfo" toggle="true">
+        <section xpath="/gmd:MD_Metadata/gmd:portrayalCatalogueInfo" or="portrayalCatalogueInfo"
+                 in="/gmd:MD_Metadata"/>
+      </tab>
+      <tab id="metadata">
+        <section name="gmd:MD_Metadata">
+          <field xpath="/gmd:MD_Metadata/gmd:fileIdentifier"/>
+          <field xpath="/gmd:MD_Metadata/gmd:language" or="language" in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:characterSet"/>
+          <field xpath="/gmd:MD_Metadata/gmd:parentIdentifier" or="parentIdentifier"
+                 in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:hierarchyLevel" or="hierarchyLevel"
+                 in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:hierarchyLevelName" or="hierarchyLevelName"
+                 in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:dateStamp"/>
+          <field xpath="/gmd:MD_Metadata/gmd:metadataStandardName"/>
+          <field xpath="/gmd:MD_Metadata/gmd:metadataStandardVersion"/>
+          <field xpath="/gmd:MD_Metadata/gmd:contact" or="contact" in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:dataSetURI" or="dataSetURI" in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:locale" or="locale" in="/gmd:MD_Metadata"/>
+          <field xpath="/gmd:MD_Metadata/gmd:series"/>
+          <field xpath="/gmd:MD_Metadata/gmd:describes"/>
+          <field xpath="/gmd:MD_Metadata/gmd:propertyType"/>
+          <field xpath="/gmd:MD_Metadata/gmd:featureType"/>
+          <field xpath="/gmd:MD_Metadata/gmd:featureAttribute"/>
+        </section>
+      </tab>
+      <tab id="metadataConstraints" toggle="true">
+        <section xpath="/gmd:MD_Metadata/gmd:metadataConstraints" or="metadataConstraints"
+                 in="/gmd:MD_Metadata"/>
+      </tab>
+      <tab id="metadataMaintenance" toggle="true">
+        <section xpath="/gmd:MD_Metadata/gmd:metadataMaintenance" or="metadataMaintenance"
+                 in="/gmd:MD_Metadata"/>
+      </tab>
+      <tab id="applicationSchemaInfo" toggle="true">
+        <section xpath="/gmd:MD_Metadata/gmd:applicationSchemaInfo" or="applicationSchemaInfo"
+                 in="/gmd:MD_Metadata"/>
       </tab>
     </view>
     <view name="xml">
