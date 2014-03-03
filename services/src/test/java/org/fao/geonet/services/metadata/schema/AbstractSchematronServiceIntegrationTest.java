@@ -2,6 +2,9 @@ package org.fao.geonet.services.metadata.schema;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import jeeves.interfaces.Service;
+import jeeves.server.ServiceConfig;
+import org.fao.geonet.constants.Params;
 import org.fao.geonet.domain.SchematronCriteriaGroup;
 import org.fao.geonet.repository.SchematronCriteriaGroupRepository;
 import org.fao.geonet.repository.SchematronRepository;
@@ -14,6 +17,7 @@ import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.fao.geonet.repository.SchematronCriteriaGroupRepositoryTest.newGroup;
@@ -30,7 +34,7 @@ public class AbstractSchematronServiceIntegrationTest extends AbstractServiceInt
     protected SchematronCriteriaGroup _group3_Name3_SchemtronId1;
     protected SchematronCriteriaGroup _group4_Name2_SchematronId4;
     @Autowired
-    private SchematronRepository _schematronRepository;
+    SchematronRepository _schematronRepository;
     @Autowired
     private SchematronCriteriaGroupRepository _schematronCriteriaGroupRepository;
 
@@ -99,5 +103,10 @@ public class AbstractSchematronServiceIntegrationTest extends AbstractServiceInt
 
     protected void assertSuccessfulAdd(Element result) {
         assertEquals("success", result.getChildText("status"));
+    }
+
+    public void init(AbstractSchematronService service, SchematronServiceAction action) throws Exception {
+        ServiceConfig params = new ServiceConfig(Arrays.asList(createServiceConfigParam(Params.ACTION, action.toString())));
+        service.init(getWebappDir(AbstractSchematronServiceIntegrationTest.class), params);
     }
 }

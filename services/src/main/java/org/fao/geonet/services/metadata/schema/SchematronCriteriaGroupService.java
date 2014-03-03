@@ -8,17 +8,19 @@ import jeeves.server.context.ServiceContext;
 import org.fao.geonet.Util;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.constants.Params;
-import org.fao.geonet.domain.GeonetEntity;
-import org.fao.geonet.domain.SchematronCriteriaGroup;
-import org.fao.geonet.domain.SchematronCriteriaGroupId;
-import org.fao.geonet.domain.SchematronRequirement;
+import org.fao.geonet.domain.*;
+import org.fao.geonet.exceptions.BadInputEx;
+import org.fao.geonet.exceptions.BadParameterEx;
 import org.fao.geonet.repository.SchematronCriteriaGroupRepository;
+import org.fao.geonet.repository.SchematronRepository;
 import org.fao.geonet.repository.Updater;
 import org.fao.geonet.repository.specification.SchematronCriteriaGroupSpecs;
 import org.jdom.Element;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.domain.Specifications;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,15 +35,25 @@ public class SchematronCriteriaGroupService extends AbstractSchematronService {
     static final String PARAM_INCLUDE_CRITERIA = "includeCriteria";
     static final String PARAM_INCLUDE_SCHEMATRON = "includeSchematron";
     static final String PARAM_REQUIREMENT = "requirement";
+    static final String PARAM_NEW_GROUP_NAME = "newGroupName";
+    static final String PARAM_NEW_SCHEMATRON_ID = "newSchematronId";
 
     @Override
     protected Element delete(Element params, ServiceContext context) throws Exception {
         String groupName = Util.getParam(params, PARAM_GROUP_NAME);
-        String schematronId = Util.getParam(params, PARAM_SCHEMATRON_ID);
+        int schematronId = Integer.parseInt(Util.getParam(params, PARAM_SCHEMATRON_ID));
 
         final SchematronCriteriaGroupRepository repository = context.getBean(SchematronCriteriaGroupRepository.class);
-        repository.delete(new SchematronCriteriaGroupId(groupName, Integer.parseInt(schematronId)));
+        try {
+            repository.delete(new SchematronCriteriaGroupId(groupName, schematronId));
+        } catch (EmptyResultDataAccessException e) {
+            if (!context.getBean(SchematronRepository.class).exists(schematronId)) {
+                throw new BadParameterEx(PARAM_SCHEMATRON_ID, ""+schematronId);
+            } else {
+                throw new BadParameterEx(PARAM_GROUP_NAME, groupName);
 
+            }
+        }
         return new Element("ok");
     }
 
@@ -117,6 +129,15 @@ public class SchematronCriteriaGroupService extends AbstractSchematronService {
 
     @Override
     protected Element edit(Element params, ServiceContext context) throws Exception {
+        if (params.getChild(PARAM_NEW_GROUP_NAME) != null || params.getChild(PARAM_NEW_SCHEMATRON_ID) != null) {
+            return renameGroup(params, context);
+        } else {
+            return updateRequirement(params, context);
+        }
+
+    }
+
+    private Element updateRequirement(Element params, ServiceContext context) {
         final SchematronCriteriaGroupRepository repository = context.getBean(SchematronCriteriaGroupRepository.class);
 
         String groupName = Util.getParam(params, PARAM_GROUP_NAME);
@@ -138,6 +159,34 @@ public class SchematronCriteriaGroupService extends AbstractSchematronService {
         }
 
         return new Element("NoUpdate");
+    }
 
+    private Element renameGroup(Element params, ServiceContext context) {
+        final SchematronCriteriaGroupRepository repository = context.getBean(SchematronCriteriaGroupRepository.class);
+        String groupName = Util.getParam(params, PARAM_GROUP_NAME);
+        int schematronId = Integer.parseInt(Util.getParam(params, PARAM_SCHEMATRON_ID));
+        final SchematronCriteriaGroup group = repository.findOne(new SchematronCriteriaGroupId(groupName, schematronId));
+
+        String newGroupName = Util.getParam(params, PARAM_NEW_GROUP_NAME, groupName);
+        int newSchematronId = Util.getParam(params, PARAM_NEW_SCHEMATRON_ID, schematronId);
+
+        SchematronCriteriaGroup newGroup = new SchematronCriteriaGroup().
+                setId(new SchematronCriteriaGroupId(newGroupName, newSchematronId)).
+                setRequirement(group.getRequirement());
+        for (SchematronCriteria schematronCriteria : group.getCriteria()) {
+            SchematronCriteria newCriteria = new SchematronCriteria();
+            newCriteria.setType(schematronCriteria.getType());
+            newCriteria.setValue(schematronCriteria.getValue());
+            newGroup.addCriteria(newCriteria);
+        }
+
+        if (group.getId().equals(newGroup.getId())) {
+            throw new BadInputEx(PARAM_NEW_GROUP_NAME + " and " + PARAM_NEW_SCHEMATRON_ID +
+                                 " have the same value as the old values", newGroupName+":"+newSchematronId){};
+        }
+
+        repository.delete(group.getId());
+        repository.saveAndFlush(newGroup);
+        return new Element("ok");
     }
 }

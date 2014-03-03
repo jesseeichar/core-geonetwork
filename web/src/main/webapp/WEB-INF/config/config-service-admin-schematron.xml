@@ -54,8 +54,24 @@
               Parameters are:
                  * id: (Optional) The id of a criteria to load
                  * groupName: (Optional) filter listed criteria to those containing the groupName (it is recommended to be used in conjuction with schematronId)
-                 * schematrongId: (Optional) filter listed criteria to those containing the schematronId (it is recommended to be used in conjuction with groupName)
+                 * schematronId: (Optional) filter listed criteria to those containing the schematronId (it is recommended to be used in conjuction with groupName)
                  * includeGroup: (Optional) if true then each criteria will also contain the SchematronCriteriaGroup data
+
+              Response is:
+                <schematroncriteria>
+                  <record>
+                    <group>
+                    <!-- if includeGroup is true then the required attribute is also present in group -->
+                      <id>
+                        <name>*Generated*</name>
+                        <schematronid>100</schematronid>
+                      </id>
+                    </group>
+                    <id>101</id>
+                    <type>ALWAYS_ACCEPT</type>
+                    <value>_ignored_</value>
+                  </record>
+                </schematroncriteria>
               ]]>
           </documentation>
           <class name=".services.metadata.schema.SchematronCriteriaService">
@@ -69,6 +85,9 @@
 
               Parameters are:
                  * id: The id of a schematron to check
+
+              Return is:
+              <response>true</response>
               ]]>
           </documentation>
           <class name=".services.metadata.schema.SchematronCriteriaService">
@@ -92,7 +111,7 @@
               <param name="action" value="ADD"/>
           </class>
       </service>
-      <service name="admin.schematroncriteria.edit">
+      <service name="admin.schematroncriteria.update">
           <documentation>
               <![CDATA[
               Edit an existing SchematronCriteria.
@@ -137,6 +156,37 @@
                  * schematrongId: (Optional) filter listed criteria to those containing the schematronId (it is recommended to be used in conjuction with groupName)
                  * includeCriteria: (Optional) if true then each criteria data (instead of just the ids) will be included in the group
                  * includeSchematron: (Optional) if true the schematron data (instead of just the ids) will be included in the group
+
+              Return is (when includeCriteria and include Schematron are true):
+  <schematroncriteriagroup>
+      <record>
+        <criteria>
+          <!-- if includeCriteria is false then only the criteria id is present -->
+          <criteria>
+            <group />
+            <id>101</id>
+            <type>ALWAYS_ACCEPT</type>
+            <value>_ignored_</value>
+          </criteria>
+        </criteria>
+        <id>
+          <name>*Generated*</name>
+          <schematronid>100</schematronid>
+        </id>
+        <requirement>REQUIRED</requirement>
+        <!-- Schematron only present when includeSchematron is true -->
+        <schematron>
+          <defaultrequirement>REQUIRED</defaultrequirement>
+          <file>schematron-rules-geonetwork.xsl</file>
+          <id>100</id>
+          <label>
+            <eng>schematron-rules-geonetwork</eng>
+          </label>
+          <rulename>schematron-rules-geonetwork</rulename>
+          <schemaname>iso19139</schemaname>
+        </schematron>
+      </record>
+  <schematroncriteriagroup>
               ]]>
           </documentation>
           <class name=".services.metadata.schema.SchematronCriteriaGroupService">
@@ -172,7 +222,7 @@
               <param name="action" value="ADD"/>
           </class>
       </service>
-      <service name="admin.schematroncriteriagroup.edit">
+      <service name="admin.schematroncriteriagroup.update">
           <documentation>
               <![CDATA[
               Edit an existing SchematronCriteriaGroup.

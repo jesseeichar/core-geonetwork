@@ -1,23 +1,24 @@
 (function () {
     "use strict";
     goog.provide('gn_schematronadmin_editcriteriadirective');
+    goog.require('gn_schematronadminservice');
 
-    var module = angular.module('gn_schematronadmin_editcriteriadirective', []);
+    var module = angular.module('gn_schematronadmin_editcriteriadirective', ['gn_schematronadminservice']);
 
 
     /**
      * Display harvester identification section with
      * name, group and icon
      */
-    module.directive('gnCriteriaEditor', ['$http', '$compile', '$templateCache', '$q', '$translate',
-        function ($http, $compile, $templateCache, $q, $translate) {
+    module.directive('gnCriteriaEditor', ['gnSchematronAdminService', '$compile', '$templateCache', '$q', '$translate',
+        function (gnSchematronAdminService, $compile, $templateCache, $q, $translate) {
 
             return {
                 restrict: 'E',
                 replace: true,
                 transclude: false,
                 scope: {
-                    criteria: '=',
+                    original: '=criteria',
                     editor: '=',
                     schema: '=',
                     group: '='
@@ -25,10 +26,22 @@
 
                 templateUrl: '../../catalog/components/admin/schematron/partials/criteria-viewer.html',
                 link: function (scope, element, attrs) {
-                    scope.original = {
-                        type: scope.criteria.type,
-                        value: scope.criteria.value
+                    scope.criteria = {
+                        id: scope.original.id,
+                        type: scope.original.type,
+                        value: scope.original.value
+
                     };
+                    scope.isDirty = function () {
+                        return scope.criteria.type !== scope.original.type || scope.criteria.value !== scope.original.value;
+                    };
+                    scope.calculateClassOnDirty = function(whenDirty, whenClean) {
+                        if (scope.isDirty()) {
+                            return whenDirty;
+                        } else {
+                            return whenClean;
+                        }
+                    }
                     scope.startEditing = function () {
                         scope.editor.object = scope.criteria;
                         scope.asyncLoadTemplate(scope.editor).then(function success(linkFunc) {
@@ -99,7 +112,6 @@
                     scope.newlyFocused = false;
                     scope.handleBlur = function() {
                         if (!scope.newlyFocused) {
-                            console.log("disposing of html due to blur");
                             scope.disposeOfEditHtml();
                         }
                     };
@@ -109,19 +121,7 @@
                     };
 
                     scope.deleteCriteria = function () {
-                        $http({
-                            method: 'GET',
-                            url: 'admin.schematroncriteria.delete@json',
-                            params: {
-                                id: scope.criteria.id
-                            }
-                        }).success(function () {
-                            var list = scope.group.criteria;
-                            var idx = list.indexOf(scope.criteria);
-                            list.slice(idx);
-                        }).error(function(){
-                            alert("Error deleting criteria: "+scope.criteria.id);
-                        })
+                        gnSchematronAdminService.criteria.remove(scope.criteria, scope.group);
                     };
                 }
             };

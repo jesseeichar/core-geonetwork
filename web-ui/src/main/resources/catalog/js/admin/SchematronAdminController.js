@@ -13,8 +13,8 @@
      * for metadata and templates
      */
     module.controller('GnSchematronEditCriteriaController', [
-        '$scope', '$http',
-        function($scope, $http) {
+        '$scope', 'gnSchematronAdminService',
+        function($scope, gnSchematronAdminService) {
             $scope.selection = {
                 schema: null,
                 schematron : null,
@@ -32,18 +32,9 @@
 
             $scope.loadCriteria = function() {
                 $scope.schematronGroups = null;
-                $http({
-                    method: 'GET',
-                    url: 'admin.schematroncriteriagroup.list@json',
-                    params: {
-                        includeCriteria: true,
-                        schematronId: $scope.selection.schematron.id
-                    }
-                }).success(function (data) {
+                gnSchematronAdminService.group.list($scope.selection.schematron.id, function (data) {
                     $scope.schematronGroups = data;
                     $scope.selection.group = data.length > 0 ? data[0] : null;
-                }).error(function(data, code){
-                    alert("Error occured during loading schematron criteria");
                 });
             };
 

@@ -4,6 +4,7 @@ package org.fao.geonet.services.metadata.schema;
 import jeeves.server.context.ServiceContext;
 import org.fao.geonet.constants.Params;
 import org.fao.geonet.domain.*;
+import org.fao.geonet.exceptions.BadParameterEx;
 import org.fao.geonet.repository.SchematronCriteriaGroupRepository;
 import org.fao.geonet.repository.SchematronCriteriaRepository;
 import org.jdom.Element;
@@ -338,6 +339,21 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
 
         assertEquals(totalCriteria, result.getChildren().size());
         assertGroupOnlyId(result);
+    }
+
+    @Test (expected = BadParameterEx.class)
+    public void testExecDeleteBadId() throws Exception {
+        ServiceContext context = createServiceContext();
+        loginAsAdmin(context);
+
+        final int id = _group1_Name1_SchematronId1.getCriteria().get(0).getId();
+
+        Element deleteParams = createParams(
+                read(Params.ACTION, DELETE),
+                read(Params.ID, id + 100)
+        );
+
+        assertEquals("ok", service.exec(deleteParams, context).getName());
     }
 
     private void assertFullGroup(Element result) {

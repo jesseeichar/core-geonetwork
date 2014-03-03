@@ -1,6 +1,8 @@
 <a class="gn-action" data-ng-class="{'list-group-item':criteria.type != 'NEW'}" data-ng-hide="editor.object === criteria" data-ng-click="startEditing()">
     <div class="row">
-        <div class="col-sm-11">{{describeCriteria()}}</div>
+        <i class="fa fa-edit" data-ng-class="calculateClassOnDirty('col-sm-1', null)" data-ng-show="isDirty()"/>
+        <div data-ng-class="calculateClassOnDirty('col-sm-10', 'col-sm-11')">{{describeCriteria()}}</div>
+
         <div class="col-sm-1">
             <i class="fa gn-action"
                data-ng-hide="!criteria.id"
@@ -10,6 +12,6 @@
                data-ng-mouseover="hoverDelete = 'fa-times-circle'"
                data-ng-click="deleteCriteria();$event.stopPropagation()"></i>
         </div>
-        <div class="col-sm-12" data-ng-hide="criteria.type === original.type && criteria.value === original.value">dirty</div>
+
     </div>
 </a>

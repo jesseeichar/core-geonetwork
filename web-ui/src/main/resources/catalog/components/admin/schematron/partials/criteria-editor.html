@@ -6,7 +6,7 @@
                     data-ng-mousedown="handleFocus($event)"
                     data-ng-blur="handleBlur()"
                     data-ng-model="criteria.type"
-                    data-ng-options="c.type as c.name for c in schema.criteriaTypes">
+                    data-ng-options="c.name for c in schema.criteriaTypes">
                 <option data-ng-if="criteria.type === 'NEW'" value="NEW">{{'new'|translate}}</option>
             </select>
         </div>
@@ -16,7 +16,8 @@
                    data-ng-mousedown="handleFocus($event)"
                    data-ng-blur="handleBlur()"
                    placeholder="{{'criteriaValue' | translate}}"
-                   value="{{criteria.type === 'ALWAYS_ACCEPT' ? '' : criteria.value}}"/>
+                   data-ng-model="criteria.value"
+                   />
         </div>
         <a class="gn-action" data-ng-mousedown="handleFocus($event)" data-ng-click="saveEdit()">{{'save' | translate}}</a>
         <a class="fa fa-times" data-ng-mousedown="handleFocus($event)" data-ng-click="cancelEditing()">{{'cancel' | translate}}</a>

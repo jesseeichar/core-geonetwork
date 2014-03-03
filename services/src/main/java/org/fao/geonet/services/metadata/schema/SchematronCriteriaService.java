@@ -163,8 +163,11 @@ public class SchematronCriteriaService extends AbstractSchematronService {
 
         final SchematronCriteriaRepository criteriaRepository = context.getBean(SchematronCriteriaRepository.class);
 
-        criteriaRepository.delete(id);
+        if (criteriaRepository.exists(id)) {
+            criteriaRepository.delete(id);
+            return new Element("ok");
+        }
 
-        return new Element("ok");
+        throw new BadParameterEx(Params.ID, id);
     }
 }
