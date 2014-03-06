@@ -31,6 +31,11 @@
   max-height:60%;
 }
 
-.gn-action {
+.gn-action:not([disabled]) {
   cursor: pointer;
+}
+.gn-action[disabled] {
+  cursor: not-allowed;
+  text-decoration: none;
+  color: grey;
 }

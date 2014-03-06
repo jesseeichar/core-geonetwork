@@ -36,11 +36,15 @@
                         params: {
                             id: original.id,
                             type: updated.type,
-                            value: updated.value
+                            value: updated.value,
+                            uitype: updated.uitype,
+                            uivalue: updated.uivalue
                         }
                     }).success(function() {
-                        original.type = type;
-                        original.value = value;
+                        original.type = updated.type;
+                        original.value = updated.value;
+                        original.uitype = updated.uitype;
+                        original.uivalue = updated.uivalue;
                     }).error(function(){
                         alert("Error updating criteria: "+criteria.id);
                     });
@@ -52,6 +56,8 @@
                         params: {
                             type: criteria.type,
                             value: criteria.value,
+                            uitype: criteria.uitype,
+                            uivalue: criteria.uivalue,
                             groupName: criteria.groupName,
                             schematronId: criteria.schematronId
                         }

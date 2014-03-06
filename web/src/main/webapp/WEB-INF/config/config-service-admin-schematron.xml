@@ -70,6 +70,8 @@
                     <id>101</id>
                     <type>ALWAYS_ACCEPT</type>
                     <value>_ignored_</value>
+                    <uitype>ALWAYS_ACCEPT</uitype>
+                    <uivalue>_ignored_</uivalue>
                   </record>
                 </schematroncriteria>
               ]]>
@@ -105,6 +107,8 @@
                 * schematronId: Part 2 of the SchematronCriteriaGroup ID
                 * type: the SchematronCriteriaType identifier (the name of the enum)
                 * value: the value that will be passed when calculating if the criteria is satisfied
+                * uiType: a string for the UI to use as the type for display (for example Keyword instead of XPATH)
+                * uiValue: a string for displaying in the UI instead of value (for example building instead of the xpath expression matching the keyword building)
               ]]>
           </documentation>
           <class name=".services.metadata.schema.SchematronCriteriaService">

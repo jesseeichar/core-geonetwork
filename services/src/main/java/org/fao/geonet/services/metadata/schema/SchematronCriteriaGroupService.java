@@ -165,19 +165,22 @@ public class SchematronCriteriaGroupService extends AbstractSchematronService {
         final SchematronCriteriaGroupRepository repository = context.getBean(SchematronCriteriaGroupRepository.class);
         String groupName = Util.getParam(params, PARAM_GROUP_NAME);
         int schematronId = Integer.parseInt(Util.getParam(params, PARAM_SCHEMATRON_ID));
+        String newRequirement = Util.getParam(params, PARAM_REQUIREMENT, null);
         final SchematronCriteriaGroup group = repository.findOne(new SchematronCriteriaGroupId(groupName, schematronId));
+
+        SchematronRequirement finalRequirement = group.getRequirement();
+        if (newRequirement != null) {
+            finalRequirement = SchematronRequirement.valueOf(newRequirement.toUpperCase());
+        }
 
         String newGroupName = Util.getParam(params, PARAM_NEW_GROUP_NAME, groupName);
         int newSchematronId = Util.getParam(params, PARAM_NEW_SCHEMATRON_ID, schematronId);
 
         SchematronCriteriaGroup newGroup = new SchematronCriteriaGroup().
                 setId(new SchematronCriteriaGroupId(newGroupName, newSchematronId)).
-                setRequirement(group.getRequirement());
+                setRequirement(finalRequirement);
         for (SchematronCriteria schematronCriteria : group.getCriteria()) {
-            SchematronCriteria newCriteria = new SchematronCriteria();
-            newCriteria.setType(schematronCriteria.getType());
-            newCriteria.setValue(schematronCriteria.getValue());
-            newGroup.addCriteria(newCriteria);
+            newGroup.addCriteria(schematronCriteria.copy());
         }
 
         if (group.getId().equals(newGroup.getId())) {

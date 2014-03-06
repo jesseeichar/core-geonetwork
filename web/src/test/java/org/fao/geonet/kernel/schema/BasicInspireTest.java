@@ -46,7 +46,7 @@ public class BasicInspireTest extends AbstractInspireTest {
             content.detach();
         }
 
-        Element results = Xml.transform(testMetadata, getSchematronXsl().getPath(), PARAMS);
+        Element results = Xml.transform(testMetadata, getSchematronXsl().getPath(), params);
         assertEquals(1, countFailures(results));
 
         Element failure = (Element) results.getDescendants(FAILURE_FILTER).next();
@@ -65,7 +65,7 @@ public class BasicInspireTest extends AbstractInspireTest {
             content.detach();
         }
 
-        Element results = Xml.transform(testMetadata, getSchematronXsl().getPath(), PARAMS);
+        Element results = Xml.transform(testMetadata, getSchematronXsl().getPath(), params);
         assertEquals(1, countFailures(results));
 
         Element failure = (Element) results.getDescendants(FAILURE_FILTER).next();
@@ -86,7 +86,7 @@ public class BasicInspireTest extends AbstractInspireTest {
             content.detach();
         }
 
-        Element results = Xml.transform(testMetadata, getSchematronXsl().getPath(), PARAMS);
+        Element results = Xml.transform(testMetadata, getSchematronXsl().getPath(), params);
         assertEquals(1, countFailures(results));
 
         Element failure = (Element) results.getDescendants(FAILURE_FILTER).next();

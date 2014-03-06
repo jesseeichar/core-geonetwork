@@ -3,11 +3,13 @@ package org.fao.geonet.repository;
 import org.fao.geonet.domain.Schematron;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 /**
@@ -53,26 +55,17 @@ public class SchematronRepositoryTest extends AbstractSpringDataTest {
     @Test
     public void testFindAllByFileAndSchemaName() throws Exception {
         final Schematron schematron1 = _repo.save(newSchematron(_inc));
-        final Schematron schematron2 = _repo.save(newSchematron(_inc));
+        _repo.save(newSchematron(_inc));
         final Schematron entity = newSchematron(_inc);
         entity.setFile(schematron1.getFile());
-        final Schematron schematron3 = _repo.save(entity);
+        _repo.save(entity);
 
-        final List<Schematron> allByFile = _repo.findAllByFileAndSchemaName(schematron1.getFile(), schematron1.getSchemaName());
+        final Schematron oneBySchemaAndFile = _repo.findOneByFileAndSchemaName(schematron1.getFile(), schematron1.getSchemaName());
 
-        assertEquals(2, allByFile.size());
-
-        for (Schematron schematron : allByFile) {
-            if (schematron.getId() == schematron2.getId()) {
-                fail("schematron 2 should not have been found.  Schematron found are: "+allByFile);
-            } else if (schematron.getId() != schematron1.getId() && schematron.getId() != schematron3.getId()) {
-                fail("schematron id was neither from schematron 1 or 2: "+allByFile);
-            }
-        }
-
+        assertNotNull(oneBySchemaAndFile);
     }
 
-    @Test
+    @Test (expected = DataIntegrityViolationException.class)
     public void testUniqueContraintSchemaNameAndFile() throws Exception {
         final Schematron schematron = _repo.saveAndFlush(newSchematron(_inc));
         Schematron illegalSchematron = new Schematron();

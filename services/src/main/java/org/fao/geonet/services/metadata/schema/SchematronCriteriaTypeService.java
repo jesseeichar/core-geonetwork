@@ -88,14 +88,14 @@ public class SchematronCriteriaTypeService implements Service {
        return new Element(EL_TYPE).addContent(Arrays.asList(
                new Element(EL_VALUE).setText("@@value@@"),
                new Element(EL_TYPE).setText(SchematronCriteriaType.XPATH.name()),
-               new Element(EL_NAME).setText("Xpath"))
+               new Element(EL_NAME).setText(SchematronCriteriaType.XPATH.name()))
        );
     }
 
     private Element alwaysAcceptCriteriaType() {
         return new Element(EL_TYPE).addContent(Arrays.asList(
                 new Element(EL_TYPE).setText(SchematronCriteriaType.ALWAYS_ACCEPT.name()),
-                new Element(EL_NAME).setText("Always true"))
+                new Element(EL_NAME).setText(SchematronCriteriaType.ALWAYS_ACCEPT.name()))
         );
     }
 }

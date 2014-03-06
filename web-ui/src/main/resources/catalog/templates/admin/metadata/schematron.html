@@ -60,15 +60,17 @@
                                     </ul>
                                 </div>
                             </div>
-                            <ul class="list-group">
+                            <ul class="list-group" data-ng-if="selection.group">
                                 <gn-criteria-editor
                                         criteria="criteria"
                                         schema="selection.schema"
                                         group="selection.group"
+                                        lang="lang"
                                         data-ng-repeat="criteria in selection.group.criteria"></gn-criteria-editor>
                                 <gn-criteria-editor
-                                        criteria="{'id': data.id, 'type': 'NEW', 'value': ''}"
+                                        criteria="{id: null, type: 'NEW', uitype:'NEW', value: '', uivalue: ''}"
                                         schema="selection.schema"
+                                        lang="lang"
                                         group="selection.group"></gn-criteria-editor>
 
                             </ul>

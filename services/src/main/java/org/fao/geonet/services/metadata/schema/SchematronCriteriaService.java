@@ -29,6 +29,8 @@ public class SchematronCriteriaService extends AbstractSchematronService {
     public static final String PARAM_SCHEMATRON_ID = "schematronId";
     public static final String PARAM_TYPE = "type";
     public static final String PARAM_VALUE = "value";
+    public static final String PARAM_UI_TYPE = "uitype";
+    public static final String PARAM_UI_VALUE = "uivalue";
 
     @Override
     protected Element add(Element params, ServiceContext context) throws Exception {
@@ -138,6 +140,8 @@ public class SchematronCriteriaService extends AbstractSchematronService {
         int id = Integer.parseInt(Util.getParam(params, Params.ID));
         final String type = Util.getParam(params, PARAM_TYPE, null);
         final String value = Util.getParam(params, PARAM_VALUE, null);
+        final String uiType = Util.getParam(params, PARAM_UI_TYPE, null);
+        final String uiValue = Util.getParam(params, PARAM_UI_VALUE, null);
 
 
         final SchematronCriteriaRepository criteriaRepository = context.getBean(SchematronCriteriaRepository.class);
@@ -150,6 +154,14 @@ public class SchematronCriteriaService extends AbstractSchematronService {
 
                 if (value != null) {
                     entity.setValue(value);
+                }
+
+                if (uiType != null) {
+                    entity.setUiType(uiType);
+                }
+
+                if (uiValue != null) {
+                    entity.setUiValue(uiValue);
                 }
             }
         });

@@ -25,9 +25,11 @@
             $scope.isShowSchematronGroupHelp = false;
             $scope.isSelected = function(schematron) {return $scope.selection.schematron === schematron;};
             $scope.selectSchematron = function(schema, schematron) {
-                $scope.selection.schema = schema;
-                $scope.selection.schematron = schematron;
-                $scope.loadCriteria();
+                if ($scope.selection.schematron !== schematron) {
+                    $scope.selection.schema = schema;
+                    $scope.selection.schematron = schematron;
+                    $scope.loadCriteria();
+                }
             };
 
             $scope.loadCriteria = function() {

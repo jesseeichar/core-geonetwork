@@ -98,6 +98,8 @@ public class SchematronCriteriaGroupRepositoryTest extends AbstractSpringDataTes
         final SchematronCriteriaType[] values = SchematronCriteriaType.values();
         criteria.setType(values[id % values.length]);
         criteria.setValue("value_"+id);
+        criteria.setUiType("uitype_"+id);
+        criteria.setUiValue("uivalue_"+id);
 
         return criteria;
     }

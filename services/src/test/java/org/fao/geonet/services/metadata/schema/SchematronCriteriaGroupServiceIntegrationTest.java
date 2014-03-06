@@ -336,6 +336,48 @@ public class SchematronCriteriaGroupServiceIntegrationTest extends AbstractSchem
     }
 
     @Test
+    public void testExecEditNameAndRequirement() throws Exception {
+        ServiceContext context = createServiceContext();
+        loginAsAdmin(context);
+
+
+        SchematronRequirement newRequirement = SchematronRequirement.REPORT_ONLY;
+        if (_group1_Name1_SchematronId1.getRequirement() == newRequirement) {
+            newRequirement = SchematronRequirement.REQUIRED;
+        }
+        final String newGroupName = "newGroupName";
+        Element editParams = createParams(
+                read(SchematronCriteriaGroupService.PARAM_GROUP_NAME, _group1_Name1_SchematronId1.getId().getName()),
+                read(SchematronCriteriaGroupService.PARAM_SCHEMATRON_ID, _group1_Name1_SchematronId1.getId().getSchematronId()),
+                read(SchematronCriteriaGroupService.PARAM_NEW_GROUP_NAME, newGroupName),
+                read(SchematronCriteriaGroupService.PARAM_REQUIREMENT, newRequirement)
+
+        );
+
+        Element result = createService(EDIT).exec(editParams, context);
+        assertEquals("ok", result.getName());
+
+        Element listParamsOldName = createParams(
+                read(SchematronCriteriaGroupService.PARAM_GROUP_NAME, _group1_Name1_SchematronId1.getId().getName()),
+                read(SchematronCriteriaGroupService.PARAM_SCHEMATRON_ID, _group1_Name1_SchematronId1.getId().getSchematronId())
+        );
+
+        result = createService(EXISTS).exec(listParamsOldName, context);
+        assertEquals(""+false, result.getText());
+
+        Element listParamsNewName = createParams(
+                read(SchematronCriteriaGroupService.PARAM_GROUP_NAME, newGroupName),
+                read(SchematronCriteriaGroupService.PARAM_SCHEMATRON_ID, _group1_Name1_SchematronId1.getId().getSchematronId())
+        );
+
+        result = createService(LIST).exec(listParamsNewName, context);
+        assertEquals(1, result.getChildren().size());
+
+        assertEquals(newRequirement.toString(), result.getChild(GeonetEntity.RECORD_EL_NAME).getChildText("requirement"));
+        assertEquals(_group1_Name1_SchematronId1.getCriteria().size(), result.getChild(GeonetEntity.RECORD_EL_NAME).getChild("criteria").getChildren().size());
+    }
+
+    @Test
     public void testExecEditSchematronId() throws Exception {
         Schematron newSchematron = _schematronRepository.save(SchematronRepositoryTest.newSchematron(_inc));
         ServiceContext context = createServiceContext();
@@ -368,8 +410,7 @@ public class SchematronCriteriaGroupServiceIntegrationTest extends AbstractSchem
         result = createService(LIST).exec(listParamsNewName, context);
         assertEquals(1, result.getChildren().size());
 
-        assertEquals(_group1_Name1_SchematronId1.getRequirement().toString(), result.getChild("record").getChildText("requirement"));
-        assertEquals(_group1_Name1_SchematronId1.getCriteria().size(), result.getChild("record").getChild("criteria").getChildren().size());
+        assertEquals(_group1_Name1_SchematronId1.getRequirement().toString(), result.getChild(GeonetEntity.RECORD_EL_NAME).getChildText("requirement"));
     }
 
     private void assertCriteriaOnlyId(Element result) {

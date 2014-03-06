@@ -3,8 +3,6 @@ package org.fao.geonet.services.metadata.schema;
 import jeeves.server.context.ServiceContext;
 import net.arnx.jsonic.JSON;
 import org.fao.geonet.domain.Schematron;
-import org.fao.geonet.domain.SchematronCriteriaType;
-import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.repository.SchematronRepository;
 import org.fao.geonet.services.AbstractServiceIntegrationTest;
@@ -15,9 +13,8 @@ import org.junit.Test;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.ArrayList;
+import java.util.List;
 
 import static org.fao.geonet.domain.SchematronCriteriaType.ALWAYS_ACCEPT;
 import static org.fao.geonet.domain.SchematronCriteriaType.GROUP;
@@ -30,56 +27,7 @@ import static org.junit.Assert.*;
  * Created by Jesse on 2/14/14.
  */
 public class SchematronCriteriaTypeServiceTest extends AbstractServiceIntegrationTest {
-    public static final class ErrorContainer {
-        ArrayList<String> errorList = new ArrayList<String>();
-
-        public void add(String report) {
-            errorList.add(report);
-        }
-    }
-
-    public static final class SchematronResultContainer {
-        public String name;
-        public String id;
-        public String schemaname;
-
-        public void assertValidity() {
-            assertNotNull(name);
-            assertNotNull(id);
-            assertNotNull(schemaname);
-        }
-    }
-
-    public static final class CriteriaTypeResultContainer {
-        public String name;
-        public String type;
-        public String value;
-        public String allowArbitraryValue;
-
-        public void assertValidity() {
-            assertNotNull(name);
-            assertNotNull(type);
-            assertNotNull(value);
-            assertNotNull(allowArbitraryValue);
-        }
-    }
-
-    public static final class CriteriaTypeServiceResultContainer {
-        public String url;
-        public String cacheable;
-        public String records;
-        public String label;
-        public String value;
-
-        public void assertValidity() {
-            assertNotNull(url);
-            assertNotNull(cacheable);
-            assertNotNull(records);
-            assertNotNull(label);
-            assertNotNull(value);
-        }
-    }
-
+    @SuppressWarnings("unchecked")
     @Test
     public void testExec() throws Exception {
         addSchematron("iso19139");
@@ -114,7 +62,6 @@ public class SchematronCriteriaTypeServiceTest extends AbstractServiceIntegratio
         assertEquals(resultAsString, 1, Xml.selectNumber(result, "count(iso19139/criteriaTypes/type[upper-case(name) = '" +
                                                                 XPATH.name() + "'])").intValue());
 
-        assertEquals(resultAsString, 1, Xml.selectNumber(result, "count(iso19139/criteriaTypes/type[1]/service)").intValue());
         assertTrue(resultAsString, 0 < Xml.selectNumber(result, "count(iso19139/schematron)").intValue());
         assertEquals(resultAsString, 1, Xml.selectNumber(result, "count(iso19139/schematron[1]/file)").intValue());
         assertEquals(resultAsString, 1, Xml.selectNumber(result, "count(iso19139/schematron[1]/id)").intValue());
@@ -122,6 +69,33 @@ public class SchematronCriteriaTypeServiceTest extends AbstractServiceIntegratio
         assertTrue(resultAsString, 0 < Xml.selectNumber(result, "count(iso19139/schematron[1]/label)").intValue());
         assertEquals(resultAsString, 1, Xml.selectNumber(result, "count(iso19139/schematron[1]/schemaname)").intValue());
         assertEquals(resultAsString, 1, Xml.selectNumber(result, "count(iso19139/schematron[1]/groupCount)").intValue());
+
+        ScriptEngineManager factory = new ScriptEngineManager();
+        ScriptEngine engine = factory.getEngineByName("JavaScript");
+
+        final List<Element> types = (List<Element>) Xml.selectNodes(result, "iso19139/criteriaTypes/type");
+        for (Element type : types) {
+            final Element typeahead = type.getChild("typeahead");
+            if (typeahead != null) {
+                checkForJSFunction(engine, typeahead, "selectRecordArray");
+                checkForJSFunction(engine, typeahead, "selectLabelFunction");
+                if (typeahead.getChild("selectTokensFunction") != null ) {
+                    checkForJSFunction(engine, typeahead, "selectTokensFunction");
+                }
+                checkForJSFunction(engine, typeahead, "selectValueFunction");
+            }
+        }
+    }
+
+    private void checkForJSFunction(ScriptEngine engine, Element typeahead, String functionName) throws ScriptException {
+        String name = typeahead.getParentElement().getParentElement().getParentElement().getName() + "/" + typeahead.getParentElement().getChild("name").getText();
+        final Element function = typeahead.getChild(functionName);
+        assertNotNull (name + " criteria-types missing element: " + functionName, function);
+        try {
+            engine.eval("var x = function " + function.getText()); // check that no exception is thrown:
+        } catch (ScriptException e) {
+            throw new AssertionError(functionName + " in " + name + " does not compile due to: '"+e.getMessage()+"'\n\n"+function.getText());
+        }
     }
 
     private void addSchematron(String schemaName) {

@@ -37,7 +37,7 @@ public class TestIso19139SchematronDefinition extends AbstractSchematronTest {
 
             final Element validMetadata = loadValidMetadata();
 
-            Element results = Xml.transform(validMetadata, schematronXsl.getPath(), PARAMS);
+            Element results = Xml.transform(validMetadata, schematronXsl.getPath(), params);
             assertEquals(file.getName(), 0, countFailures(results));
 
             final List<Element> declaredPattern = schematronDefinition.getChildren("pattern", SCH_NAMESPACE);

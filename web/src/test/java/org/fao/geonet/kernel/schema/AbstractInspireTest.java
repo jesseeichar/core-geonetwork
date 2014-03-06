@@ -1,13 +1,10 @@
 package org.fao.geonet.kernel.schema;
 
-import org.fao.geonet.domain.Pair;
 import org.fao.geonet.utils.Xml;
-import org.jdom.Content;
 import org.jdom.Element;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -27,7 +24,7 @@ public abstract class AbstractInspireTest extends AbstractSchematronTest {
     public void testValid() throws Exception {
         final Element validMetadata = Xml.loadStream(AbstractInspireTest.class.getResourceAsStream(INSPIRE_VALID_ISO19139_XML));
 
-        Element results = Xml.transform(validMetadata, getSchematronXsl().getPath(), PARAMS);
+        Element results = Xml.transform(validMetadata, getSchematronXsl().getPath(), params);
         assertEquals(0, countFailures(results));
     }
 

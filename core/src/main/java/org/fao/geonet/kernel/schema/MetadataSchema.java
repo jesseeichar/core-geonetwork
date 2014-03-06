@@ -403,7 +403,7 @@ public class MetadataSchema
             for(String schematronFileName : saSchemas) {
                 String file = schematronFileName;
                 //if schematron not already exists
-                if(schemaRepo.findAllByFileAndSchemaName(file, schemaName).isEmpty()) {
+                if(schemaRepo.findOneByFileAndSchemaName(file, schemaName) == null) {
                     org.fao.geonet.domain.Schematron schematron = new org.fao.geonet.domain.Schematron();
                     schematron.setSchemaName(schemaName);
                     schematron.setFile(file);

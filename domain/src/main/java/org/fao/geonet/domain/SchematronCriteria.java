@@ -21,10 +21,14 @@ import java.util.List;
 @SequenceGenerator(name= SchematronCriteria.ID_SEQ_NAME, initialValue=100, allocationSize=1)
 public class SchematronCriteria extends GeonetEntity {
     static final String ID_SEQ_NAME = "schematron_criteria_id_seq";
+    static final String EL_UI_TYPE = "uitype";
+    static final String EL_UI_VALUE = "uivalue";
 
-	private int id;
+    private int id;
 	private SchematronCriteriaType type;
 	private String value;
+    private String uiType;
+    private String uiValue;
     private SchematronCriteriaGroup group;
 
     /**
@@ -107,6 +111,39 @@ public class SchematronCriteria extends GeonetEntity {
 	}
 
     /**
+     * Get the <em>UI Type</em>.  The type of the criteria as reported in the UI.  This tends to be more descriptive and useful for a
+     * user.
+     *
+     * @return the <em>UI Type</em>.  The type of the criteria as reported in the UI.  This tends to be more descriptive and useful for a
+     * user.
+     */
+    public String getUiType() {
+        return uiType;
+    }
+
+    /**
+     * Set the <em>UI Type</em>.  The type of the criteria as reported in the UI.  This tends to be more descriptive and useful for a
+     * user.
+     * @param uiType the <em>UI Type</em>.  The type of the criteria as reported in the UI.  This tends to be more descriptive and useful for a
+     * user.
+     */
+    public void setUiType(String uiType) {
+        this.uiType = uiType;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getUiValue() {
+        return uiValue;
+    }
+
+    public void setUiValue(String uiValue) {
+        this.uiValue = uiValue;
+    }
+
+    /**
      * Get the group this schematron criteria is part of.
      *
      * @return the containing group
@@ -140,6 +177,27 @@ public class SchematronCriteria extends GeonetEntity {
         if (valueElText.length() == 0) {
             element.getChild("value").setText("''");
         }
+        if (element.getChild(EL_UI_TYPE) == null) {
+            element.addContent(new Element(EL_UI_TYPE).setText(getType().toString()));
+        }
+        if (element.getChild(EL_UI_VALUE) == null) {
+            element.addContent(new Element(EL_UI_VALUE).setText(getValue()));
+        }
         return element;
+    }
+
+
+    /**
+     * Create a copy of the c
+     * @return
+     */
+    public SchematronCriteria copy() {
+        SchematronCriteria copy = new SchematronCriteria();
+        copy.setType(getType());
+        copy.setUiType(getUiType());
+        copy.setValue(getValue());
+        copy.setUiValue(getUiValue());
+        copy.setGroup(getGroup());
+        return copy;
     }
 }

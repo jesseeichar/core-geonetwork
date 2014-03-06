@@ -20,18 +20,14 @@ import static org.junit.Assert.*;
  * Created by Jesse on 2/13/14.
  */
 public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematronServiceIntegrationTest {
-    final SchematronCriteriaService service = new SchematronCriteriaService();
-
     @Test
     public void testExecListAll() throws Exception {
         ServiceContext context = createServiceContext();
         loginAsAdmin(context);
 
-        Element params = createParams(
-                read(Params.ACTION, LIST)
-        );
+        Element params = createParams();
 
-        Element result = service.exec(params, context);
+        Element result = createService(LIST).exec(params, context);
 
         int totalCriteria = _group1_Name1_SchematronId1.getCriteria().size() +
                             _group2_Name2_SchematronId2.getCriteria().size() +
@@ -42,7 +38,7 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         assertGroupOnlyId(result);
 
 
-        result = service.exec(createParams(), context);
+        result = createService(LIST).exec(createParams(), context);
 
         assertEquals(totalCriteria, result.getChildren().size());
         assertEquals(1, result.getChild(GeonetEntity.RECORD_EL_NAME).getChildren("group").size());
@@ -56,11 +52,10 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         loginAsAdmin(context);
 
         Element params = createParams(
-                read(Params.ACTION, LIST),
                 read(SchematronCriteriaService.PARAM_INCLUDE_GROUP, true)
         );
 
-        Element result = service.exec(params, context);
+        Element result = createService(LIST).exec(params, context);
 
         int totalCriteria = _group1_Name1_SchematronId1.getCriteria().size() +
                             _group2_Name2_SchematronId2.getCriteria().size() +
@@ -77,11 +72,10 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         loginAsAdmin(context);
 
         Element params = createParams(
-                read(Params.ACTION, LIST),
                 read(SchematronCriteriaService.PARAM_GROUP_NAME, _group2_Name2_SchematronId2.getId().getName())
         );
 
-        Element result = service.exec(params, context);
+        Element result = createService(LIST).exec(params, context);
 
         int totalCriteria = _group2_Name2_SchematronId2.getCriteria().size() +
                             _group4_Name2_SchematronId4.getCriteria().size();
@@ -96,11 +90,10 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         loginAsAdmin(context);
 
         Element params = createParams(
-                read(Params.ACTION, LIST),
                 read(SchematronCriteriaService.PARAM_SCHEMATRON_ID, "" + _group1_Name1_SchematronId1.getId().getSchematronId())
         );
 
-        Element result = service.exec(params, context);
+        Element result = createService(LIST).exec(params, context);
 
         int totalCriteria = _group1_Name1_SchematronId1.getCriteria().size() +
                             _group3_Name3_SchemtronId1.getCriteria().size();
@@ -115,22 +108,20 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         loginAsAdmin(context);
 
         Element params = createParams(
-                read(Params.ACTION, LIST),
                 read(Params.ID, _group1_Name1_SchematronId1.getCriteria().get(0).getId())
         );
 
-        Element result = service.exec(params, context);
+        Element result = createService(LIST).exec(params, context);
 
         assertEquals(1, result.getChildren().size());
         assertGroupOnlyId(result);
 
         params = createParams(
-                read(Params.ACTION, LIST),
                 read(SchematronCriteriaService.PARAM_INCLUDE_GROUP, "true"),
                 read(Params.ID, _group1_Name1_SchematronId1.getCriteria().get(0).getId())
         );
 
-        result = service.exec(params, context);
+        result = createService(LIST).exec(params, context);
 
         assertEquals(1, result.getChildren().size());
         assertFullGroup(result);
@@ -142,19 +133,17 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         loginAsAdmin(context);
 
         Element params = createParams(
-                read(Params.ACTION, EXISTS),
                 read(Params.ID, _group1_Name1_SchematronId1.getCriteria().get(0).getId())
         );
 
-        Element result = service.exec(params, context);
+        Element result = createService(EXISTS).exec(params, context);
         assertEquals(Boolean.TRUE.toString(), result.getText());
 
         params = createParams(
-                read(Params.ACTION, EXISTS),
                 read(Params.ID, Integer.MAX_VALUE)
         );
 
-        result = service.exec(params, context);
+        result = createService(EXISTS).exec(params, context);
         assertEquals(Boolean.FALSE.toString(), result.getText());
     }
 
@@ -166,23 +155,21 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         final String value = "x/y/z";
         final SchematronCriteriaType criteriaType = SchematronCriteriaType.XPATH;
         Element params = createParams(
-                read(Params.ACTION, ADD),
                 read(SchematronCriteriaService.PARAM_GROUP_NAME, _group1_Name1_SchematronId1.getId().getName()),
                 read(SchematronCriteriaService.PARAM_SCHEMATRON_ID, _group1_Name1_SchematronId1.getId().getSchematronId()),
                 read(SchematronCriteriaService.PARAM_TYPE, criteriaType),
                 read(SchematronCriteriaService.PARAM_VALUE, value)
         );
 
-        Element result = service.exec(params, context);
+        Element result = createService(ADD).exec(params, context);
         assertSuccessfulAdd(result);
         String id = result.getChildText("id");
 
         params = createParams(
-                read(Params.ACTION, EXISTS),
                 read(Params.ID, id)
         );
 
-        result = service.exec(params, context);
+        result = createService(EXISTS).exec(params, context);
         assertEquals(Boolean.TRUE.toString(), result.getText());
 
         final SchematronCriteria saved = context.getBean(SchematronCriteriaRepository.class).findOne(Integer.parseInt(id));
@@ -203,7 +190,6 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         final int schematronId = _group1_Name1_SchematronId1.getId().getSchematronId();
 
         Element params = createParams(
-                read(Params.ACTION, ADD),
                 read(SchematronCriteriaService.PARAM_GROUP_NAME, newName),
                 read(SchematronCriteriaService.PARAM_SCHEMATRON_ID, schematronId),
                 read(SchematronCriteriaService.PARAM_TYPE, criteriaType),
@@ -213,7 +199,7 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         assertFalse(context.getBean(SchematronCriteriaGroupRepository.class).exists(new SchematronCriteriaGroupId(newName,
                 schematronId)));
 
-        Element result = service.exec(params, context);
+        Element result = createService(ADD).exec(params, context);
         assertSuccessfulAdd(result);
         String id = result.getChildText("id");
 
@@ -223,11 +209,10 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         assertEquals(SchematronRequirement.REQUIRED, found.getRequirement());
 
         params = createParams(
-                read(Params.ACTION, EXISTS),
                 read(Params.ID, id)
         );
 
-        result = service.exec(params, context);
+        result = createService(EXISTS).exec(params, context);
         assertEquals(Boolean.TRUE.toString(), result.getText());
 
         final SchematronCriteria saved = context.getBean(SchematronCriteriaRepository.class).findOne(Integer.parseInt(id));
@@ -245,21 +230,26 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
 
         final String value = "x/y/z";
         final SchematronCriteriaType criteriaType = SchematronCriteriaType.XPATH;
+        String uiType = "editedUiType";
+        String uiValue = "editedUiValue";
         final int criteriaId = _group1_Name1_SchematronId1.getCriteria().get(0).getId();
 
         Element params = createParams(
-                read(Params.ACTION, EDIT),
                 read(Params.ID, criteriaId),
                 read(SchematronCriteriaService.PARAM_TYPE, criteriaType),
-                read(SchematronCriteriaService.PARAM_VALUE, value)
+                read(SchematronCriteriaService.PARAM_VALUE, value),
+                read(SchematronCriteriaService.PARAM_UI_TYPE, uiType),
+                read(SchematronCriteriaService.PARAM_UI_VALUE, uiValue)
         );
 
-        assertEquals("ok", service.exec(params, context).getName());
+        assertEquals("ok", createService(EDIT).exec(params, context).getName());
 
         final SchematronCriteria saved = context.getBean(SchematronCriteriaRepository.class).findOne(criteriaId);
 
         assertEquals(value, saved.getValue());
         assertEquals(criteriaType, saved.getType());
+        assertEquals(uiValue, saved.getUiValue());
+        assertEquals(uiType, saved.getUiType());
         assertEquals(_group1_Name1_SchematronId1.getId(), saved.getGroup().getId());
     }
 
@@ -272,12 +262,11 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         final int criteriaId = criteria.getId();
         final String newValue = "newValue"+_inc.incrementAndGet();
         Element params = createParams(
-                read(Params.ACTION, EDIT),
                 read(Params.ID, criteriaId),
                 read(SchematronCriteriaService.PARAM_VALUE, newValue)
         );
 
-        assertEquals("ok", service.exec(params, context).getName());
+        assertEquals("ok", createService(EDIT).exec(params, context).getName());
 
         final SchematronCriteria saved = context.getBean(SchematronCriteriaRepository.class).findOne(criteriaId);
 
@@ -298,12 +287,11 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
             newType = SchematronCriteriaType.ALWAYS_ACCEPT;
         }
         Element params = createParams(
-                read(Params.ACTION, EDIT),
                 read(Params.ID, criteriaId),
                 read(SchematronCriteriaService.PARAM_TYPE, newType.name())
         );
 
-        assertEquals("ok", service.exec(params, context).getName());
+        assertEquals("ok", createService(EDIT).exec(params, context).getName());
 
         final SchematronCriteria saved = context.getBean(SchematronCriteriaRepository.class).findOne(criteriaId);
 
@@ -321,16 +309,13 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         final int id = _group1_Name1_SchematronId1.getCriteria().get(0).getId();
 
         Element deleteParams = createParams(
-                read(Params.ACTION, DELETE),
                 read(Params.ID, id)
         );
 
-        assertEquals("ok", service.exec(deleteParams, context).getName());
-        Element listParams = createParams(
-                read(Params.ACTION, LIST)
-        );
+        assertEquals("ok", createService(DELETE).exec(deleteParams, context).getName());
+        Element listParams = createParams();
 
-        Element result = service.exec(listParams, context);
+        Element result = createService(LIST).exec(listParams, context);
 
         int totalCriteria = _group1_Name1_SchematronId1.getCriteria().size() +
                             _group2_Name2_SchematronId2.getCriteria().size() +
@@ -349,11 +334,10 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         final int id = _group1_Name1_SchematronId1.getCriteria().get(0).getId();
 
         Element deleteParams = createParams(
-                read(Params.ACTION, DELETE),
                 read(Params.ID, id + 100)
         );
 
-        assertEquals("ok", service.exec(deleteParams, context).getName());
+        assertEquals("ok", createService(DELETE).exec(deleteParams, context).getName());
     }
 
     private void assertFullGroup(Element result) {
@@ -366,5 +350,11 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         assertEquals(1, result.getChild(GeonetEntity.RECORD_EL_NAME).getChildren("group").size());
         assertEquals(1, result.getChild(GeonetEntity.RECORD_EL_NAME).getChild("group").getChildren().size());
         assertEquals(2, result.getChild(GeonetEntity.RECORD_EL_NAME).getChild("group").getChild("id").getChildren().size());
+    }
+
+    private AbstractSchematronService createService(SchematronServiceAction action) throws Exception {
+        SchematronCriteriaService service = new SchematronCriteriaService();
+        super.init(service, action);
+        return service;
     }
 }

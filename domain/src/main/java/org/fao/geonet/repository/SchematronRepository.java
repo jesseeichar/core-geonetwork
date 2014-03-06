@@ -24,9 +24,11 @@ public interface SchematronRepository extends
      * Look up a schematrons by its file
      *
      * @param file
-     *            uri to the file
+     *            path from schema directory to the file
+     * @param schemaName
+     *            name of the schema
      * @param
      */
-    public List<Schematron> findAllByFileAndSchemaName(String file, String schemaName);
+    public Schematron findOneByFileAndSchemaName(String file, String schemaName);
 
 }

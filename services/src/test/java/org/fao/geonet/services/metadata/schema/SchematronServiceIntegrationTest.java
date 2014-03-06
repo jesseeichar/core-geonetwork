@@ -22,25 +22,19 @@ import static org.junit.Assert.assertEquals;
  * Created by Jesse on 2/13/14.
  */
 public class SchematronServiceIntegrationTest extends AbstractSchematronServiceIntegrationTest {
-    SchematronService service = new SchematronService();
-
     @Test
     public void testExecListAll() throws Exception {
         ServiceContext context = createServiceContext();
         loginAsAdmin(context);
 
-        Element params = createParams(
-                read(Params.ACTION, LIST)
-        );
-
-        Element result = service.exec(params, context);
+        Element result = create(LIST).exec(createParams(), context);
 
         assertEquals(4, result.getChildren().size());
         for (Object elem : result.getChildren()) {
             assertSchematronInfo((Element) elem);
         }
 
-        result = service.exec(createParams(), context);
+        result = create(LIST).exec(createParams(), context);
 
         assertEquals(4, result.getChildren().size());
         for (Object elem : result.getChildren()) {
@@ -54,11 +48,10 @@ public class SchematronServiceIntegrationTest extends AbstractSchematronServiceI
         loginAsAdmin(context);
 
         Element params = createParams(
-                read(Params.ACTION, LIST),
                 read(Params.ID, _group1_Name1_SchematronId1.getSchematron().getId())
         );
 
-        Element result = service.exec(params, context);
+        Element result = create(LIST).exec(params, context);
 
         assertEquals(1, result.getChildren().size());
         assertSchematronInfo(result.getChild(GeonetEntity.RECORD_EL_NAME));
@@ -69,19 +62,17 @@ public class SchematronServiceIntegrationTest extends AbstractSchematronServiceI
         loginAsAdmin(context);
 
         Element params = createParams(
-                read(Params.ACTION, EXISTS),
                 read(Params.ID, _group1_Name1_SchematronId1.getSchematron().getId())
         );
 
-        Element result = service.exec(params, context);
+        Element result = create(EXISTS).exec(params, context);
         assertEquals(Boolean.TRUE.toString(), result.getText());
 
         params = createParams(
-                read(Params.ACTION, EXISTS),
                 read(Params.ID, Integer.MAX_VALUE)
         );
 
-        result = service.exec(params, context);
+        result = create(EXISTS).exec(params, context);
         assertEquals(Boolean.FALSE.toString(), result.getText());
     }
     @Test(expected = UnsupportedOperationException.class)
@@ -91,11 +82,7 @@ public class SchematronServiceIntegrationTest extends AbstractSchematronServiceI
         ServiceContext context = createServiceContext();
         loginAsAdmin(context);
 
-        Element params = createParams(
-                read(Params.ACTION, ADD)
-        );
-
-       service.exec(params, context);
+        create(ADD).exec(createParams(), context);
     }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -103,12 +90,8 @@ public class SchematronServiceIntegrationTest extends AbstractSchematronServiceI
         ServiceContext context = createServiceContext();
         loginAsAdmin(context);
 
-        Element params = createParams(
-                read(Params.ACTION, EDIT)
-        );
-
         // might be be implemented in the future.  For now throw exception when method is called.
-        service.exec(params, context);
+        create(EDIT).exec(createParams(), context);
     }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -116,12 +99,8 @@ public class SchematronServiceIntegrationTest extends AbstractSchematronServiceI
         ServiceContext context = createServiceContext();
         loginAsAdmin(context);
 
-        Element params = createParams(
-                read(Params.ACTION, DELETE)
-        );
-
         // might be be implemented in the future.  For now throw exception when method is called.
-        service.exec(params, context);
+        create(DELETE).exec(createParams(), context);
     }
 
     private void assertSchematronInfo(Element child) {
@@ -151,5 +130,11 @@ public class SchematronServiceIntegrationTest extends AbstractSchematronServiceI
         }
 
         assertTrue(found);
+    }
+
+    private SchematronService create(SchematronServiceAction action) throws Exception {
+        final SchematronService schematronService = new SchematronService();
+        super.init(schematronService, action);
+        return schematronService;
     }
 }
