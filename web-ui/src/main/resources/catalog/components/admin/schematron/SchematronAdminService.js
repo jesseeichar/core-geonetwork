@@ -73,7 +73,7 @@
                         alert("Error deleting criteria: "+criteria.id);
                     });
                 },
-                update: function(updated, original) {
+                update: function(updated, original, group) {
                     $http({
                         method: 'POST',
                         url: 'admin.schematroncriteria.update@json',
@@ -85,16 +85,14 @@
                             uivalue: updated.uivalue
                         }
                     }).success(function() {
-                        updateCacheOnCriteriaChange(criteria.schematronid, criteria.groupname);
-                        original.type = updated.type;
-                        original.value = updated.value;
-                        original.uitype = updated.uitype;
-                        original.uivalue = updated.uivalue;
+                        updateCacheOnCriteriaChange(group.id.schematronid, group.id.name);
+
+                        angular.copy(updated, original);
                     }).error(function(){
                         alert("Error updating criteria: "+criteria.id);
                     });
                 },
-                add: function(criteria, group) {
+                add: function(criteria, template, group) {
                     $http({
                         method: 'POST',
                         url: 'admin.schematroncriteria.add@json',
@@ -104,15 +102,17 @@
                             uitype: criteria.uitype,
                             uivalue: criteria.uivalue,
                             groupName: group.id.name,
-                            schematronId: group.id.schematronId
+                            schematronId: group.id.schematronid
                         }
                     }).success(function(response) {
                         updateCacheOnCriteriaChange(group.id.schematronid, group.id.name);
-                        criteria.id = response.id;
-                        group.criteria.push(criteria);
+                        var added = angular.copy(criteria);
+                        added.id = response.id;
+                        group.criteria.push(added);
+                        angular.copy(original, criteria);
                     }).error(function(){
                         alert("Error adding criteria: {\n\ttype:" + criteria.type + ",\n\tvalue:" + criteria.value +
-                            ",\n\tgroupName:" + criteria.groupName + "schematronId: " + criteria.schematronId);
+                            ",\n\tgroupName:" + group.id.name + "schematronId: " + group.id.schematronid);
                     });
                 }
             };
@@ -141,11 +141,11 @@
                         schematronId: original.id.schematronid,
                         requirement: updated.requirement
                     }
-                    if (updated.id.name === original.id.name) {
+                    if (updated.id.name !== original.id.name) {
                         params.newGroupName = updated.id.name;
                     }
-                    if (updated.id.schematronId === original.id.schematronId) {
-                        params.newSchematronId = updated.id.schematronId;
+                    if (updated.id.schematronid !== original.id.schematronid) {
+                        params.newSchematronid = updated.id.schematronid;
                     }
                     $http({
                         method: 'GET',
@@ -153,7 +153,7 @@
                         params: params
                     }).success(function () {
                         original.id.name = updated.id.name;
-                        original.id.schematronId = updated.id.schematronId;
+                        original.id.schematronId = updated.id.schematronid;
                         original.requirement = updated.requirement;
                     }).error(function(){
                         alert("Error editing Schematron Criteria Group: "+original.id);

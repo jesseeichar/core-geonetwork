@@ -43,6 +43,8 @@ public class SchematronCriteriaService extends AbstractSchematronService {
         final SchematronCriteriaType type = SchematronCriteriaType
                 .valueOf(Util.getParam(params, PARAM_TYPE));
         final String value = Util.getParam(params, PARAM_VALUE);
+     final String uitype = Util.getParam(params, PARAM_UI_TYPE);
+        final String uivalue = Util.getParam(params, PARAM_UI_VALUE);
 
         final SchematronCriteriaGroupId id = new SchematronCriteriaGroupId(groupName, schematronId);
         SchematronCriteriaGroup group = criteriaGroupRepository.findOne(id);
@@ -55,6 +57,8 @@ public class SchematronCriteriaService extends AbstractSchematronService {
         SchematronCriteria criteria = new SchematronCriteria();
         criteria.setType(type);
         criteria.setValue(value);
+        criteria.setUiType(uitype);
+        criteria.setUiValue(uivalue);
         group.addCriteria(criteria);
 
         group = criteriaGroupRepository.saveAndFlush(group);

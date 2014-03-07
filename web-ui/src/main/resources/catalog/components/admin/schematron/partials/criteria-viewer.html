@@ -22,7 +22,7 @@
                             class="form-control"
                             data-ng-change="updateTypeAhead(); updateValueField()"
                             data-ng-model="criteria.uitype"
-                            data-ng-options="c as c for (c, v) in criteriaTypes">
+                            data-ng-options="c as v.label for (c, v) in criteriaTypes">
                     </select>
                 </div>
                 <div class="form-group col-sm-6">

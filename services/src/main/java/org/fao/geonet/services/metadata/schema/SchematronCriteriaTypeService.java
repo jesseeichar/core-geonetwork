@@ -1,9 +1,12 @@
 package org.fao.geonet.services.metadata.schema;
 
 import com.google.common.collect.Lists;
+import jeeves.XmlFileCacher;
 import jeeves.interfaces.Service;
 import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
+import jeeves.server.dispatchers.guiservices.XmlCacheManager;
+import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.constants.Params;
 import org.fao.geonet.domain.SchematronCriteriaGroup;
 import org.fao.geonet.domain.SchematronCriteriaType;
@@ -32,6 +35,7 @@ public class SchematronCriteriaTypeService implements Service {
     private static final String EL_TYPE = "type";
     private static final String EL_VALUE = "value";
     private static final String EL_NAME = "name";
+    private static final String EL_LABEL = "label";
     private SchematronService schematronService = new SchematronService();
 
     @Override
@@ -54,7 +58,7 @@ public class SchematronCriteriaTypeService implements Service {
             if (schemaEl == null) {
                 schemaEl = new Element(schemaname);
                 schemaEl.addContent(new Element("name").setText(schemaname));
-                addCriteriaTypeDefinition(schemaManager, schemaEl, schemaname);
+                addCriteriaTypeDefinition(context, schemaManager, schemaEl, schemaname);
                 schemas.addContent(schemaEl);
             }
 
@@ -73,13 +77,30 @@ public class SchematronCriteriaTypeService implements Service {
         schemaEl.addContent(new Element("groupCount").setText(count));
     }
 
-    private void addCriteriaTypeDefinition(SchemaManager schemaManager, Element schemaEl, String schemaName) throws IOException, JDOMException {
-        File file = new File(schemaManager.getSchemaDir(schemaName), "schematron" + File.separator + "criteria-type.xml");
+    private void addCriteriaTypeDefinition(ServiceContext context, SchemaManager schemaManager, Element schemaEl, String schemaName) throws IOException, JDOMException {
+
+        final String schemaDir = schemaManager.getSchemaDir(schemaName);
+        File file = new File(schemaDir, "schematron" + File.separator + "criteria-type.xml");
+
+        final XmlCacheManager cacheManager = context.getBean(XmlCacheManager.class);
+        final Element criteriaTypeTranslations = cacheManager.get(context, true, schemaDir + File.separator + "loc",
+                "criteria-type.xml", context.getLanguage(), Geonet.DEFAULT_LANGUAGE);
+
         if (file.exists()) {
             Element criteriaType = Xml.loadFile(file);
             criteriaType.setName("criteriaTypes");
             criteriaType.addContent(alwaysAcceptCriteriaType());
             criteriaType.addContent(genericXPathCriteriaType());
+
+            @SuppressWarnings("unchecked") List<Element> types = criteriaType.getChildren();
+            for (Element type : types) {
+                final String name = type.getChildText(EL_NAME).toUpperCase();
+                String label = criteriaTypeTranslations.getChildText(name.toLowerCase());
+                if (label == null ) {
+                    label = name;
+                }
+                type.addContent(new Element(EL_LABEL).setText(label));
+            }
             schemaEl.addContent(criteriaType);
         }
     }

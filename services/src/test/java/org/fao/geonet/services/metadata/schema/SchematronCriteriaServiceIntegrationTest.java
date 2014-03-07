@@ -154,11 +154,15 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
 
         final String value = "x/y/z";
         final SchematronCriteriaType criteriaType = SchematronCriteriaType.XPATH;
+        String uiCriteriaType = "uiType";
+        String uiValue = "uiValue";
         Element params = createParams(
                 read(SchematronCriteriaService.PARAM_GROUP_NAME, _group1_Name1_SchematronId1.getId().getName()),
                 read(SchematronCriteriaService.PARAM_SCHEMATRON_ID, _group1_Name1_SchematronId1.getId().getSchematronId()),
                 read(SchematronCriteriaService.PARAM_TYPE, criteriaType),
-                read(SchematronCriteriaService.PARAM_VALUE, value)
+                read(SchematronCriteriaService.PARAM_VALUE, value),
+                read(SchematronCriteriaService.PARAM_UI_TYPE, uiCriteriaType),
+                read(SchematronCriteriaService.PARAM_UI_VALUE, uiValue)
         );
 
         Element result = createService(ADD).exec(params, context);
@@ -176,6 +180,8 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
 
         assertEquals(value, saved.getValue());
         assertEquals(criteriaType, saved.getType());
+        assertEquals(uiValue, saved.getUiValue());
+        assertEquals(uiCriteriaType, saved.getUiType());
         assertEquals(_group1_Name1_SchematronId1.getId(), saved.getGroup().getId());
     }
 

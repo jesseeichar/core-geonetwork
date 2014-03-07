@@ -38,11 +38,11 @@
                     };
                     scope.criteriaTypes = {};
                     if (scope.criteria.type === 'NEW') {
-                        scope.criteriaTypes.NEW = {name: 'NEW', type: 'NEW'};
+                        scope.criteriaTypes.NEW = {name: 'NEW', type: 'NEW', label:$translate('NEW')};
                         criteriaTypeToValueMap.NEW = '';
                     }
-                    for (var i = 0; i < scope.schema.criteriaTypes.length; i++) {
-                        var type = scope.schema.criteriaTypes[i];
+                    for (var i = 0; i < scope.schema.criteriaTypes.type.length; i++) {
+                        var type = scope.schema.criteriaTypes.type[i];
                         scope.criteriaTypes[type.name] = type;
                         criteriaTypeToValueMap[type.name] = '';
                     }
@@ -74,8 +74,6 @@
                         criteriaTypeToValueMap.currentType__ = newType;
                         criteriaTypeToValueMap[oldType] = oldValue;
                         scope.criteria.uivalue = newValue;
-//                        $timeout(function(){findValueInput().select()});
-
                     };
                     scope.$watch('editing', function (newValue){
                         if (newValue) {
@@ -85,17 +83,16 @@
                         }
                     });
                     scope.describeCriteria = function () {
-                        switch (scope.original.type) {
+                        switch (angular.uppercase(scope.original.uitype)) {
                             case 'ALWAYS_ACCEPT':
-                                return "Always evaluates to true";
+                                return $translate('schematronDescriptionAlwaysAccept');
                             case 'NEW':
-                                return $translate("new");
+                                return $translate("NEW");
                             case 'XPATH':
-                                return "Evaluates to true when xpath is satisfied: " + scope.original.value;
-                            case 'GROUP':
-                                return "Evaluates to true when metadata is owned by group: " + scope.original.value;
+                                return $translate('schematronDescriptionXpath').replace(/@@value@@/g, scope.original.uivalue);
                             default:
-                                return "Type: " + scope.original.type + " evaluationValue: " + scope.original.value;
+                                var type = scope.criteriaTypes[scope.original.uitype].label;
+                                return $translate('schematronDescriptionGeneric').replace(/@@type@@/g, type).replace(/@@value@@/g, scope.original.uivalue);
                         }
                     };
 
@@ -109,7 +106,18 @@
                     scope.deleteCriteria = function () {
                         gnSchematronAdminService.criteria.remove(scope.criteria, scope.group);
                     };
-
+                    scope.saveEdit = function () {
+                        if (scope.isDirty()) {
+                            if (scope.criteria.id) {
+                                // it is an updated
+                                gnSchematronAdminService.criteria.update(scope.criteria, scope.original, scope.group);
+                            } else {
+                                // it is an add
+                                gnSchematronAdminService.criteria.add(scope.criteria, scope.original, scope.group);
+                            }
+                        }
+                        scope.editing = false;
+                    };
                     scope.updateTypeAhead = function () {
                         var input = findValueInput();
                         input.typeahead('destroy');
@@ -151,10 +159,12 @@
                                 for (var i = 0; i < data.length; i++) {
                                     var record = data[i];
                                     var name = selectLabelFunction(record, scope);
-                                    var value = selectValueFunction(record, scope);
+                                    var rawWalue = selectValueFunction(record, scope);
+                                    var value = criteriaType.value.replace(/@@value@@/g, rawWalue);
                                     finalData.push({
                                         value: name,
                                         data: value,
+                                        type: criteriaType.type,
                                         tokens: selectTokensFunction(record, scope)
                                     })
                                 }
@@ -184,7 +194,9 @@
 
                             input.typeahead (typeaheadOptions);
                             input.on("typeahead:selected", function(event, data){
+                                scope.criteria.type = data.type;
                                 scope.criteria.value = data.data;
+                                scope.criteria.uivalue = data.value;
                                 input.focus();
                             });
                         }
