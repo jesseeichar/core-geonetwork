@@ -114,35 +114,35 @@
                         var input = findValueInput();
                         input.typeahead('destroy');
 
-                        var criteriaTypeTypeAhead = scope.criteriaTypes[scope.criteria.uitype].typeahead;
+                        var criteriaType = scope.criteriaTypes[scope.criteria.uitype];
 
-                        if (criteriaTypeTypeAhead && criteriaTypeTypeAhead.url) {
+                        if (criteriaType && (criteriaType.remote || criteriaType.local)) {
                             var typeaheadOptions = {
                                 name: scope.criteria.uitype
                             };
 
                             var parseResponseFunction = function(parsedResponse) {
-                                var selectRecordArray = criteriaTypeTypeAhead.selectRecordArray;
-                                var selectValueFunction = criteriaTypeTypeAhead.selectValueFunction;
-                                var selectLabelFunction = criteriaTypeTypeAhead.selectLabelFunction;
-                                var selectTokensFunction = criteriaTypeTypeAhead.selectTokensFunction;
+                                var selectRecordArray = criteriaType.remote.selectRecordArray;
+                                var selectValueFunction = criteriaType.remote.selectValueFunction;
+                                var selectLabelFunction = criteriaType.remote.selectLabelFunction;
+                                var selectTokensFunction = criteriaType.remote.selectTokensFunction;
 
                                 function doEval(propertyName) {
-                                    if (typeof(criteriaTypeTypeAhead[propertyName]) != "function") {
-                                        eval(propertyName + " = function "+criteriaTypeTypeAhead[propertyName]);
+                                    if (typeof(criteriaType.remote[propertyName]) != "function") {
+                                        eval(propertyName + " = function "+criteriaType.remote[propertyName]);
                                     }
                                 }
                                 doEval('selectRecordArray');
                                 doEval('selectLabelFunction');
                                 doEval('selectValueFunction');
-                                if (criteriaTypeTypeAhead.selectTokensFunction) {
+                                if (criteriaType.remote.selectTokensFunction) {
                                     doEval('selectTokensFunction');
                                 } else {
                                     selectTokensFunction = function (record, scope) {
                                         return selectLabelFunction(record, scope).split(/\s+/g);
                                     };
 
-                                    criteriaTypeTypeAhead.selectTokensFunction = selectTokensFunction;
+                                    criteriaType.remote.selectTokensFunction = selectTokensFunction;
                                 }
 
                                 var data = selectRecordArray(parsedResponse, scope);
@@ -162,12 +162,24 @@
                                 return finalData;
                             };
 
-                            if (criteriaTypeTypeAhead.cacheTime && criteriaTypeTypeAhead.cacheTime > 0) {
-                                typeaheadOptions.prefetch = {
-                                    url: criteriaTypeTypeAhead.url,
-                                    ttl: parseInt(criteriaTypeTypeAhead.cacheTime),
-                                    filter: parseResponseFunction
-                                };
+                            if (criteriaType.remote) {
+                                if (criteriaType.remote.cacheTime && criteriaType.remote.cacheTime > 0) {
+                                    typeaheadOptions.prefetch = {
+                                        url: criteriaType.remote.url,
+                                        ttl: parseInt(criteriaType.remote.cacheTime),
+                                        filter: parseResponseFunction
+                                    };
+                                } else {
+                                    typeaheadOptions.remote = {
+                                        url: criteriaType.remote.url,
+                                        cache: false,
+                                        timeout: 1000,
+                                        wildcard: '@@search@@',
+                                        filter: parseResponseFunction
+                                    }
+                                }
+                            } else {
+                                typeaheadOptions.local = criteriaType.local;
                             }
 
                             input.typeahead (typeaheadOptions);

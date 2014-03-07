@@ -20,9 +20,7 @@
                 <div class="form-group col-sm-3">
                     <select
                             class="form-control"
-                            data-ng-mousedown="handleFocus($event)"
                             data-ng-change="updateTypeAhead(); updateValueField()"
-                            data-ng-blur="handleBlur()"
                             data-ng-model="criteria.uitype"
                             data-ng-options="c as c for (c, v) in criteriaTypes">
                     </select>
@@ -30,8 +28,6 @@
                 <div class="form-group col-sm-6">
                     <input type="text"
                            class="form-control"
-                           data-ng-mousedown="handleFocus($event)"
-                           data-ng-blur="handleBlur()"
                            placeholder="{{'criteriaValue' | translate}}"
                            data-ng-model="criteria.uivalue"
                             />

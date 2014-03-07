@@ -77,19 +77,37 @@ public class SchematronCriteriaTypeServiceTest extends AbstractServiceIntegratio
         for (Element type : types) {
             final Element typeahead = type.getChild("typeahead");
             if (typeahead != null) {
-                checkForJSFunction(engine, typeahead, "selectRecordArray");
-                checkForJSFunction(engine, typeahead, "selectLabelFunction");
-                if (typeahead.getChild("selectTokensFunction") != null ) {
-                    checkForJSFunction(engine, typeahead, "selectTokensFunction");
+                final Element remote = typeahead.getChild("remote");
+                if (remote != null) {
+                    checkForJSFunction(engine, remote, "selectRecordArray");
+                    checkForJSFunction(engine, remote, "selectLabelFunction");
+                    if (typeahead.getChild("selectTokensFunction") != null ) {
+                        checkForJSFunction(engine, remote, "selectTokensFunction");
+                    }
+                    checkForJSFunction(engine, remote, "selectValueFunction");
+                } else {
+                    final Element values = typeahead.getChild("local");
+                    assertNotNull(values);
+
+                    assertTrue(values.getChildren().size() > 0);
+
+                    for (Object o : values.getChildren()) {
+                        Element element = (Element) o;
+                        assertNotNull(element.getChild("value"));
+                        final Element tokens = element.getChild("tokens");
+                        assertNotNull(tokens);
+                    }
                 }
-                checkForJSFunction(engine, typeahead, "selectValueFunction");
             }
         }
     }
 
-    private void checkForJSFunction(ScriptEngine engine, Element typeahead, String functionName) throws ScriptException {
-        String name = typeahead.getParentElement().getParentElement().getParentElement().getName() + "/" + typeahead.getParentElement().getChild("name").getText();
-        final Element function = typeahead.getChild(functionName);
+    private void checkForJSFunction(ScriptEngine engine, Element remote, String functionName) throws ScriptException {
+        final Element typeaheadEl = remote.getParentElement();
+        final Element typeEl = typeaheadEl.getParentElement();
+        final Element schemaEl = typeEl.getParentElement().getParentElement();
+        String name = schemaEl.getName() + "/" + typeEl.getChild("name").getText();
+        final Element function = remote.getChild(functionName);
         assertNotNull (name + " criteria-types missing element: " + functionName, function);
         try {
             engine.eval("var x = function " + function.getText()); // check that no exception is thrown:

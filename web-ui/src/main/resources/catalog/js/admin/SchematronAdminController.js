@@ -13,26 +13,21 @@
      * for metadata and templates
      */
     module.controller('GnSchematronEditCriteriaController', [
-        '$scope', 'gnSchematronAdminService',
-        function($scope, gnSchematronAdminService) {
-            $scope.selection = {
-                schema: null,
-                schematron : null,
-                group: null
-            };
-
-            $scope.schematronGroups = null;
-            $scope.isShowSchematronGroupHelp = false;
-            $scope.isSelected = function(schematron) {return $scope.selection.schematron === schematron;};
-            $scope.selectSchematron = function(schema, schematron) {
-                if ($scope.selection.schematron !== schematron) {
-                    $scope.selection.schema = schema;
-                    $scope.selection.schematron = schematron;
-                    $scope.loadCriteria();
+        '$scope', '$routeParams', '$location', 'gnSchematronAdminService',
+        function($scope, $routeParams, $location, gnSchematronAdminService) {
+            var updateLocation = function (schema, schematron, group) {
+                var path = '/metadata/schematron';
+                if (schema && schematron) {
+                    path += '/' + schema.name + '/' + schematron.id;
                 }
+                if (schema && schematron && group) {
+                    path += '/' + group.id.name;
+                }
+                $location.path(path);
+                return path;
             };
 
-            $scope.loadCriteria = function() {
+            var loadCriteria = function() {
                 $scope.schematronGroups = null;
                 gnSchematronAdminService.group.list($scope.selection.schematron.id, function (data) {
                     $scope.schematronGroups = data;
@@ -40,6 +35,71 @@
                 });
             };
 
+            $scope.selection = {
+                schema: null,
+                schematron : null,
+                group: null
+            };
+
+
+            $scope.schematronGroups = null;
+            $scope.isShowSchematronGroupHelp = false;
+            $scope.isSelected = function(schematron) {return $scope.selection.schematron === schematron;};
+            $scope.selectSchematron = function(schema, schematron) {
+                if ($scope.selection.schema !== schema || $scope.selection.schematron !== schematron) {
+                    updateLocation(schema, schematron);
+                }
+            };
+
             $scope.requirements=['REQUIRED', 'REQUEST_ONLY', 'DISABLED'];
+
+            gnSchematronAdminService.criteriaTypes.list(function(data){
+                $scope.schematrons = data;
+
+                if ($routeParams.schemaName) {
+                    var findSchema = function(schemaName) {
+                        for (var i = 0; i < $scope.schematrons.length; i++) {
+                            var schemaDef = $scope.schematrons[i];
+                            if (schemaDef.name === $routeParams.schemaName) {
+                                return schemaDef;
+                            }
+                        }
+                    };
+                    var findSchematron = function (schemaDef, schematronId) {
+                        if (schematronId) {
+                            for (var i = 0; i < schema.schematron.length; i++) {
+                                var schematron = schema.schematron[i];
+                                if (schematronId === schematron.id) {
+                                    return schematron;
+                                }
+                            }
+                        }
+                    };
+
+                    var schema = findSchema($routeParams.schemaName);
+
+                    if (!schema) {
+                        updateLocation();
+                        return;
+                    }
+
+                    var schematron = findSchematron(schema, $routeParams.schematronId);
+
+                    if (!schematron) {
+                        if (schema.schematron.length == 0) {
+                            updateLocation();
+                        } else {
+                            schematron = schema.schematron[0];
+                        }
+                    }
+
+                    if (schematron) {
+                        $scope.selection.schema = schema;
+                        $scope.selection.schematron = schematron;
+                        updateLocation(schema, schematron);
+                        loadCriteria();
+                    }
+                }
+            });
         }]);
 })();

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<criteriaTypes>
+<criteriaTypes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../criteria-type.xsd">
     <type>
         <value>*//gmd:keyword/gco:CharacterString/text() = '@@value@@'__OR__*//gmd:keyword/gmd:PT_FreeText/gmd:textGroup/gmd:LocalisedCharacterString/text() = '@@value@@'</value>
         <type>XPATH</type>
         <name>Keyword</name>
         <allowArbitraryValue>false</allowArbitraryValue>
-        <typeahead>
+        <remote>
             <cacheTime>0</cacheTime> <!-- Don't cache -->
             <url>xml.search.keywords@json?pNewSearch=true&amp;maxResults=100&amp;pKeyword=@@search@@&amp;pTypeSearch=CONTAINS</url>
 
@@ -14,14 +14,18 @@
             <selectRecordArray>(data, scope) { return data[0] }</selectRecordArray>
             <selectLabelFunction>(record, scope) { return record.value['#text'] + ' (' + record.thesaurus.title + ')' }</selectLabelFunction>
             <selectValueFunction>(record, scope) { return record.value['#text'] }</selectValueFunction>
-        </typeahead>
+        </remote>
     </type>
     <type>
         <value>@@value@@</value>
         <type>GROUP</type>
         <name>Group</name>
         <allowArbitraryValue>true</allowArbitraryValue>
-        <typeahead>
+        <remote>
+            <!--
+                cacheTime > 0 indicates that the typeahead should download all values and cache them
+                If cacheTime is < 0 then either the "values" element will be used or a remote search will be used for each completion.
+            -->
             <cacheTime>60000</cacheTime> <!-- Cache for 1 minute -->
             <url>xml.group.list@json</url>
 
@@ -59,6 +63,6 @@
                 return tokens;
                 }</selectTokensFunction>
             <selectValueFunction>(record, scope) { return record.id }</selectValueFunction>
-        </typeahead>
+        </remote>
     </type>
 </criteriaTypes>

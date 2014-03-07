@@ -36,7 +36,6 @@ public class SchematronCriteria extends GeonetEntity {
      */
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = ID_SEQ_NAME)
-	@Column(nullable = false)
 	public int getId() {
 		return id;
 	}
@@ -55,29 +54,7 @@ public class SchematronCriteria extends GeonetEntity {
 				+ ", value=" + value + "]";
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + id;
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		SchematronCriteria other = (SchematronCriteria) obj;
-		if (id != other.id)
-			return false;
-		return true;
-	}
-
-	/**
+    /**
 	 * @return the type
 	 */
 	@Column(nullable = false, name = "type")
@@ -186,7 +163,6 @@ public class SchematronCriteria extends GeonetEntity {
         return element;
     }
 
-
     /**
      * Create a copy of the c
      * @return
@@ -199,5 +175,31 @@ public class SchematronCriteria extends GeonetEntity {
         copy.setUiValue(getUiValue());
         copy.setGroup(getGroup());
         return copy;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SchematronCriteria that = (SchematronCriteria) o;
+
+        if (id != that.id) return false;
+        if (type != that.type) return false;
+        if (uiType != null ? !uiType.equals(that.uiType) : that.uiType != null) return false;
+        if (uiValue != null ? !uiValue.equals(that.uiValue) : that.uiValue != null) return false;
+        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (uiType != null ? uiType.hashCode() : 0);
+        result = 31 * result + (uiValue != null ? uiValue.hashCode() : 0);
+        return result;
     }
 }

@@ -66,12 +66,6 @@
         });
       }
 
-      function loadSchematrons() {
-          $http.get('admin.schematrontype@json').success(function(data) {
-              $scope.schematrons = data;
-          }).error(function (data) {console.log(data)}) ;
-      }
-
       function launchActions() {
         // Select schema
         if ($routeParams.schema === 'all') {
@@ -340,8 +334,8 @@
         loadTemplates();
       } else if ($routeParams.tab === 'formatter') {
         loadFormatter();
-      } else if ($routeParams.tab === 'schematron') {
-        loadSchematrons();
+      } else if ($routeParams.schemaName || $routeParams.tab === 'schematron') {
+          $routeParams.tab = 'schematron';
       } else {
         loadSchemas();
       }

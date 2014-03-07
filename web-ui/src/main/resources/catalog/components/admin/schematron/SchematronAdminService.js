@@ -9,8 +9,51 @@
      * Display harvester identification section with
      * name, group and icon
      */
-    module.service('gnSchematronAdminService', ['$http',
-        function ($http) {
+    module.service('gnSchematronAdminService', ['$http', '$cacheFactory',
+        function ($http, $cacheFactory) {
+            var TIMEOUT = 60000; // refresh cache every minute
+            var cache = $cacheFactory('gnSchematronAdminService');
+            var getDataFromCache = function(id, timeout) {
+                if (!timeout) {
+                    timeout = TIMEOUT;
+                }
+                var lastUsed = cache.get('lastUsed_'+id);
+                var now = new Date();
+                if (!lastUsed || (now - lastUsed) > timeout) {
+                    return;
+                }
+                return cache.get(id);
+            };
+            var putDataIntoCache = function (id, data) {
+                var now = new Date().getTime();
+                cache.put("lastUsed_"+id, now);
+                cache.put(id, data);
+            };
+            var removeElementFromCache = function (id) {
+                cache.remove(id);
+                cache.remove("lastUsed_"+id);
+            }
+            var groupCacheId = function(schematronId) { return "criteriaGroup_"+schematronId};
+
+            var updateCacheOnGroupChange = function (schematronId) {
+                removeElementFromCache('criteriaTypes');
+                removeElementFromCache(groupCacheId(schematronId));
+            };
+            var updateCacheOnCriteriaChange = function (schematronId, groupName) {
+                removeElementFromCache(groupCacheId(schematronId));
+            };
+            var findIndex = function(array, object, comparator) {
+                for (var i = 0; i < array.length; i++) {
+                    var arrayObj = array[i];
+                    if (comparator(arrayObj, object)) {
+                        return i;
+                    }
+                }
+                return -1;
+            };
+            var criteriaComparator = function (o1, o2) {return o1.id === o2.id};
+            var groupComparator = function (o1, o2) {return o1.id.schematronid === o2.id.schematronid && o1.id.name === o2.id.name};
+
             this.criteria = {
                 remove: function(criteria, group) {
                     $http({
@@ -20,8 +63,9 @@
                             id: criteria.id
                         }
                     }).success(function () {
+                        updateCacheOnCriteriaChange(group.id.schematronid, group.id.name);
                         var list = group.criteria;
-                        var idx = list.indexOf(criteria);
+                        var idx = findIndex(list, criteria, criteriaComparator);
                         if (idx != -1) {
                             list.splice(idx,1);
                         }
@@ -41,6 +85,7 @@
                             uivalue: updated.uivalue
                         }
                     }).success(function() {
+                        updateCacheOnCriteriaChange(criteria.schematronid, criteria.groupname);
                         original.type = updated.type;
                         original.value = updated.value;
                         original.uitype = updated.uitype;
@@ -58,10 +103,11 @@
                             value: criteria.value,
                             uitype: criteria.uitype,
                             uivalue: criteria.uivalue,
-                            groupName: criteria.groupName,
-                            schematronId: criteria.schematronId
+                            groupName: group.id.name,
+                            schematronId: group.id.schematronId
                         }
                     }).success(function(response) {
+                        updateCacheOnCriteriaChange(group.id.schematronid, group.id.name);
                         criteria.id = response.id;
                         group.criteria.push(criteria);
                     }).error(function(){
@@ -80,7 +126,8 @@
                             schematronId: group.id.schematronid
                         }
                     }).success(function () {
-                        var idx = groupList.indexOf(group);
+                        updateCacheOnGroupChange(group.id.schematronid);
+                        var idx = findIndex(groupList, group, groupComparator);
                         if (idx != -1) {
                             groupList.splice(idx,1);
                         }
@@ -122,24 +169,49 @@
                             requirement: group.requirement
                         }
                     }).success(function () {
+                        updateCacheOnGroupChange(group.id.schematronid);
                         groupList.push(group);
                     }).error(function(){
                         alert("Error adding new Schematron Criteria Group: "+group.id);
                     });
                 },
                 list: function(schematronId, successFunction) {
-                    $http({
-                        method: 'GET',
-                        url: 'admin.schematroncriteriagroup.list@json',
-                        params: {
-                            includeCriteria: true,
-                            schematronId: schematronId
-                        }
-                    }).success(successFunction).error(function(data, code){
-                        alert("Error occured during loading schematron criteria groups for schematron: " + schematronId);
-                    });
-
+                    var data = getDataFromCache(groupCacheId(schematronId));
+                    if (data) {
+                        successFunction(data);
+                    } else {
+                        $http({
+                            method: 'GET',
+                            url: 'admin.schematroncriteriagroup.list@json',
+                            params: {
+                                includeCriteria: true,
+                                schematronId: schematronId
+                            }
+                        }).success(function (data){
+                                putDataIntoCache(groupCacheId(schematronId), data);
+                                successFunction(data);
+                            }).error(function(data, code){
+                            alert("Error occured during loading schematron criteria groups for schematron: " + schematronId);
+                        });
+                    }
                 }
             };
+
+            this.criteriaTypes = {
+                list: function (successCallback) {
+                    var cachedCriteriaTypes = getDataFromCache('criteriaTypes');
+                    if (cachedCriteriaTypes) {
+                        successCallback(cachedCriteriaTypes);
+                    } else {
+                        $http.get('admin.schematrontype@json').
+                            success(function (data) {
+                                putDataIntoCache('criteriaTypes', data);
+                                successCallback(data);
+                            }).error(function (data) {
+                                alert("An Error occurred with the admin.schematrontype@json request:" + data)
+                            });
+                    }
+                }
+            }
         }]);
 })();

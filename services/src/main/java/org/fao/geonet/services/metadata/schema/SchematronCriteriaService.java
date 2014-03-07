@@ -15,6 +15,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -177,7 +178,11 @@ public class SchematronCriteriaService extends AbstractSchematronService {
 
         if (criteriaRepository.exists(id)) {
             criteriaRepository.delete(id);
-            return new Element("ok");
+            if (!criteriaRepository.exists(id)) {
+                return new Element("ok");
+            } else {
+                throw new IOException("Error deleting criteria object");
+            }
         }
 
         throw new BadParameterEx(Params.ID, id);
