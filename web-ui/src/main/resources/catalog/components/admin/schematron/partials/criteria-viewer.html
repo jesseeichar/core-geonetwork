@@ -20,7 +20,7 @@
                 <div class="form-group col-sm-3">
                     <select
                             class="form-control"
-                            data-ng-change="updateTypeAhead(); updateValueField()"
+                            data-ng-change="updateType(); updateTypeAhead(); updateValueField()"
                             data-ng-model="criteria.uitype"
                             data-ng-options="c as v.label for (c, v) in criteriaTypes">
                     </select>
@@ -28,6 +28,7 @@
                 <div class="form-group col-sm-6">
                     <input type="text"
                            class="form-control"
+                           data-ng-disabled="criteria.uitype === 'ALWAYS_ACCEPT' || criteria.uitype === 'NEW'"
                            placeholder="{{'criteriaValue' | translate}}"
                            data-ng-model="criteria.uivalue"
                             />

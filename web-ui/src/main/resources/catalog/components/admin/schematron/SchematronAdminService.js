@@ -92,7 +92,7 @@
                         alert("Error updating criteria: "+criteria.id);
                     });
                 },
-                add: function(criteria, template, group) {
+                add: function(criteria, original, group) {
                     $http({
                         method: 'POST',
                         url: 'admin.schematroncriteria.add@json',

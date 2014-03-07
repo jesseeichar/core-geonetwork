@@ -27,6 +27,12 @@
                 link: function (scope, element, attrs) {
                     var findValueInput = function () {
                         return element.find("input.form-control")
+                    };
+                    if (scope.original.value instanceof Array) {
+                        scope.original.value = '';
+                    }
+                    if (scope.original.uivalue instanceof Array) {
+                        scope.original.uivalue = '';
                     }
                     scope.criteria = angular.copy(scope.original);
 
@@ -64,6 +70,9 @@
                         scope.schema.editObject = scope;
                         scope.editing = true;
                         scope.updateTypeAhead();
+                    };
+                    scope.updateType = function () {
+                        scope.criteria.type = scope.criteriaTypes[scope.criteria.uitype].type;
                     };
                     scope.updateValueField = function () {
                         var oldType = criteriaTypeToValueMap.currentType__;
@@ -164,7 +173,6 @@
                                     finalData.push({
                                         value: name,
                                         data: value,
-                                        type: criteriaType.type,
                                         tokens: selectTokensFunction(record, scope)
                                     })
                                 }
@@ -194,7 +202,6 @@
 
                             input.typeahead (typeaheadOptions);
                             input.on("typeahead:selected", function(event, data){
-                                scope.criteria.type = data.type;
                                 scope.criteria.value = data.data;
                                 scope.criteria.uivalue = data.value;
                                 input.focus();
