@@ -2,6 +2,7 @@ package org.fao.geonet.services.metadata.schema;
 
 import com.google.common.collect.Lists;
 import jeeves.XmlFileCacher;
+import jeeves.constants.Jeeves;
 import jeeves.interfaces.Service;
 import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
@@ -10,6 +11,7 @@ import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.constants.Params;
 import org.fao.geonet.domain.SchematronCriteriaGroup;
 import org.fao.geonet.domain.SchematronCriteriaType;
+import org.fao.geonet.domain.SchematronRequirement;
 import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.repository.SchematronCriteriaGroupRepository;
 import org.fao.geonet.repository.specification.SchematronCriteriaGroupSpecs;
@@ -20,6 +22,7 @@ import org.jdom.JDOMException;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -48,7 +51,14 @@ public class SchematronCriteriaTypeService implements Service {
         SchematronCriteriaGroupRepository criteriaGroupRepo = context.getApplicationContext().getBean(SchematronCriteriaGroupRepository.class);
 
         Element schematrons = schematronService.exec(params, context);
+        Element results = new Element(Jeeves.Elem.RESPONSE);
         Element schemas = new Element("schemas");
+        results.addContent(schemas);
+        Element requirements = new Element("requirements");
+        for (SchematronRequirement requirement : SchematronRequirement.values()) {
+            requirements.addContent(new Element("requirement").setText(requirement.name()));
+        }
+        results.addContent(requirements);
         @SuppressWarnings("unchecked")
         List<Element> schematronElements = Lists.newArrayList(schematrons.getChildren());
 
@@ -68,7 +78,7 @@ public class SchematronCriteriaTypeService implements Service {
             addSchematronGroupCount(criteriaGroupRepo, element, element.getChildText("id"));
         }
 
-        return schemas;
+        return results;
     }
 
     private void addSchematronGroupCount(SchematronCriteriaGroupRepository criteriaGroupRepo, Element schemaEl, String id) {
@@ -83,8 +93,14 @@ public class SchematronCriteriaTypeService implements Service {
         File file = new File(schemaDir, "schematron" + File.separator + "criteria-type.xml");
 
         final XmlCacheManager cacheManager = context.getBean(XmlCacheManager.class);
-        final Element criteriaTypeTranslations = cacheManager.get(context, true, schemaDir + File.separator + "loc",
-                "criteria-type.xml", context.getLanguage(), Geonet.DEFAULT_LANGUAGE);
+        Element criteriaTypeTranslations;
+        try {
+            criteriaTypeTranslations = cacheManager.get(context, true, schemaDir + File.separator + "loc",
+                    "criteria-type.xml", context.getLanguage(), Geonet.DEFAULT_LANGUAGE);
+        } catch (FileNotFoundException e) {
+            // there is a case where the schematron plugin doesn't have any translations for the criteria (maybe there aren't any criteria).
+            criteriaTypeTranslations = new Element("strings");
+        }
 
         if (file.exists()) {
             Element criteriaType = Xml.loadFile(file);

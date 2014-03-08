@@ -51,10 +51,16 @@
                 }
             };
 
-            $scope.requirements=['REQUIRED', 'REQUEST_ONLY', 'DISABLED'];
-
+            $scope.setRequirement = function(newRequirement) {
+                if ($scope.selection.group.requirement !== newRequirement) {
+                    var updated = angular.copy($scope.selection.group);
+                    updated.requirement = newRequirement;
+                    gnSchematronAdminService.group.update(updated, $scope.selection.group)
+                }
+            }
             gnSchematronAdminService.criteriaTypes.list(function(data){
-                $scope.schematrons = data;
+                $scope.schematrons = data.schemas;
+                $scope.requirements = data.requirements;
 
                 if ($routeParams.schemaName) {
                     var findSchema = function(schemaName) {

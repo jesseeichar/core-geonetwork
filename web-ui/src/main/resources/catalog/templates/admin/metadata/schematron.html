@@ -56,7 +56,7 @@
                                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                                         <li role="presentation" data-ng-repeat="requirement in requirements"
                                             data-ng-hide="selection.group.requirement === requirement">
-                                            <a role="menuitem" tabindex="-1">{{'requirement'+requirement | translate}}</a></li>
+                                            <a role="menuitem" data-ng-click="setRequirement(requirement)" tabindex="-1">{{'requirement'+requirement | translate}}</a></li>
                                     </ul>
                                 </div>
                             </div>
