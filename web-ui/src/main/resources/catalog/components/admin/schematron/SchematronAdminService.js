@@ -108,6 +108,9 @@
                         updateCacheOnCriteriaChange(group.id.schematronid, group.id.name);
                         var added = angular.copy(criteria);
                         added.id = response.id;
+                        if (!group.criteria) {
+                            group.criteria = [];
+                        }
                         group.criteria.push(added);
                         angular.copy(original, criteria);
                     }).error(function(){
@@ -117,7 +120,7 @@
                 }
             };
             this.group = {
-                remove: function(group, groupList) {
+                remove: function(group, groupList, successCallback) {
                     $http({
                         method: 'GET',
                         url: 'admin.schematroncriteriagroup.delete@json',
@@ -131,6 +134,7 @@
                         if (idx != -1) {
                             groupList.splice(idx,1);
                         }
+                        successCallback();
                     }).error(function(){
                         alert("Error deleting Schematron Criteria Group: "+group.id);
                     });
@@ -159,7 +163,7 @@
                         alert("Error editing Schematron Criteria Group: "+original.id);
                     });
                 },
-                add: function(group, groupList) {
+                add: function(group, groupList, successCallback) {
                     $http({
                         method: 'GET',
                         url: 'admin.schematroncriteriagroup.add@json',
@@ -171,6 +175,7 @@
                     }).success(function () {
                         updateCacheOnGroupChange(group.id.schematronid);
                         groupList.push(group);
+                        successCallback(group);
                     }).error(function(){
                         alert("Error adding new Schematron Criteria Group: "+group.id);
                     });
@@ -188,9 +193,12 @@
                                 schematronId: schematronId
                             }
                         }).success(function (data){
-                                putDataIntoCache(groupCacheId(schematronId), data);
-                                successFunction(data);
-                            }).error(function(data, code){
+                            if (data === 'null') {
+                                data = [];
+                            }
+                            putDataIntoCache(groupCacheId(schematronId), data);
+                            successFunction(data);
+                        }).error(function(data, code){
                             alert("Error occured during loading schematron criteria groups for schematron: " + schematronId);
                         });
                     }

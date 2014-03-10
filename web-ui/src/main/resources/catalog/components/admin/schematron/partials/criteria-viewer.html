@@ -16,7 +16,8 @@
         </div>
     </a>
     <div class="row">
-        <form class="form-inline" role="form" data-ng-show="editing">
+        <form class="form-inline" role="form" data-ng-show="editing"
+              data-ng-keyup="handleKeyUp($event.keyCode)">
                 <div class="form-group col-sm-3">
                     <select
                             class="form-control"

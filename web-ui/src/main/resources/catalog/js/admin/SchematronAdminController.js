@@ -13,8 +13,8 @@
      * for metadata and templates
      */
     module.controller('GnSchematronEditCriteriaController', [
-        '$scope', '$routeParams', '$location', 'gnSchematronAdminService',
-        function($scope, $routeParams, $location, gnSchematronAdminService) {
+        '$scope', '$routeParams', '$location', '$translate', '$timeout', 'gnSchematronAdminService',
+        function($scope, $routeParams, $location, $translate, $timeout, gnSchematronAdminService) {
             var updateLocation = function (schema, schematron, group) {
                 var path = '/metadata/schematron';
                 if (schema && schematron) {
@@ -50,14 +50,136 @@
                     updateLocation(schema, schematron);
                 }
             };
+            $scope.editGroup = {
+                group: null,
+                updatedGroup: null
+            };
+            $scope.startGroupEditing = function (group) {
+                if ($scope.selection.group === group && $scope.editGroup.group !== group) {
+                    $scope.editGroup.group = group;
+                    $scope.editGroup.updatedGroup = angular.copy(group);
+                    $timeout(function(){
+                        $scope.editGroup.nameInput = angular.element(document.getElementById(group.id.name + '_NameInput'));
+                        var nameInput = $scope.editGroup.nameInput;
+                        nameInput.focus();
+                        nameInput.select();
+                        $scope.handleGroupEditKeyPress(); // update dirtystate of input element
+                    });
+                }
+            };
+            $scope.cancelGroupEdit = function () {
+                $scope.editGroup.group = null;
+                $scope.editGroup.updatedGroup = null;
+            };
+            $scope.saveGroupEdit = function () {
+                gnSchematronAdminService.group.update($scope.editGroup.updatedGroup, $scope.selection.group);
+                $scope.editGroup.group = null;
+                $scope.editGroup.updatedGroup = null;
+            };
+            $scope.handleGroupEditKeyPress = function (keyCode) {
+                var dupName = false;
+                for (var i = 0; i < $scope.schematronGroups.length; i++) {
+                    var group = $scope.schematronGroups[i];
+                    if (group !== $scope.editGroup.group && group.id.name === $scope.editGroup.updatedGroup.id.name) {
+                        dupName = true;
+                        break;
+                    }
+                }
+                switch (keyCode) {
+                    case 13: //ENTER key
+                        if (dupName) {
+                            alert($translate("dupNameWarning"));
+                        } else {
+                            $scope.saveGroupEdit();
+                        }
+                        break;
+                    case 27: // ESC key
+                        $scope.cancelGroupEdit();
+                        break;
+                    default:
+                        if (dupName) {
+                            $scope.editGroup.nameInput.addClass("ng-invalid");
+                            $scope.editGroup.nameInput.removeClass("ng-valid");
+                            console.log("invalid");
+                        } else {
+                            console.log("valid");
+                            $scope.editGroup.nameInput.addClass("ng-valid");
+                            $scope.editGroup.nameInput.removeClass("ng-invalid");
+                        }
 
+                }
+            };
             $scope.setRequirement = function(newRequirement) {
                 if ($scope.selection.group.requirement !== newRequirement) {
                     var updated = angular.copy($scope.selection.group);
                     updated.requirement = newRequirement;
                     gnSchematronAdminService.group.update(updated, $scope.selection.group)
                 }
+            };
+            var updateGroupCount = function (group, amount) {
+                for (var i = 0; i < $scope.selection.schema.schematron.length; i++) {
+                    var schematron = $scope.selection.schema.schematron[i];
+                    if (schematron.id === group.id.schematronid) {
+                        if (schematron.groupCount) {
+                            schematron.groupCount = parseInt(schematron.groupCount) + amount;
+                        } else {
+                            schematron.groupCount = amount;
+                        }
+                    }
+                }
             }
+            $scope.deleteSchematronGroup = function (group) {
+                alert("Need to open confirm dialog here...");
+                gnSchematronAdminService.group.remove(group, $scope.schematronGroups, function(){
+                    if ($scope.schematronGroups.indexOf($scope.selection.group) < 0) {
+                        if ($scope.schematronGroups.length == 0) {
+                            $scope.selection.group = null;
+                        } else {
+                            $scope.selection.group = $scope.schematronGroups[0];
+                        }
+                        updateGroupCount(group, -1);
+                    }
+                });
+            };
+            $scope.selectGroup = function (group) {
+                if ($scope.selection.group !== group && $scope.schematronGroups.indexOf(group) != -1) {
+                    $scope.selection.group = group;
+                }
+            };
+            $scope.createSchematronGroup = function() {
+                var name = $translate("NEW");
+                var groups = $scope.schematronGroups;
+                if (!groups) {
+                    groups = [];
+                    $scope.schematronGroups = groups;
+                }
+
+                var isNameTaken = function () {
+                    for (var j = 0; j < groups.length; j++) {
+                        var group = groups[j];
+                        if (group.id.name === name) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+                var i = 1;
+                while(isNameTaken()) {
+                    i ++;
+                    name = $translate("NEW") + i;
+                }
+                var newGroup = {
+                    id: {
+                        name: name,
+                        schematronid: $scope.selection.schematron.id
+                    },
+                    requirement: $scope.requirements[0]
+                };
+                gnSchematronAdminService.group.add(newGroup, groups, function(group) {
+                    $scope.selection.group = group;
+                    updateGroupCount(group, 1);
+                });
+            };
             gnSchematronAdminService.criteriaTypes.list(function(data){
                 $scope.schematrons = data.schemas;
                 $scope.requirements = data.requirements;
@@ -70,6 +192,7 @@
                                 return schemaDef;
                             }
                         }
+                        return undefined;
                     };
                     var findSchematron = function (schemaDef, schematronId) {
                         if (schematronId) {

@@ -70,6 +70,15 @@
                         scope.schema.editObject = scope;
                         scope.editing = true;
                         scope.updateTypeAhead();
+                        $timeout(function() {
+                            var input = findValueInput();
+                            if (!input.attr('disabled')) {
+                                input.focus();
+                                input.select();
+                            } else {
+                                element.find("select.form-control").focus();
+                            }
+                        });
                     };
                     scope.updateType = function () {
                         scope.criteria.type = scope.criteriaTypes[scope.criteria.uitype].type;
@@ -84,13 +93,6 @@
                         criteriaTypeToValueMap[oldType] = oldValue;
                         scope.criteria.uivalue = newValue;
                     };
-                    scope.$watch('editing', function (newValue){
-                        if (newValue) {
-                            var input = findValueInput();
-                            input.focus();
-                            input.select();
-                        }
-                    });
                     scope.describeCriteria = function () {
                         switch (angular.uppercase(scope.original.uitype)) {
                             case 'ALWAYS_ACCEPT':
@@ -104,7 +106,14 @@
                                 return $translate('schematronDescriptionGeneric').replace(/@@type@@/g, type).replace(/@@value@@/g, scope.original.uivalue);
                         }
                     };
-
+                    scope.handleKeyUp = function (keyCode) {
+                        switch (keyCode) {
+                            case 27: // esc
+                                scope.cancelEditing();
+                            case 13: // enter
+                                scope.saveEdit();
+                        }
+                    };
                     scope.cancelEditing = function () {
                         scope.schema.editObject = null;
                         scope.criteria = angular.copy(scope.original, scope.criteria);
@@ -113,6 +122,7 @@
                     };
 
                     scope.deleteCriteria = function () {
+                        alert("Need to open confirm dialog here...");
                         gnSchematronAdminService.criteria.remove(scope.criteria, scope.group);
                     };
                     scope.saveEdit = function () {
