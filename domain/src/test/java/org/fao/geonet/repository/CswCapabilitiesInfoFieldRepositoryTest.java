@@ -4,7 +4,6 @@ package org.fao.geonet.repository;
 import org.fao.geonet.domain.CswCapabilitiesInfoField;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,7 +12,6 @@ import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@Transactional
 public class CswCapabilitiesInfoFieldRepositoryTest extends AbstractSpringDataTest {
 
     @Autowired

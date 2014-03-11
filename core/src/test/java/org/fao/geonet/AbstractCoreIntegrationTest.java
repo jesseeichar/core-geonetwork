@@ -1,6 +1,5 @@
 package org.fao.geonet;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.TreeTraverser;
 import com.google.common.io.Files;
@@ -40,7 +39,6 @@ import org.jdom.JDOMException;
 import org.jdom.Namespace;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
@@ -58,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertTrue;
 
@@ -415,7 +414,7 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
         return new File(here.getParentFile(), "web/src/main/webapp/").getAbsolutePath() + File.separator;
     }
 
-    private static File getClassFile(Class<?> cl) {
+    protected static File getClassFile(Class<?> cl) {
         final String testClassName = cl.getSimpleName();
         return new File(cl.getResource(testClassName + ".class").getFile());
     }
@@ -446,6 +445,11 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
         String schema = dataManager.autodetectSchema(metadata);
         final SourceRepository sourceRepository = _applicationContext.getBean(SourceRepository.class);
         List<Source> sources = sourceRepository.findAll();
+
+        if (sources.isEmpty()) {
+            final Source source = sourceRepository.save(new Source().setLocal(true).setName("localsource").setUuid("uuidOfLocalSorce"));
+            sources = Lists.newArrayList(source);
+        }
 
         Source source = sources.get(0);
         ArrayList<String> id = new ArrayList<String>(1);

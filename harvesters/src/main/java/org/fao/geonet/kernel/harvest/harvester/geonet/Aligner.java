@@ -45,12 +45,14 @@ import org.fao.geonet.lib.Lib;
 import org.fao.geonet.repository.GroupRepository;
 import org.fao.geonet.repository.MetadataRepository;
 import org.fao.geonet.repository.OperationAllowedRepository;
+import org.fao.geonet.repository.Updater;
 import org.fao.geonet.utils.BinaryFile;
 import org.fao.geonet.utils.IO;
 import org.fao.geonet.utils.Xml;
 import org.fao.geonet.utils.XmlRequest;
 import org.jdom.Element;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -352,7 +354,7 @@ public class Aligner extends BaseAligner
             metadata.getDataInfo().setPopularity(Integer.valueOf(popularity));
         }
 
-        metadataRepository.save(metadata);
+        addCategories(metadata, params.getCategories(), localCateg, context, log, null);
 
         dataMan.setTemplateExt(iId, MetadataType.lookup(isTemplate));
         dataMan.setHarvestedExt(iId, params.uuid);
@@ -363,8 +365,7 @@ public class Aligner extends BaseAligner
 		IO.mkdirs(new File(pubDir), "Geonet Aligner public resources directory for metadata " + id);
 		IO.mkdirs(new File(priDir), "Geonet Aligner private resources directory for metadata " + id);
 
-        addCategories(id, params.getCategories(), localCateg, dataMan, context, log, null);
-		if (params.createRemoteCategory) {
+        if (params.createRemoteCategory) {
     		Element categs = info.getChild("categories");
     		if (categs != null) {
     		    Importer.addCategoriesToMetadata(metadata, categs, context);
@@ -600,8 +601,10 @@ public class Aligner extends BaseAligner
                 log.debug("  - XML not changed for local metadata with uuid:"+ ri.uuid);
 			result.unchangedMetadata++;
             metadata = metadataRepository.findOne(id);
-		}
-		else {
+            if (metadata == null) {
+                throw new NoSuchElementException("Unable to find a metadata with ID: "+id);
+            }
+		} else {
 			md = processMetadata(ri, md);
 	        
             // update metadata
@@ -635,9 +638,8 @@ public class Aligner extends BaseAligner
         }
 
         metadata.getCategories().clear();
-        metadataRepository.save(metadata);
+        addCategories(metadata, params.getCategories(), localCateg, context, log, null);
 
-        addCategories(id, params.getCategories(), localCateg, dataMan, context, log, null);
 		if (params.createRemoteCategory) {
             Element categs = info.getChild("categories");
             if (categs != null) {

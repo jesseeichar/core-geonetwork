@@ -6,17 +6,14 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.fao.geonet.repository.HarvesterSettingRepository.ID_PREFIX;
 import static org.fao.geonet.repository.HarvesterSettingRepository.SEPARATOR;
-import static org.fao.geonet.repository.SpringDataTestSupport.assertSameContents;
 import static org.junit.Assert.*;
 
-@Transactional
 public class HarvesterSettingRepositoryTest extends AbstractSpringDataTest {
 
     @Autowired

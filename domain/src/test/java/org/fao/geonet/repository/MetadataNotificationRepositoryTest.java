@@ -7,13 +7,11 @@ import org.fao.geonet.domain.MetadataNotificationId;
 import org.fao.geonet.domain.MetadataNotifier;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 
-@Transactional
 public class MetadataNotificationRepositoryTest extends AbstractSpringDataTest {
 
     @Autowired

@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -26,7 +25,6 @@ import static org.junit.Assert.assertNotNull;
  * Date: 9/9/13
  * Time: 3:16 PM
  */
-@Transactional
 public class LocalizedEntityRepositoryTest extends AbstractSpringDataTest {
 
     @Autowired

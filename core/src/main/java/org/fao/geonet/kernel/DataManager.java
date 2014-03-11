@@ -35,6 +35,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
 import org.eclipse.jetty.util.ConcurrentHashSet;
+import jeeves.TransactionAspect;
+import jeeves.TransactionTask;
 import org.fao.geonet.exceptions.JeevesException;
 import org.fao.geonet.exceptions.ServiceNotAllowedEx;
 import org.fao.geonet.exceptions.XSDValidationErrorEx;
@@ -85,8 +87,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import javax.annotation.CheckForNull;
@@ -107,6 +107,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
@@ -116,7 +117,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Handles all operations on metadata (select,insert,update,delete etc...).
  *
  */
-@Transactional(propagation = Propagation.REQUIRED, noRollbackFor = {XSDValidationErrorEx.class, NoSchemaMatchesException.class})
+//@Transactional(propagation = Propagation.REQUIRED, noRollbackFor = {XSDValidationErrorEx.class, NoSchemaMatchesException.class})
 public class DataManager {
 
     private static final String FS = File.separator;
@@ -417,7 +418,7 @@ public class DataManager {
             final String  groupOwner = String.valueOf(fullMd.getSourceInfo().getGroupOwner());
             final String  popularity = String.valueOf(fullMd.getDataInfo().getPopularity());
             final String  rating     = String.valueOf(fullMd.getDataInfo().getRating());
-            final String  displayOrder = String.valueOf(fullMd.getDataInfo().getDisplayOrder());
+            final String  displayOrder = fullMd.getDataInfo().getDisplayOrder() == null ? null : String.valueOf(fullMd.getDataInfo().getDisplayOrder());
 
             if(Log.isDebugEnabled(Geonet.DATA_MANAGER)) {
                 Log.debug(Geonet.DATA_MANAGER, "record schema (" + schema + ")"); //DEBUG
@@ -1275,7 +1276,7 @@ public class DataManager {
         GeonetContext gc = (GeonetContext) srvContext.getHandlerContext(Geonet.CONTEXT_NAME);
         if (!gc.isReadOnly()) {
             final IncreasePopularityTask task = srvContext.getBean(IncreasePopularityTask.class);
-            task.configure(this, srvContext, Integer.valueOf(id));
+            task.setMetadataId(Integer.valueOf(id));
             gc.getThreadPool().runTask(task);
         } else {
             if (Log.isDebugEnabled(Geonet.DATA_MANAGER)) {
@@ -3209,7 +3210,16 @@ public class DataManager {
     }
 
     public void flush() {
-        _entityManager.flush();
+        TransactionAspect.runInTransaction("DataManager flush()", _applicationContext,
+                TransactionAspect.TransactionRequirement.CREATE_ONLY_WHEN_NEEDED,
+                TransactionAspect.CommitBehavior.ALWAYS_COMMIT, false, new TransactionTask<Object>() {
+            @Override
+            public Object doInTransaction(TransactionStatus transaction) throws Throwable {
+                _entityManager.flush();
+                return null;
+            }
+        });
+
     }
 
     public void deleteBatchMetadata(String harvesterUUID) {

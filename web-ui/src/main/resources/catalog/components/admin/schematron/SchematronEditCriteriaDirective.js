@@ -20,7 +20,8 @@
                     original: '=criteria',
                     schema: '=',
                     group: '=',
-                    lang: '='
+                    lang: '=',
+                    confirmationDialog: '='
                 },
 
                 templateUrl: '../../catalog/components/admin/schematron/partials/criteria-viewer.html',
@@ -122,8 +123,10 @@
                     };
 
                     scope.deleteCriteria = function () {
-                        alert("Need to open confirm dialog here...");
-                        gnSchematronAdminService.criteria.remove(scope.criteria, scope.group);
+                        $scope.dialog.deleteConfirmed = function() {
+                            gnSchematronAdminService.criteria.remove(scope.criteria, scope.group);
+                        };
+                        $scope.dialog.showDialog();
                     };
                     scope.saveEdit = function () {
                         if (scope.isDirty()) {
