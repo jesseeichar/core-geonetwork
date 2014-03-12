@@ -141,14 +141,17 @@ public class FSDirectoryFactory implements DirectoryFactory {
         for (File file : files) {
             if (file.isDirectory() ) {
                 if (!file.delete()) {
-                    Log.debug(Geonet.LUCENE_TRACKING, "Unable to reset lucene index directory: " + file + "");
+                    Log.debug(Geonet.LUCENE_TRACKING, "Unable to reset lucene index directory: " + file);
                 }
             } else {
                 if (!file.delete()) {
-                    Log.debug(Geonet.LUCENE_TRACKING, "Unable to reset lucene index file: "+file+"");
+                    Log.debug(Geonet.LUCENE_TRACKING, "Unable to reset lucene index file: "+file);
                     // probably is a locked file.
-                    new FileOutputStream(file).close();
-                    Assert.equals(0L, file.length());
+                    try {
+                        new FileOutputStream(file).close();
+                    } catch (IOException e) {
+                        Log.debug(Geonet.LUCENE_TRACKING, "Unable to zero-out file because of open file: "+file);
+                    }
                 }
             }
         }

@@ -15,9 +15,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -154,13 +154,19 @@ public class LuceneIndexLanguageTrackerTest {
         if (addDoc) {
             addDocumentAndAssertCorrectlyAdded(tracker).indexReader.releaseToNRTManager();
         }
-        List<FileInputStream> streams = new ArrayList<FileInputStream>();
+        List<Closeable> openFile = new ArrayList<Closeable>();
+        List<MappedByteBuffer> memoryMappedBuffers = new ArrayList<MappedByteBuffer>();
 
         for (File file : Files.fileTreeTraverser().postOrderTraversal(folder.getRoot())) {
                 if (file.isFile()) {
-                    streams.add(new FileInputStream(file));
-            }
+                    final RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
+                    final FileChannel channel = randomAccessFile.getChannel();
+                    final MappedByteBuffer map = channel.map(FileChannel.MapMode.READ_WRITE, 0, file.length());
+                    openFile.add(channel);
+                    openFile.add(randomAccessFile);
+                }
         }
+        try {
         tracker.reset(1);
         tracker.reset(1);
 
@@ -170,8 +176,12 @@ public class LuceneIndexLanguageTrackerTest {
         acquire2.indexReader.releaseToNRTManager();
 
         addDocumentAndAssertCorrectlyAdded(tracker).indexReader.releaseToNRTManager();
-        for (FileInputStream stream : streams) {
-            stream.close();
+        } finally {
+            for (Closeable closeable : openFile) {
+                closeable.close();
+            }
+            memoryMappedBuffers = null;
+            Runtime.getRuntime().gc();
         }
 
         tracker.close(100, true);
