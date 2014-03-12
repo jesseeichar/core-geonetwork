@@ -4,18 +4,15 @@ import org.fao.geonet.domain.Operation;
 import org.fao.geonet.domain.ReservedOperation;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.fao.geonet.repository.SpringDataTestSupport.assertSameContents;
 import static org.fao.geonet.repository.SpringDataTestSupport.setId;
 import static org.junit.Assert.*;
 
-@Transactional
 public class OperationRepositoryTest extends AbstractSpringDataTest {
 
     @Autowired

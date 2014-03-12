@@ -28,7 +28,7 @@ public class SchematronRepositoryTest extends AbstractSpringDataTest {
 
         final Schematron found = _repo.findOne(schematron.getId());
 
-        SpringDataTestSupport.assertSameContents(schematron, found);
+        assertSameContents(schematron, found);
     }
 
     @Test

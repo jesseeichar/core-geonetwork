@@ -35,6 +35,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sun.xml.internal.ws.wsdl.DispatchException;
 import jeeves.component.ProfileManager;
 import jeeves.constants.ConfigFile;
 import jeeves.constants.Jeeves;
@@ -70,13 +71,11 @@ import org.fao.geonet.utils.Xml;
 import org.jdom.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.yammer.metrics.core.TimerContext;
+import org.springframework.transaction.annotation.Propagation;
 
 //=============================================================================
-@Transactional(propagation = Propagation.REQUIRED)
 public class ServiceManager {
 	private Map<String, ArrayList<ServiceInfo>> htServices = new HashMap<String, ArrayList<ServiceInfo>>(100);
 	private Map<String, Object> htContexts = new HashMap<String, Object>();
@@ -146,7 +145,7 @@ public class ServiceManager {
 	//---------------------------------------------------------------------------
 
 	@SuppressWarnings("unchecked")
-	public void addService(String pack, Element srv) throws Exception
+	public ServiceInfo addService(String pack, Element srv) throws Exception
 	{
 		String name  = srv.getAttributeValue(ConfigFile.Service.Attr.NAME);
 		String match = srv.getAttributeValue(ConfigFile.Service.Attr.MATCH);
@@ -196,6 +195,7 @@ public class ServiceManager {
 		for(Element error : errors) {
 			si.addErrorPage(buildErrorPage(error));
 		}
+        return si;
 	}
 
 	//---------------------------------------------------------------------------
@@ -485,7 +485,7 @@ public class ServiceManager {
 		Element error = getError(req, e, response);
 		String  id    = error.getAttributeValue("id");
 		int     code  = getErrorCode(e);
-		boolean cache = (srvInfo == null) ? false : srvInfo.isCacheSet();
+		boolean cache = (srvInfo != null) && srvInfo.isCacheSet();
 
 		if(isDebug()) debug("Raised exception while executing service\n"+ Xml.getString(error));
 
@@ -962,6 +962,7 @@ public class ServiceManager {
 	private void warning(String message) { Log.warning(Log.SERVICE, message); }
 	static  void error  (String message) { Log.error  (Log.SERVICE, message); }
 	public ProfileManager getProfileManager() { return jeevesApplicationContext.getBean(ProfileManager.class); }
+
 }
 
 //=============================================================================

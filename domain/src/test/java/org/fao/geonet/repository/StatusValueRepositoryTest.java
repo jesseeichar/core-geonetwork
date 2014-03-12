@@ -4,13 +4,11 @@ package org.fao.geonet.repository;
 import org.fao.geonet.domain.StatusValue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 
-@Transactional
 public class StatusValueRepositoryTest extends AbstractSpringDataTest {
 
     @Autowired

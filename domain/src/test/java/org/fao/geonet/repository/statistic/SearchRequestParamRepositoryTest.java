@@ -6,7 +6,6 @@ import org.fao.geonet.domain.statistic.SearchRequestParam;
 import org.fao.geonet.repository.AbstractSpringDataTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,7 +19,6 @@ import static org.junit.Assert.fail;
  * Date: 9/29/13
  * Time: 11:03 PM
  */
-@Transactional
 public class SearchRequestParamRepositoryTest extends AbstractSpringDataTest {
     @Autowired
     SearchRequestParamRepository _paramRepo;

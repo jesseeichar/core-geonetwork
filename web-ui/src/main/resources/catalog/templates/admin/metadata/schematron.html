@@ -1,5 +1,15 @@
 <div data-ng-controller="GnAdminMetadataController">
     <div data-ng-controller="GnSchematronEditCriteriaController">
+        <div id="schematronConfirmationDialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ConfirmRemoveDialog" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    Do Delete?
+
+                    <button data-dismiss="modal" data-ng-click="dialog.deleteConfirmed()">{{'confirm' | translate}}</button>
+                    <button data-dismiss="modal">{{'cancel' | translate}}</button>
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-sm-4">
                 <div class="panel panel-default">
@@ -73,11 +83,13 @@
                                         schema="selection.schema"
                                         group="selection.group"
                                         lang="lang"
+                                        confirmationDialog="dialog"
                                         data-ng-repeat="criteria in selection.group.criteria"></gn-criteria-editor>
                                 <gn-criteria-editor
                                         criteria="{id: null, type: 'NEW', uitype:'NEW', value: '', uivalue: ''}"
                                         schema="selection.schema"
                                         lang="lang"
+                                        confirmationDialog="dialog"
                                         group="selection.group"></gn-criteria-editor>
 
                             </ul>

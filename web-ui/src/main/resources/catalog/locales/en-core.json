@@ -45,6 +45,7 @@
     "save": "Save",
     
     "adminConsole": "Admin console",
+    "editorBoard": "Add new record",
     "needAnAccount": "Need an account ?",
     "needAnAccountInfo": "Then sign right up, it only takes a minute.",
     "createAnAccount": "Create an account",
@@ -134,6 +135,7 @@
     "msgNoCatalogInfo": "Could not retrieved catalog information.",
     "msgNoUserInfo": "Could not retrieve user details.",
     "toggleScrollSpy": "Toggle scrolling navigation",
+    "scrollTop": "Scroll to top",
     "passwordUpdateError": "Error when updating password",
     "BadParameterEx": "Wrong parameter",
     "send": "Send",

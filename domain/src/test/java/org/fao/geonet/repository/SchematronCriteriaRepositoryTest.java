@@ -40,7 +40,7 @@ public class SchematronCriteriaRepositoryTest extends AbstractSpringDataTest {
         final SchematronCriteria criteria = criteriaGroup.getCriteria().get(0);
         final SchematronCriteria found = _repo.findOne(criteria.getId());
 
-        SpringDataTestSupport.assertSameContents(criteria, found);
+        assertSameContents(criteria, found);
     }
 
     @Test

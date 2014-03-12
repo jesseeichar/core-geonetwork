@@ -9,7 +9,6 @@ import org.fao.geonet.repository.statistic.SearchRequestRepositoryTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,7 +22,6 @@ import static org.junit.Assert.assertEquals;
  * Date: 10/2/13
  * Time: 7:50 AM
  */
-@Transactional
 public class SearchRequestSpecsTest extends AbstractSpringDataTest {
 
     @Autowired
