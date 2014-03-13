@@ -123,10 +123,11 @@
                     };
 
                     scope.deleteCriteria = function () {
-                        $scope.dialog.deleteConfirmed = function() {
+                        scope.confirmationDialog.message = $translate('confirmDeleteSchematronCriteria');
+                        scope.confirmationDialog.deleteConfirmed = function() {
                             gnSchematronAdminService.criteria.remove(scope.criteria, scope.group);
                         };
-                        $scope.dialog.showDialog();
+                        scope.confirmationDialog.showDialog();
                     };
                     scope.saveEdit = function () {
                         if (scope.isDirty()) {

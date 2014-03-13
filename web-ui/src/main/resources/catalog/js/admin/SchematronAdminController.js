@@ -41,7 +41,6 @@
                 group: null
             };
 
-
             $scope.schematronGroups = null;
             $scope.isShowSchematronGroupHelp = false;
             $scope.isSelected = function(schematron) {return $scope.selection.schematron === schematron;};
@@ -128,13 +127,15 @@
                     }
                 }
             };
-            $scope.dialog = {
+            $scope.confirmationDialog = {
+                message: $translate('confirmDeleteSchematronCriteriaGroup'),
                 showDialog: function(){$('#schematronConfirmationDialog').modal('show')},
                 dismissDialog: function(){$('#schematronConfirmationDialog').modal('hide')},
                 deleteConfirmed: function(){}
-            }
+            };
             $scope.deleteSchematronGroup = function (group) {
-                $scope.dialog.deleteConfirmed = function() {
+                $scope.confirmationDialog.message = $translate('confirmDeleteSchematronCriteriaGroup');
+                $scope.confirmationDialog.deleteConfirmed = function() {
                     gnSchematronAdminService.group.remove(group, $scope.schematronGroups, function(){
                         if ($scope.schematronGroups.indexOf($scope.selection.group) < 0) {
                             if ($scope.schematronGroups.length == 0) {
@@ -146,7 +147,7 @@
                         }
                     });
                 };
-                $scope.dialog.showDialog();
+                $scope.confirmationDialog.showDialog();
             };
             $scope.selectGroup = function (group) {
                 if ($scope.selection.group !== group && $scope.schematronGroups.indexOf(group) != -1) {

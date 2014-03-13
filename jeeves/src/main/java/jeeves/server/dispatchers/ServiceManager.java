@@ -23,19 +23,7 @@
 
 package jeeves.server.dispatchers;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.servlet.http.HttpServletResponse;
-
-import com.sun.xml.internal.ws.wsdl.DispatchException;
+import com.yammer.metrics.core.TimerContext;
 import jeeves.component.ProfileManager;
 import jeeves.constants.ConfigFile;
 import jeeves.constants.Jeeves;
@@ -55,7 +43,6 @@ import jeeves.server.sources.ServiceRequest.InputMethod;
 import jeeves.server.sources.ServiceRequest.OutputMethod;
 import jeeves.server.sources.http.HttpServiceRequest;
 import jeeves.server.sources.http.JeevesServlet;
-
 import org.fao.geonet.Constants;
 import org.fao.geonet.NodeInfo;
 import org.fao.geonet.Util;
@@ -63,17 +50,21 @@ import org.fao.geonet.exceptions.JeevesException;
 import org.fao.geonet.exceptions.NotAllowedEx;
 import org.fao.geonet.exceptions.ServiceNotFoundEx;
 import org.fao.geonet.exceptions.ServiceNotMatchedEx;
-import org.fao.geonet.utils.BLOB;
-import org.fao.geonet.utils.BinaryFile;
-import org.fao.geonet.utils.Log;
-import org.fao.geonet.utils.SOAPUtil;
-import org.fao.geonet.utils.Xml;
+import org.fao.geonet.utils.*;
 import org.jdom.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import com.yammer.metrics.core.TimerContext;
-import org.springframework.transaction.annotation.Propagation;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 //=============================================================================
 public class ServiceManager {
@@ -288,18 +279,18 @@ public class ServiceManager {
 			contType = defaultContType;
 
 		errPage.setContentType(contType);
-		
+
 		// -- set status code
 		int statusCode;
 		String strStatusCode = err.getAttributeValue(ConfigFile.Error.Attr.STATUS_CODE);
-		
+
 		try {
 			statusCode = Integer.parseInt(strStatusCode);
 		} catch (Exception e) {
 			// Default value for an error page where status code is not defined.
 			statusCode = 500;
 		}
-		
+
 		errPage.setStatusCode(statusCode);
 
 		//--- handle children
@@ -307,7 +298,7 @@ public class ServiceManager {
 		List<Element> guiList = err.getChildren();
 
 		for(Element gui : guiList) {
-			errPage.addGuiService(getGuiService("?", gui));	
+			errPage.addGuiService(getGuiService("?", gui));
 		}
 
 		return errPage;
@@ -442,7 +433,7 @@ public class ServiceManager {
                         HttpServiceRequest req2 = (HttpServiceRequest) req;
 
                         req2.getHttpServletResponse().setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-                        req2.getHttpServletResponse().setHeader("Location", baseUrl +  "/" + context.getApplicationContext().getBean(NodeInfo.class).getId() + "/" +  req.getLanguage() + "/" + forward); 
+                        req2.getHttpServletResponse().setHeader("Location", baseUrl +  "/" + context.getApplicationContext().getBean(NodeInfo.class).getId() + "/" +  req.getLanguage() + "/" + forward);
 
                         return;
                     } else {
@@ -520,7 +511,7 @@ public class ServiceManager {
 				//--- try to dispatch to the error output
 
 				ErrorPage errPage=null;
-				if (srvInfo!=null) 
+				if (srvInfo!=null)
 					errPage=srvInfo.findErrorPage(id);
 
 				if (errPage == null)
@@ -608,7 +599,7 @@ public class ServiceManager {
 						req.write(response);
 					}
 				} else {
-                    
+
                     if (req.hasJSONOutput()) {
                         req.beginStream("application/json; charset=UTF-8", cache);
                         req.getOutputStream().write(Xml.getJSON(response).getBytes(Constants.ENCODING));
@@ -684,8 +675,8 @@ public class ServiceManager {
 					info(" -> end transformation for : " +req.getService());
 				}
 
-				
-			} 
+
+			}
 			String contentType = BinaryFile.getContentType(response);
 
 			if (contentType == null)
@@ -838,7 +829,7 @@ public class ServiceManager {
 
 		String  styleSheet = outPage.getStyleSheet();
 		Element guiElem    = outPage.invokeGuiServices(context, response, vDefaultGui);
-		
+
 		// Dispatch HTTP status code
 		req.setStatusCode(outPage.getStatusCode());
 

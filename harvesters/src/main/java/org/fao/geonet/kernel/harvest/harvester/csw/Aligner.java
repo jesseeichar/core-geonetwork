@@ -240,7 +240,12 @@ public class Aligner extends BaseAligner
 		dataMan.setHarvestedExt(iId, params.uuid);
 
         addPrivileges(id, params.getPrivileges(), localGroups, dataMan, context, log);
-        addCategories(id, params.getCategories(), localCateg, dataMan, context, log, null);
+        context.getBean(MetadataRepository.class).update(Integer.parseInt(id), new Updater<Metadata>() {
+            @Override
+            public void apply(@Nonnull Metadata entity) {
+                addCategories(entity, params.getCategories(), localCateg, context, log, null);
+            }
+        });
 
         dataMan.flush();
 
