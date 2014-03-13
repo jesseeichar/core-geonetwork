@@ -101,10 +101,10 @@
                             case 'NEW':
                                 return $translate("NEW");
                             case 'XPATH':
-                                return $translate('schematronDescriptionXpath').replace(/@@value@@/g, scope.original.uivalue);
+                                return $translate('schematronDescriptionXpath', {value:scope.original.uivalue});
                             default:
                                 var type = scope.criteriaTypes[scope.original.uitype].label;
-                                return $translate('schematronDescriptionGeneric').replace(/@@type@@/g, type).replace(/@@value@@/g, scope.original.uivalue);
+                                return $translate('schematronDescriptionGeneric', {type: type, value: scope.original.uivalue});
                         }
                     };
                     scope.handleKeyUp = function (keyCode) {
