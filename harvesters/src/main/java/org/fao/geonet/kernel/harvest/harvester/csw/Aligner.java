@@ -44,6 +44,7 @@ import org.fao.geonet.repository.MetadataRepository;
 import org.fao.geonet.repository.OperationAllowedRepository;
 import org.fao.geonet.repository.Updater;
 import org.fao.geonet.utils.Xml;
+import org.fao.geonet.repository.Updater;
 import org.jdom.Element;
 import org.jdom.xpath.XPath;
 
@@ -52,6 +53,8 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 import static org.fao.geonet.utils.AbstractHttpRequest.Method.GET;
+
+import javax.annotation.Nonnull;
 import static org.fao.geonet.utils.AbstractHttpRequest.Method.POST;
 
 //=============================================================================
@@ -232,7 +235,7 @@ public class Aligner extends BaseAligner
         }
         String id = dataMan.insertMetadata(context, schema, md, ri.uuid,
                 ownerId, group, params.uuid,
-                         isTemplate, docType, category, ri.changeDate, ri.changeDate, ufo, indexImmediate);
+                isTemplate, docType, category, ri.changeDate, ri.changeDate, ufo, indexImmediate);
 
 		int iId = Integer.parseInt(id);
 

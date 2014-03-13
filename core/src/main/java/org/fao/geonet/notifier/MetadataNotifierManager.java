@@ -111,7 +111,7 @@ public class MetadataNotifierManager {
      */
     public void updateMetadata(Element ISO19139, String id, String uuid, ServiceContext context) throws MetadataNotifierException {
         Timer t = new Timer();
-        t.schedule(new UpdateTask(ISO19139, id, uuid, context), 10);
+        t.schedule(new UpdateTask(ISO19139, id, uuid), 10);
     }
 
     /**
@@ -144,13 +144,11 @@ public class MetadataNotifierManager {
     }
 
     class UpdateTask extends TimerTask {
-        private ServiceContext context;
         private int metadataId;
         private Element ISO19139;
         private String uuid;
 
-        UpdateTask(Element ISO19139, String metadataId, String uuid, ServiceContext context) {
-            this.context = context;
+        UpdateTask(Element ISO19139, String metadataId, String uuid) {
             this.metadataId = Integer.valueOf(metadataId);
             this.uuid = uuid;
             this.ISO19139 = ISO19139;
