@@ -154,6 +154,18 @@
                     $scope.selection.group = group;
                 }
             };
+            $scope.raiseSchematron = function (schema, schematron) {
+              var idx = schema.schematron.indexOf(schematron);
+              if (idx !== 0) {
+                gnSchematronAdminService.schematron.swapPriority(schema, schema.schematron[idx - 1], schematron);
+              }
+            };
+            $scope.lowerSchematron = function (schema, schematron) {
+              var idx = schema.schematron.indexOf(schematron);
+              if (idx !== schema.schematron.length - 1) {
+                gnSchematronAdminService.schematron.swapPriority(schema, schematron, schema.schematron[idx + 1]);
+              }
+            };
             $scope.createSchematronGroup = function() {
                 var name = $translate("NEW");
                 var groups = $scope.schematronGroups;

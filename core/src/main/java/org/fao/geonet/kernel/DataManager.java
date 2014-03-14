@@ -907,13 +907,14 @@ public class DataManager {
                         report.addContent(xmlReport);
                         // add results to persitent validation information
                         int firedRules = 0;
-                        Iterator<?> firedRulesElems = xmlReport.getDescendants(new ElementFilter ("fired-rule", Namespace.getNamespace("http://purl.oclc.org/dsdl/svrl")));
+                        Iterator<?> firedRulesElems = xmlReport.getDescendants(new ElementFilter ("fired-rule", Namespaces.SVRL));
                         while (firedRulesElems.hasNext()) {
                             firedRulesElems.next();
                             firedRules ++;
                         }
                         int invalidRules = 0;
-                        Iterator<?> faileAssertElements = xmlReport.getDescendants(new ElementFilter ("failed-assert", Namespace.getNamespace("http://purl.oclc.org/dsdl/svrl")));
+                        Iterator<?> faileAssertElements = xmlReport.getDescendants(new ElementFilter ("failed-assert",
+                                Namespaces.SVRL));
                         while (faileAssertElements.hasNext()) {
                             faileAssertElements.next();
                             invalidRules ++;
@@ -1936,8 +1937,7 @@ public class DataManager {
                 String rule = schematron.getRuleName();
                 String dbident = ""+id;
 
-                List<SchematronCriteriaGroup> criteriaGroups = criteriaGroupRepository.findAllBySchematron_schemaName(schematron
-                        .getSchemaName());
+                List<SchematronCriteriaGroup> criteriaGroups = criteriaGroupRepository.findAllById_SchematronId(schematron.getId());
 
                 //Loop through all criteria to see if apply schematron
                 //if any criteria does not apply, do not apply at all (AND)
@@ -1980,10 +1980,11 @@ public class DataManager {
                     Element report = new Element("report", Edit.NAMESPACE);
                     report.setAttribute("rule", ruleId,
                             Edit.NAMESPACE);
+                    report.setAttribute("displayPriority", ""+schematron.getDisplayPriority(),
+                            Edit.NAMESPACE);
                     report.setAttribute("dbident", dbident,
                             Edit.NAMESPACE);
-                    report.setAttribute("required", Boolean.toString(requirement == SchematronRequirement.REQUIRED),
-                            Edit.NAMESPACE);
+                    report.setAttribute("required", requirement.toString(), Edit.NAMESPACE);
 
                     try {
                         Map<String,String> params = new HashMap<String,String>();
@@ -1999,13 +2000,13 @@ public class DataManager {
                         // add results to persistent validation information
                         int firedRules = 0;
                         @SuppressWarnings("unchecked")
-                        Iterator<Element> i = xmlReport.getDescendants(new ElementFilter ("fired-rule", Namespace.getNamespace("http://purl.oclc.org/dsdl/svrl")));
+                        Iterator<Element> i = xmlReport.getDescendants(new ElementFilter ("fired-rule", Namespaces.SVRL));
                         while (i.hasNext()) {
                             i.next();
                             firedRules ++;
                         }
                         int invalidRules = 0;
-                        i = xmlReport.getDescendants(new ElementFilter ("failed-assert", Namespace.getNamespace("http://purl.oclc.org/dsdl/svrl")));
+                        i = xmlReport.getDescendants(new ElementFilter ("failed-assert", Namespaces.SVRL));
                         while (i.hasNext()) {
                             i.next();
                             invalidRules ++;

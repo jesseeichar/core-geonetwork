@@ -85,13 +85,21 @@ public class SchematronServiceIntegrationTest extends AbstractSchematronServiceI
         create(ADD).exec(createParams(), context);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testEdit() throws Exception {
         ServiceContext context = createServiceContext();
         loginAsAdmin(context);
 
-        // might be be implemented in the future.  For now throw exception when method is called.
-        create(EDIT).exec(createParams(), context);
+        int newPriority = _group1_Name1_SchematronId1.getSchematron().getDisplayPriority() + 1000;
+        final int id = _group1_Name1_SchematronId1.getId().getSchematronId();
+        final Element params = createParams(
+                read(Params.ID, id),
+                read(SchematronService.PARAM_DISPLAY_PRIORITY, newPriority));
+        Element result = create(EDIT).exec(params, context);
+
+        assertEquals("ok", result.getName());
+
+        assertEquals(newPriority, _schematronRepository.findOne(id).getDisplayPriority());
     }
 
     @Test(expected = UnsupportedOperationException.class)

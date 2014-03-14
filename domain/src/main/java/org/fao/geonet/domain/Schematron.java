@@ -23,6 +23,7 @@ public class Schematron extends Localized {
 	private int id;
 	private String schemaName;
 	private String file;
+	private int displayPriority = 0;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = ID_SEQ_NAME)
@@ -41,28 +42,6 @@ public class Schematron extends Localized {
 		return "Schematron [_id=" + id + ", isoschema=" + schemaName + ", file="
 				+ file + ", description"
 				+ getLabelTranslations() + "]";
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + id;
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Schematron other = (Schematron) obj;
-		if (id != other.id)
-			return false;
-		return true;
 	}
 
 	/**
@@ -117,6 +96,14 @@ public class Schematron extends Localized {
         }
     }
 
+    public int getDisplayPriority() {
+        return displayPriority;
+    }
+
+    public void setDisplayPriority(int displayPriority) {
+        this.displayPriority = displayPriority;
+    }
+
     @Transient
     public String getRuleName() {
         if (file == null) {
@@ -153,5 +140,27 @@ public class Schematron extends Localized {
             }
         }
         return SchematronRequirement.REQUIRED;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Schematron that = (Schematron) o;
+
+        if (displayPriority != that.displayPriority) return false;
+        if (file != null ? !file.equals(that.file) : that.file != null) return false;
+        if (schemaName != null ? !schemaName.equals(that.schemaName) : that.schemaName != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = schemaName != null ? schemaName.hashCode() : 0;
+        result = 31 * result + (file != null ? file.hashCode() : 0);
+        result = 31 * result + displayPriority;
+        return result;
     }
 }

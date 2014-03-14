@@ -70,6 +70,9 @@ public class SchematronCriteriaTypeServiceTest extends AbstractServiceIntegratio
         assertTrue(resultAsString, 0 < Xml.selectNumber(schemas, "count(iso19139/schematron)").intValue());
         assertEquals(resultAsString, 1, Xml.selectNumber(schemas, "count(iso19139/schematron[1]/file)").intValue());
         assertEquals(resultAsString, 1, Xml.selectNumber(schemas, "count(iso19139/schematron[1]/id)").intValue());
+        assertEquals(resultAsString,
+                Xml.selectNumber(schemas, "count(iso19139/schematron)").intValue(),
+                Xml.selectNumber(schemas, "count(iso19139/schematron/title)").intValue());
         assertEquals(resultAsString, 1, Xml.selectNumber(schemas, "count(iso19139/schematron[1]/rulename)").intValue());
         assertTrue(resultAsString, 0 < Xml.selectNumber(schemas, "count(iso19139/schematron[1]/label)").intValue());
         assertEquals(resultAsString, 1, Xml.selectNumber(schemas, "count(iso19139/schematron[1]/schemaname)").intValue());

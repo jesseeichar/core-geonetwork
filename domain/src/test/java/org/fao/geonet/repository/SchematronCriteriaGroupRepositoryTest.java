@@ -36,7 +36,7 @@ public class SchematronCriteriaGroupRepositoryTest extends AbstractSpringDataTes
         final SchematronCriteriaGroup g3 = criteriaGroupRepository.save(g3PreSchematron);
 
         List<SchematronCriteriaGroup> found =
-                criteriaGroupRepository.findAllBySchematron_schemaName(g1.getSchematron().getSchemaName());
+                criteriaGroupRepository.findAllById_SchematronId(g1.getSchematron().getId());
 
         List<String> foundIds = Lists.transform(found, new SchematronCriteriaGroupStringFunction());
 
@@ -44,14 +44,12 @@ public class SchematronCriteriaGroupRepositoryTest extends AbstractSpringDataTes
         assertTrue(foundIds.contains(g1.getId().getName()));
         assertTrue(foundIds.contains(g3.getId().getName()));
 
-        found = criteriaGroupRepository.findAllBySchematron_schemaName(g2.getSchematron().getSchemaName());
+        found = criteriaGroupRepository.findAllById_SchematronId(g2.getSchematron().getId());
 
         foundIds = Lists.transform(found, new SchematronCriteriaGroupStringFunction());
 
         assertEquals(1, found.size());
         assertTrue(foundIds.contains(g2.getId().getName()));
-
-
     }
 
     @Test

@@ -28,7 +28,13 @@
                             <a class="list-group-item" data-ng-repeat="schematron in schema.schematron"
                                data-ng-click="selectSchematron(schema, schematron)"
                                data-ng-class="{active: selection.schematron === schematron}">
-                                {{schematron.rulename}} <span class="badge">{{schematron.groupCount}}</span>
+                                <i class="fa"
+                                   data-ng-click="raiseSchematron(schema, schematron); $event.stopPropagation()"
+                                   data-ng-class="!$first ? ['fa-angle-up', 'gn-action'] : ''"></i>
+                                <i class="fa"
+                                   data-ng-click="lowerSchematron(schema, schematron); $event.stopPropagation()"
+                                   data-ng-class="!$last ? ['fa-angle-down', 'gn-action'] : ''"></i>
+                                {{schematron.title}} <span class="badge">{{schematron.groupCount}}</span>
                             </a>
                         </div>
                     </div>

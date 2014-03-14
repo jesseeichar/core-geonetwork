@@ -9,8 +9,8 @@
      * Display harvester identification section with
      * name, group and icon
      */
-    module.service('gnSchematronAdminService', ['$http', '$cacheFactory',
-        function ($http, $cacheFactory) {
+    module.service('gnSchematronAdminService', ['$http', '$cacheFactory', '$q',
+        function ($http, $cacheFactory, $q) {
             var TIMEOUT = 60000; // refresh cache every minute
             var cache = $cacheFactory('gnSchematronAdminService');
             var getDataFromCache = function(id, timeout) {
@@ -41,6 +41,9 @@
             };
             var updateCacheOnCriteriaChange = function (schematronId, groupName) {
                 removeElementFromCache(groupCacheId(schematronId));
+            };
+            var sortByDisplayPriority = function (a,b) {
+              return a.displaypriority - b.displaypriority;
             };
             var findIndex = function(array, object, comparator) {
                 for (var i = 0; i < array.length; i++) {
@@ -204,7 +207,35 @@
                     }
                 }
             };
+            this.schematron = {
+              swapPriority: function (schema, higherPriority, lowerPriority) {
 
+                var newPriority = higherPriority.displaypriority;
+                var oldPriority = lowerPriority.displaypriority;
+                var update1 = $http({
+                  method: 'GET',
+                  url: 'admin.schematron.update@json',
+                  params: {
+                    id: higherPriority.id,
+                    displaypriority: oldPriority
+                  }
+                });
+                var update2 = $http({
+                  method: 'GET',
+                  url: 'admin.schematron.update@json',
+                  params: {
+                    id: lowerPriority.id,
+                    displaypriority: newPriority
+                  }
+                });
+
+                $q.all([update1, update2]).then(function (){
+                  higherPriority.displaypriority = oldPriority;
+                  lowerPriority.displaypriority = newPriority;
+                  schema.schematron.sort(sortByDisplayPriority);
+                })
+              }
+            },
             this.criteriaTypes = {
                 list: function (successCallback) {
                     var cachedCriteriaTypes = getDataFromCache('criteriaTypes');
@@ -214,6 +245,9 @@
                         $http.get('admin.schematrontype@json').
                             success(function (data) {
                                 putDataIntoCache('criteriaTypes', data);
+                                angular.forEach(data.schemas, function(schema){
+                                  schema.schematron.sort(sortByDisplayPriority);
+                                });
                                 successCallback(data);
                             }).error(function (data) {
                                 alert("An Error occurred with the admin.schematrontype@json request:" + data)

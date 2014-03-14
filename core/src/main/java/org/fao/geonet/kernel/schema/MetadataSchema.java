@@ -400,13 +400,17 @@ public class MetadataSchema
         String saSchemas[] = new File(schemaDir + File.separator + SCHEMATRON_DIR).list(new SchematronReportRulesFilter());
 
         if(saSchemas != null) {
+            int displayPriority = 0;
+
             for(String schematronFileName : saSchemas) {
-                String file = schematronFileName;
+                displayPriority++;
+
                 //if schematron not already exists
-                if(schemaRepo.findOneByFileAndSchemaName(file, schemaName) == null) {
+                if(schemaRepo.findOneByFileAndSchemaName(schematronFileName, schemaName) == null) {
                     org.fao.geonet.domain.Schematron schematron = new org.fao.geonet.domain.Schematron();
                     schematron.setSchemaName(schemaName);
-                    schematron.setFile(file);
+                    schematron.setFile(schematronFileName);
+                    schematron.setDisplayPriority(displayPriority);
                     schematron.getLabelTranslations().put(Geonet.DEFAULT_LANGUAGE, schematron.getRuleName());
                     schemaRepo.saveAndFlush(schematron);
 

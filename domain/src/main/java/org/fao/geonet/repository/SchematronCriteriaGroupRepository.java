@@ -18,10 +18,10 @@ public interface SchematronCriteriaGroupRepository extends
     /**
      * Look up a schematrons by its schema
      *
-     * @param schemaName
-     *            the name of the schema
+     * @param schematronId
+     *            the id of the schematron
      */
     @Nonnull
-    public List<SchematronCriteriaGroup> findAllBySchematron_schemaName(@Nonnull String schemaName);
+    public List<SchematronCriteriaGroup> findAllById_SchematronId(@Nonnull int schematronId);
 
 }
