@@ -16,7 +16,7 @@
             templateUrl: '../../catalog/components/edit/validationreport/' +
                 'partials/validationreport.html',
             scope: {},
-            link: function(scope, element, attrs) {
+            link: function(scope) {
               scope.showErrorsOnly = true;
               scope.gnCurrentEdit = gnCurrentEdit;
 
@@ -39,7 +39,7 @@
                     ruleType.error = parseInt(ruleType.error);
                     ruleType.expanded = false;
 
-                    scope.hasErrors = scope.hasErrors || ruleType.error > 0
+                    scope.hasErrors = scope.hasErrors || ruleType.error > 0;
                     angular.forEach(ruleType.patterns, function(pat) {
                       scope.numberOfRules += pat.rules.length;
                     });
@@ -54,9 +54,8 @@
                   return 'label-success';
                 } else if (type.requirement === 'REQUIRED') {
                   return 'label-danger';
-                } else {
-                  return 'label-info';
                 }
+                return 'label-info';
               };
 
               scope.toggleShowErrors = function() {
@@ -68,12 +67,10 @@
                   if (type === 'icon') {
                     return scope.hasErrors ?
                         'fa-thumbs-o-down' : 'fa-thumbs-o-up';
-                  } else {
-                    return scope.hasErrors ? 'panel-danger' : 'panel-success';
                   }
-                } else {
-                  return '';
+                  return scope.hasErrors ? 'panel-danger' : 'panel-success';
                 }
+                return '';
               };
 
               // When saving is done, refresh validation report
@@ -85,4 +82,4 @@
             }
           };
         }]);
-})();
+}());
