@@ -28,6 +28,7 @@ import jeeves.server.context.ServiceContext;
 import org.fao.geonet.Constants;
 import org.fao.geonet.Util;
 import org.fao.geonet.constants.Params;
+import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.jdom.Element;
 
 import java.io.File;
@@ -42,11 +43,9 @@ import java.net.URLEncoder;
 public class ListBundleFiles extends AbstractFormatService {
 
     public Element exec(Element params, ServiceContext context) throws Exception {
-        ensureInitializedDir(context);
-
         String xslid = Util.getParam(params, Params.ID);
 
-        File formatDir = getAndVerifyFormatDir(Params.ID, xslid).getCanonicalFile();
+        File formatDir = getAndVerifyFormatDir(context.getBean(GeonetworkDataDirectory.class), Params.ID, xslid).getCanonicalFile();
 
         Element result = new Element("bundleFiles");
         makeTree("", formatDir, result);

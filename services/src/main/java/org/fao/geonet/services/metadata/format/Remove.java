@@ -27,6 +27,7 @@ import jeeves.server.context.ServiceContext;
 import org.fao.geonet.Util;
 import org.apache.commons.io.FileUtils;
 import org.fao.geonet.constants.Params;
+import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.jdom.Element;
 
 import java.io.File;
@@ -40,10 +41,9 @@ import java.io.IOException;
 public class Remove extends AbstractFormatService {
 
     public Element exec(Element params, ServiceContext context) throws Exception {
-        ensureInitializedDir(context);
         String xslid = Util.getParam(params, Params.ID, null);
         
-        File formatDir = getAndVerifyFormatDir(Params.ID, xslid);
+        File formatDir = getAndVerifyFormatDir(context.getBean(GeonetworkDataDirectory.class), Params.ID, xslid);
         
         try {
             FileUtils.deleteDirectory(formatDir);

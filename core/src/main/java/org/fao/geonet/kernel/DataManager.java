@@ -3089,6 +3089,15 @@ public class DataManager {
                 return input.toString();
             }
         }));
+//
+//        OperationAllowedRepository operationAllowedRepository = servContext.getBean(OperationAllowedRepository.class);
+//
+//        if (skipAllIntranet) {
+//            operationAllowedRepository.deleteAllByMetadataIdExceptGroupId(Integer.valueOf(metadataId), ReservedGroup.intranet.getId());
+//        } else {
+//            operationAllowedRepository.deleteAllByIdAttribute(OperationAllowedId_.metadataId, Integer.valueOf(metadataId));
+//        }
+
         _metadataRepository.deleteAll(specification);
     }
 }

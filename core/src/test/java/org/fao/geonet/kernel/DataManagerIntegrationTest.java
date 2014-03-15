@@ -7,21 +7,17 @@ import com.google.common.base.Optional;
 import jeeves.server.UserSession;
 import jeeves.server.context.ServiceContext;
 import org.fao.geonet.AbstractCoreIntegrationTest;
-import org.fao.geonet.constants.Params;
 import org.fao.geonet.domain.*;
 import org.fao.geonet.kernel.search.IndexAndTaxonomy;
 import org.fao.geonet.kernel.search.SearchManager;
 import org.fao.geonet.repository.*;
 import org.fao.geonet.repository.specification.MetadataSpecs;
-import org.fao.geonet.utils.Xml;
 import org.jdom.Element;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.domain.Specifications;
 
 import javax.annotation.Nonnull;
-import java.io.ByteArrayInputStream;
 import java.util.UUID;
 
 /**
@@ -193,13 +189,6 @@ public class DataManagerIntegrationTest extends AbstractCoreIntegrationTest {
         indexReader = searchManager.getNewIndexReader("eng");
         assertEquals(0, indexReader.indexReader.numDocs());
         indexReader.indexReader.releaseToNRTManager();
-    }
-
-    static int importMetadata(AbstractCoreIntegrationTest test, ServiceContext serviceContext) throws Exception {
-        final Element sampleMetadataXml = test.getSampleMetadataXml();
-        final ByteArrayInputStream stream = new ByteArrayInputStream(Xml.getString(sampleMetadataXml).getBytes("UTF-8"));
-        return test.importMetadataXML(serviceContext, "uuid", stream, MetadataType.METADATA,
-                ReservedGroup.all.getId(), Params.GENERATE_UUID);
     }
 
 }

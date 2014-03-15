@@ -26,6 +26,7 @@ package org.fao.geonet.services.metadata.format;
 import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
 import org.fao.geonet.Util;
+import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.fao.geonet.utils.Xml;
 import org.apache.commons.io.FileUtils;
 import org.fao.geonet.GeonetContext;
@@ -50,12 +51,10 @@ import java.util.*;
  */
 public class Format extends AbstractFormatService {
 
-	private Show showService;
+	private Show showService = new Show();
     private WeakHashMap<String, List<SchemaLocalization>> labels = new WeakHashMap<String, List<SchemaLocalization>>();
 
     public Element exec(Element params, ServiceContext context) throws Exception {
-        ensureInitializedDir(context);
-
         String xslid = Util.getParam(params, "xsl", null);
         String uuid = Util.getParam(params, Params.UUID, null);
         String id = Util.getParam(params, Params.ID, null);
@@ -64,7 +63,7 @@ public class Format extends AbstractFormatService {
             throw new IllegalArgumentException("Either '" + Params.UUID + "' or '" + Params.ID + "'is a required parameter");
         }
 
-        File formatDir = getAndVerifyFormatDir("xsl", xslid);
+        File formatDir = getAndVerifyFormatDir(context.getBean(GeonetworkDataDirectory.class), "xsl", xslid);
 
         File viewXslFile = new File(formatDir, VIEW_XSL_FILENAME);
 
@@ -201,7 +200,6 @@ public class Format extends AbstractFormatService {
     public void init(String appPath, ServiceConfig params) throws Exception {
         super.init(appPath, params);
 
-        showService = new Show();
         showService.init(appPath, params);
     }
     

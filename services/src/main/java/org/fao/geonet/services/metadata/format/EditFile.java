@@ -29,6 +29,7 @@ import org.apache.commons.io.FileUtils;
 import org.fao.geonet.Constants;
 import org.fao.geonet.Util;
 import org.fao.geonet.constants.Params;
+import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.jdom.Element;
 
 import java.io.File;
@@ -42,12 +43,10 @@ import java.net.URLDecoder;
 public class EditFile extends AbstractFormatService {
 
     public Element exec(Element params, ServiceContext context) throws Exception {
-        ensureInitializedDir(context);
-
         String xslid = Util.getParam(params, Params.ID);
         String file = URLDecoder.decode(Util.getParam(params, Params.FNAME), Constants.ENCODING);
 
-        File formatDir = getAndVerifyFormatDir(Params.ID, xslid);
+        File formatDir = getAndVerifyFormatDir(context.getBean(GeonetworkDataDirectory.class), Params.ID, xslid);
 
         Element result = new Element("data");
 

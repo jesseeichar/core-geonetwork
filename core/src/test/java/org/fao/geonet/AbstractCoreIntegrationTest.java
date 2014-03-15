@@ -11,6 +11,7 @@ import jeeves.server.context.ServiceContext;
 import jeeves.server.sources.ServiceRequest;
 import org.apache.commons.io.FileUtils;
 import org.fao.geonet.constants.Geonet;
+import org.fao.geonet.constants.Params;
 import org.fao.geonet.domain.*;
 import org.fao.geonet.kernel.DataManager;
 import org.fao.geonet.kernel.GeonetworkDataDirectory;
@@ -25,11 +26,9 @@ import org.fao.geonet.languages.LanguageDetector;
 import org.fao.geonet.repository.AbstractSpringDataTest;
 import org.fao.geonet.repository.SourceRepository;
 import org.fao.geonet.repository.UserRepository;
+import org.fao.geonet.util.ThreadPool;
 import org.fao.geonet.util.ThreadUtils;
-import org.fao.geonet.utils.BinaryFile;
-import org.fao.geonet.utils.Log;
-import org.fao.geonet.utils.TransformerFactoryFactory;
-import org.fao.geonet.utils.Xml;
+import org.fao.geonet.utils.*;
 import org.geotools.data.DataStore;
 import org.geotools.data.FeatureStore;
 import org.geotools.feature.AttributeTypeBuilder;
@@ -97,6 +96,14 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
      * Default node data directory
      */
     protected static File _dataDirectory;
+
+    protected static int importMetadata(AbstractCoreIntegrationTest test, ServiceContext serviceContext) throws Exception {
+        final Element sampleMetadataXml = test.getSampleMetadataXml();
+        final ByteArrayInputStream stream = new ByteArrayInputStream(Xml.getString(sampleMetadataXml).getBytes("UTF-8"));
+        return test.importMetadataXML(serviceContext, "uuid", stream, MetadataType.METADATA,
+                ReservedGroup.all.getId(), Params.GENERATE_UUID);
+    }
+
     @Before
     public void configureAppContext() throws Exception {
 
@@ -362,7 +369,17 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
         final HashMap<String, Object> contexts = new HashMap<String, Object>();
         final Constructor<?> constructor = GeonetContext.class.getDeclaredConstructors()[0];
         constructor.setAccessible(true);
-        GeonetContext gc = (GeonetContext) constructor.newInstance(_applicationContext, false, null, null);
+        GeonetContext gc = (GeonetContext) constructor.newInstance(_applicationContext, false, null, new ThreadPool() {
+            @Override
+            public void runTask(Runnable task) {
+                task.run();
+            }
+
+            @Override
+            public void runTask(Runnable task, int delayBeforeStart, TimeUnit unit) {
+                task.run();
+            }
+        });
 
 
         contexts.put(Geonet.CONTEXT_NAME, gc);
@@ -375,6 +392,9 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
         context.setMaxUploadSize(100);
         context.setOutputMethod(ServiceRequest.OutputMethod.DEFAULT);
         context.setAppPath(getWebappDir(getClass()));
+        final File uploadsDir = new File(_applicationContext.getBean(GeonetworkDataDirectory.class).getSystemDataDir(), "uploads");
+        IO.mkdirs(uploadsDir, "createServiceContext");
+        context.setUploadDir(uploadsDir.getPath() + File.separator);
         context.setBaseUrl("geonetwork");
 
         return context;
@@ -397,7 +417,7 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
      *
      * @param params the params map to convert to Element
      */
-    protected Element createParams(Pair<String, ? extends Object>... params) {
+    public Element createParams(Pair<String, ? extends Object>... params) {
         final Element request = new Element("request");
         for (Pair<String, ?> param : params) {
             request.addContent(new Element(param.one()).setText(param.two().toString()));
@@ -426,7 +446,7 @@ public abstract class AbstractCoreIntegrationTest extends AbstractSpringDataTest
         return new File(here.getParentFile(), "web/src/main/webapp/").getAbsolutePath() + File.separator;
     }
 
-    protected static File getClassFile(Class<?> cl) {
+    public static File getClassFile(Class<?> cl) {
         final String testClassName = cl.getSimpleName();
         return new File(cl.getResource(testClassName + ".class").getFile());
     }

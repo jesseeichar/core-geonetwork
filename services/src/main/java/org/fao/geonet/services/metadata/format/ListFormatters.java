@@ -27,6 +27,7 @@ import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
 import org.fao.geonet.Util;
 import org.fao.geonet.constants.Params;
+import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.jdom.Element;
 
 import java.io.File;
@@ -39,7 +40,6 @@ import java.io.File;
 public class ListFormatters extends AbstractFormatService {
 
     public Element exec(Element params, ServiceContext context) throws Exception {
-        ensureInitializedDir(context);
         String schema = Util.getParam(params, "schema", null);
         if (Util.getParam(params, Params.ID, null) != null ||
         		Util.getParam(params, Params.UUID, null) != null) {
@@ -56,7 +56,7 @@ public class ListFormatters extends AbstractFormatService {
         schema = schema.trim();
         
         Element response = new Element("formatters");
-        File[] xslFormatters = new File(userXslDir).listFiles(new FormatterFilter());
+        File[] xslFormatters = context.getBean(GeonetworkDataDirectory.class).getMetadataFormatterDir().listFiles(new FormatterFilter());
         if (xslFormatters != null) {
             for (File xsl : xslFormatters) {
             	boolean add = true;
@@ -66,8 +66,9 @@ public class ListFormatters extends AbstractFormatService {
             			add = false;
             		}
             	}
-            	if (add)
+            	if (add) {
             		response.addContent(new Element("formatter").setText(xsl.getName()));
+                }
             }
         }
         return response;

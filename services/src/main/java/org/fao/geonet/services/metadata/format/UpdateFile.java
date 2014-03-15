@@ -31,6 +31,7 @@ import org.fao.geonet.Constants;
 import org.fao.geonet.Util;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.constants.Params;
+import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.jdom.Element;
 
 import java.io.File;
@@ -44,13 +45,11 @@ import java.net.URLDecoder;
 public class UpdateFile extends AbstractFormatService {
 
     public Element exec(Element params, ServiceContext context) throws Exception {
-        ensureInitializedDir(context);
-
         String fileName = URLDecoder.decode(Util.getParam(params, Params.FNAME), Constants.ENCODING);
         String xslid = Util.getParam(params, Params.ID);
         String data =  Util.getParam(params, Params.DATA);
         
-        File formatDir = getAndVerifyFormatDir(Params.ID, xslid);
+        File formatDir = getAndVerifyFormatDir(context.getBean(GeonetworkDataDirectory.class), Params.ID, xslid);
         
         File toUpdate = new File(formatDir, fileName.replaceAll("/", File.separator));
         
@@ -63,9 +62,5 @@ public class UpdateFile extends AbstractFormatService {
         return elResp;
     }
 
-    @Override
-    public void init(String appPath, ServiceConfig params) throws Exception {
-        super.init(appPath, params);
-    }
 
 }

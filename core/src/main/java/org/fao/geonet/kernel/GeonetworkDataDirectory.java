@@ -6,7 +6,6 @@ import java.io.IOException;
 import jeeves.server.ServiceConfig;
 import jeeves.server.sources.http.JeevesServlet;
 import org.apache.commons.io.FileUtils;
-import org.fao.geonet.Constants;
 import org.fao.geonet.NodeInfo;
 import org.fao.geonet.utils.BinaryFile;
 import org.fao.geonet.utils.IO;
@@ -15,7 +14,6 @@ import org.fao.geonet.utils.Log;
 import org.fao.geonet.constants.Geonet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.stereotype.Component;
 
 /**
  * The GeoNetwork data directory is the location on the file system where
@@ -54,6 +52,7 @@ public class GeonetworkDataDirectory {
     private File metadataRevisionDir;
     private File resourcesDir;
     private File htmlCacheDir;
+    private File metadataFormatterDir;
     private String nodeId;
 
     @Autowired
@@ -285,6 +284,16 @@ public class GeonetworkDataDirectory {
 		resourcesDir = setDir(jeevesServlet, webappName, handlerConfig, systemDataDir,
                 ".resources" + KEY_SUFFIX, "data" + File.separator + "resources",
                 Geonet.Config.RESOURCES_DIR);
+        metadataFormatterDir = setDir(jeevesServlet, webappName, handlerConfig, systemDataDir,
+                ".metadata.formatter" + KEY_SUFFIX, "metadata-formatter",
+                Geonet.Config.RESOURCES_DIR);
+        if (new File(systemDataDir, "user_xsl").exists()) {
+            try {
+                FileUtils.moveDirectoryToDirectory(new File(systemDataDir, "user_xsl"), metadataFormatterDir, false);
+            } catch (IOException e) {
+                Log.error(Geonet.DATA_DIRECTORY, "Unable to move old metadata formatter to new directory", e);
+            }
+        }
 
         htmlCacheDir = new File(handlerConfig.getValue(Geonet.Config.RESOURCES_DIR), "htmlcache");
         handlerConfig.setValue(Geonet.Config.HTMLCACHE_DIR, htmlCacheDir.getAbsolutePath());
@@ -551,6 +560,14 @@ public class GeonetworkDataDirectory {
      */
     public void setHtmlCacheDir(File htmlCacheDir) {
         this.htmlCacheDir = htmlCacheDir;
+    }
+
+    public File getMetadataFormatterDir() {
+        return metadataFormatterDir;
+    }
+
+    public void setMetadataFormatterDir(File metadataFormatterDir) {
+        this.metadataFormatterDir = metadataFormatterDir;
     }
 
     public String getNodeId() {

@@ -48,14 +48,14 @@ public final class Assert extends junit.framework.TestCase {
      * @param namespaces the namespaces required for xpath
      */
     public static void assertEqualsText(String expected, Element xml, String xpath, Namespace... namespaces) throws JDOMException {
-        final Element element;
+        final String actualValue;
         if (namespaces == null || namespaces.length == 0) {
-            element = Xml.selectElement(xml, xpath);
+            actualValue = Xml.selectString(xml, xpath);
         } else {
-            element = Xml.selectElement(xml, xpath, Arrays.asList(namespaces));
+            actualValue = Xml.selectString(xml, xpath, Arrays.asList(namespaces));
         }
-        assertNotNull("No element found at: " + xpath + " in \n" + Xml.getString(xml), element);
-        assertEquals(expected, element.getText());
+        assertTrue("No element found at: " + xpath + " in \n" + Xml.getString(xml), actualValue != null && !actualValue.isEmpty());
+        assertEquals(expected, actualValue);
     }
 
 }

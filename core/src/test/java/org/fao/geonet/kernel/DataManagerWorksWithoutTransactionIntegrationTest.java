@@ -6,7 +6,6 @@ import org.fao.geonet.AbstractCoreIntegrationTest;
 import org.fao.geonet.domain.ISODate;
 import org.fao.geonet.domain.Metadata;
 import org.fao.geonet.domain.MetadataType;
-import org.fao.geonet.kernel.DataManager;
 import org.fao.geonet.repository.MetadataRepository;
 import org.jdom.Element;
 import org.junit.Test;
@@ -72,7 +71,7 @@ public class DataManagerWorksWithoutTransactionIntegrationTest extends AbstractC
 
                         final DataManagerWorksWithoutTransactionIntegrationTest test =
                                 DataManagerWorksWithoutTransactionIntegrationTest.this;
-                        final int metadataId =  DataManagerIntegrationTest.importMetadata(test, serviceContext);
+                        final int metadataId =  importMetadata(test, serviceContext);
 
                         DataManagerIntegrationTest.doSetHarvesterDataTest(_metadataRepository, _dataManager, metadataId);
                     }

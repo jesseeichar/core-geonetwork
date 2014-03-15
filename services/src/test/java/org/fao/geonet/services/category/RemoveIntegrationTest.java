@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
  * Date: 11/1/13
  * Time: 7:08 PM
  */
-public class RemoveTest extends AbstractServiceIntegrationTest {
+public class RemoveIntegrationTest extends AbstractServiceIntegrationTest {
     @Autowired
     MetadataRepository _MetadataRepository;
     @Autowired
