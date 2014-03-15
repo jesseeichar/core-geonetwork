@@ -127,12 +127,12 @@ public class StrictInspireTest extends AbstractInspireTest {
         assertTrue(failure.getAttributeValue("test"), failure.getAttributeValue("test").contains("$has"+lang.getKey()+"Title"));
 
         final List<?> failureMessageTextElements = Xml.selectNodes(failure, "*//text()");
-        final Text expectedTextFromFailure = (Text) failureMessageTextElements.get(3);
+        final Text expectedTextFromFailure = (Text) failureMessageTextElements.get(0);
 
-        assertEquals("'"+expectedTitle+"'", expectedTextFromFailure.getText());
+        assertTrue(expectedTextFromFailure.getText().contains("'"+expectedTitle+"'"));
 
-        final Text actualTextFromFailure = (Text) failureMessageTextElements.get(1);
-        assertEquals("'"+invalidText+"'", actualTextFromFailure.getText());
+        final Text actualTextFromFailure = (Text) failureMessageTextElements.get(0);
+        assertTrue(actualTextFromFailure.getText().contains("'"+invalidText+"'"));
     }
 
 

@@ -4,9 +4,11 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import jeeves.interfaces.Service;
 import jeeves.server.ServiceConfig;
+import org.fao.geonet.Constants;
 import org.fao.geonet.constants.Params;
 import org.fao.geonet.domain.SchematronCriteriaGroup;
 import org.fao.geonet.repository.SchematronCriteriaGroupRepository;
+import org.fao.geonet.repository.SchematronCriteriaRepository;
 import org.fao.geonet.repository.SchematronRepository;
 import org.fao.geonet.services.AbstractServiceIntegrationTest;
 import org.fao.geonet.utils.Xml;
@@ -28,7 +30,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by Jesse on 2/13/14.
  */
-public class AbstractSchematronServiceIntegrationTest extends AbstractServiceIntegrationTest {
+public abstract class AbstractSchematronServiceIntegrationTest extends AbstractServiceIntegrationTest {
     protected SchematronCriteriaGroup _group1_Name1_SchematronId1;
     protected SchematronCriteriaGroup _group2_Name2_SchematronId2;
     protected SchematronCriteriaGroup _group3_Name3_SchemtronId1;
@@ -37,9 +39,14 @@ public class AbstractSchematronServiceIntegrationTest extends AbstractServiceInt
     SchematronRepository _schematronRepository;
     @Autowired
     private SchematronCriteriaGroupRepository _schematronCriteriaGroupRepository;
+    @Autowired
+    SchematronCriteriaRepository _schematronCriteriaRepository;
 
     @Before
     public void addTestData() {
+        _schematronCriteriaGroupRepository.deleteAll();
+        _schematronRepository.deleteAll();
+        assertEquals(0, _schematronCriteriaRepository.count());
         this._group1_Name1_SchematronId1 = _schematronCriteriaGroupRepository.save(newGroup(_inc, _schematronRepository));
         this._group2_Name2_SchematronId2 = _schematronCriteriaGroupRepository.save(newGroup(_inc, _schematronRepository));
         final SchematronCriteriaGroup entity = newGroup(_inc, _schematronRepository);

@@ -190,6 +190,8 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
         ServiceContext context = createServiceContext();
         loginAsAdmin(context);
 
+        final String uitype = "uitype";
+        final String uivalue = "uivalue";
         final String value = "x/y/z";
         final SchematronCriteriaType criteriaType = SchematronCriteriaType.XPATH;
         String newName = "newGroupName" + _inc.incrementAndGet();
@@ -199,7 +201,9 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
                 read(SchematronCriteriaService.PARAM_GROUP_NAME, newName),
                 read(SchematronCriteriaService.PARAM_SCHEMATRON_ID, schematronId),
                 read(SchematronCriteriaService.PARAM_TYPE, criteriaType),
-                read(SchematronCriteriaService.PARAM_VALUE, value)
+                read(SchematronCriteriaService.PARAM_VALUE, value),
+                read(SchematronCriteriaService.PARAM_UI_TYPE, uitype),
+                read(SchematronCriteriaService.PARAM_UI_VALUE, uivalue)
         );
 
         assertFalse(context.getBean(SchematronCriteriaGroupRepository.class).exists(new SchematronCriteriaGroupId(newName,
@@ -225,6 +229,8 @@ public class SchematronCriteriaServiceIntegrationTest extends AbstractSchematron
 
         assertEquals(value, saved.getValue());
         assertEquals(criteriaType, saved.getType());
+        assertEquals(uivalue, saved.getUiValue());
+        assertEquals(uitype, saved.getUiType());
         assertEquals(newName, saved.getGroup().getId().getName());
         assertEquals(schematronId, saved.getGroup().getId().getSchematronId());
     }

@@ -25,7 +25,6 @@ import static org.junit.Assert.assertTrue;
  * <p/>
  * Created by Jesse on 3/11/14.
  */
-@ContextConfiguration(inheritLocations = true, locations = "classpath:metadatanotifiertasktest-repository-test-context.xml")
 public class MetadataNotifierTaskTest extends AbstractCoreIntegrationTest {
 
     @Autowired

@@ -1996,24 +1996,24 @@ public class DataManager {
                         Element xmlReport = Xml.transform(md, file, params);
                         if (xmlReport != null) {
                             report.addContent(xmlReport);
-                        }
-                        // add results to persistent validation information
-                        int firedRules = 0;
-                        @SuppressWarnings("unchecked")
-                        Iterator<Element> i = xmlReport.getDescendants(new ElementFilter ("fired-rule", Namespaces.SVRL));
-                        while (i.hasNext()) {
-                            i.next();
-                            firedRules ++;
-                        }
-                        int invalidRules = 0;
-                        i = xmlReport.getDescendants(new ElementFilter ("failed-assert", Namespaces.SVRL));
-                        while (i.hasNext()) {
-                            i.next();
-                            invalidRules ++;
-                        }
-                        Integer[] results = {invalidRules!=0?ifNotValid:1, firedRules, invalidRules};
-                        if (valTypeAndStatus != null) {
-                            valTypeAndStatus.put(ruleId, results);
+                            // add results to persistent validation information
+                            int firedRules = 0;
+                            @SuppressWarnings("unchecked")
+                            Iterator<Element> i = xmlReport.getDescendants(new ElementFilter ("fired-rule", Namespaces.SVRL));
+                            while (i.hasNext()) {
+                                i.next();
+                                firedRules ++;
+                            }
+                            int invalidRules = 0;
+                            i = xmlReport.getDescendants(new ElementFilter ("failed-assert", Namespaces.SVRL));
+                            while (i.hasNext()) {
+                                i.next();
+                                invalidRules ++;
+                            }
+                            Integer[] results = {invalidRules!=0?ifNotValid:1, firedRules, invalidRules};
+                            if (valTypeAndStatus != null) {
+                                valTypeAndStatus.put(ruleId, results);
+                            }
                         }
                     } catch (Exception e) {
                         Log.error(Geonet.DATA_MANAGER,"WARNING: schematron xslt "+rule+" failed");
