@@ -28,6 +28,9 @@ abstract class AbstractFormatService implements Service {
     public void init(String appPath, ServiceConfig params) throws Exception {}
 
     protected void checkLegalId(String paramName, String xslid) throws BadParameterEx {
+        if (FileFormatterFunctionRepository.FUNCTION_DIRECTORY.equalsIgnoreCase(xslid)) {
+            throw new BadParameterEx(paramName, xslid);
+        }
         if(!ID_XSL_REGEX.matcher(xslid).matches()) {
             throw new BadParameterEx(paramName, xslid+" is not a legal ID: only the following are permitted in the id:"+ID_XSL_REGEX);
         }

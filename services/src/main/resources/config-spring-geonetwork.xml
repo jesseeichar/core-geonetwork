@@ -5,12 +5,13 @@
 	xsi:schemaLocation="
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd" >
 
-	<bean id="RegionsDAO" class="org.fao.geonet.services.region.ThesaurusBasedRegionsDAO">
+	<bean id="regionsDAO" class="org.fao.geonet.services.region.ThesaurusBasedRegionsDAO">
 		<constructor-arg ref="languages" />
 		<property name="cacheAllRegionsInMemory" value="true"/>
 		<property name="thesaurusName" value="external.place.regions"/>
 	</bean>
-	<bean id="MetadataRegionsDAO" class="org.fao.geonet.services.region.MetadataRegionDAO">
+	<bean id="metadataRegionsDAO" class="org.fao.geonet.services.region.MetadataRegionDAO">
 		<property name="cacheAllRegionsInMemory" value="false"/>
 	</bean>
+	<bean id="formatterFunctionRepository" class="org.fao.geonet.services.metadata.format.FileFormatterFunctionRepository"/>
 </beans>

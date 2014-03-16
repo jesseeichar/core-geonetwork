@@ -1,15 +1,10 @@
 package org.fao.geonet.services.metadata.format;
 
 import jeeves.server.context.ServiceContext;
-import org.fao.geonet.constants.Params;
+import org.fao.geonet.exceptions.BadParameterEx;
 import org.fao.geonet.services.AbstractServiceIntegrationTest;
-import org.fao.geonet.utils.BinaryFile;
-import org.jdom.Element;
 import org.junit.Test;
 
-import java.io.File;
-
-import static org.fao.geonet.domain.Pair.read;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -32,24 +27,27 @@ public class RegisterIntegrationTest extends AbstractServiceIntegrationTest {
         assertEquals(numberOfFormattersBefore + 1, FormatterTestUtils.findCountOfHarvesters(this, context));
     }
 
+    @Test(expected = BadParameterEx.class)
+    public void testDupId() throws Exception {
+        final ServiceContext context = createServiceContext();
+        loginAsAdmin(context);
+
+        final String formatterName = "fixed_locale.zip";
+
+        FormatterTestUtils.registerFormatter(this, context, formatterName, FileFormatterFunctionRepository.FUNCTION_DIRECTORY);
+    }
+
     @Test
     public void testRegisterSingleFileWithId() throws Exception {
         final ServiceContext context = createServiceContext();
         loginAsAdmin(context);
 
         int numberOfFormattersBefore = FormatterTestUtils.findCountOfHarvesters(this, context);
-        final Register register = new Register();
-        final File formatterFile = new File(getClassFile(RegisterIntegrationTest.class).getParentFile(), "single_file.xsl");
-        BinaryFile.copy(formatterFile, new File(context.getUploadDir(), formatterFile.getName()));
 
         final String metadataFormatterId = "testRegisterSingleFileWithId";
-        Element params = createParams(
-                read(Params.FNAME, formatterFile.getName()),
-                read(Params.ID, metadataFormatterId)
-        );
-        final Element result = register.exec(params, context);
 
-        assertEquals(metadataFormatterId, result.getChild("id").getAttributeValue("id"));
+        String id = FormatterTestUtils.registerFormatter(this, context, "single_file.xsl", metadataFormatterId);
+        assertEquals(metadataFormatterId, id);
 
         assertEquals(numberOfFormattersBefore + 1, FormatterTestUtils.findCountOfHarvesters(this, context));
     }
