@@ -1,23 +1,23 @@
-package org.fao.geonet.services.metadata.format;
+package org.fao.geonet.services.metadata.format.function;
 
 import org.fao.geonet.kernel.GeonetworkDataDirectory;
+import org.fao.geonet.services.metadata.format.function.FileFormatterFunctionRepository;
+import org.fao.geonet.services.metadata.format.function.FormatterFunction;
 import org.jdom.Element;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.fao.geonet.services.metadata.format.FormatterFunctionRepository.XSL_NAMESPACE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Test {@link org.fao.geonet.services.metadata.format.FormatterFunctionRepository}.
+ * Test {@link org.fao.geonet.services.metadata.format.function.FormatterFunctionRepository}.
  *
  * Created by Jesse on 3/16/14.
  */
@@ -94,40 +94,8 @@ public class FileFormatterFunctionRepositoryTest {
         assertEquals(0, allFunctions.size());
 
         assertEquals(0, new File(temporaryFolder.getRoot(), FileFormatterFunctionRepository.FUNCTION_DIRECTORY).list().length);
-
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testDisallowIllegalVariableReferenceInAttribute() throws Exception {
-        FileFormatterFunctionRepository repo = getRepo();
-        final FormatterFunction function1 = new FormatterFunction("ns1", "name1",
-                new Element("result1").setAttribute("name","{$nameParam}"));
-        repo.save(function1);
-    }
-    @Test(expected = IllegalArgumentException.class)
-    public void testDisallowIllegalVariableReferenceInValueOf() throws Exception {
-        FileFormatterFunctionRepository repo = getRepo();
-
-        final FormatterFunction function = new FormatterFunction("ns1", "name1",
-                new Element("result1").addContent(new Element("value-of", XSL_NAMESPACE).setAttribute("select", "$nameParam")));
-        repo.save(function);
-    }
-
-    @Test
-    public void testAllowParamReference() throws Exception {
-        FileFormatterFunctionRepository repo = getRepo();
-        final FormatterFunction function1 = new FormatterFunction("ns1", "name1",
-                new Element("nameParam", XSL_NAMESPACE),
-                new Element("result1").setAttribute("name","{$nameParam}"));
-        repo.save(function1);
-
-        final FormatterFunction function2 = new FormatterFunction("ns1", "name1",
-                new Element("nameParam", XSL_NAMESPACE),
-                new Element("result1").addContent(new Element("value-of", XSL_NAMESPACE).setAttribute("select", "$nameParam")));
-        repo.save(function2);
-
-
-    }
     private FileFormatterFunctionRepository getRepo() {
         GeonetworkDataDirectory dataDir = Mockito.mock(GeonetworkDataDirectory.class);
         Mockito.when(dataDir.getMetadataFormatterDir()).thenReturn(temporaryFolder.getRoot());

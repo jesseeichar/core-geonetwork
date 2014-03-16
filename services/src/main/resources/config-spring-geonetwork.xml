@@ -13,5 +13,5 @@
 	<bean id="metadataRegionsDAO" class="org.fao.geonet.services.region.MetadataRegionDAO">
 		<property name="cacheAllRegionsInMemory" value="false"/>
 	</bean>
-	<bean id="formatterFunctionRepository" class="org.fao.geonet.services.metadata.format.FileFormatterFunctionRepository"/>
+	<bean id="formatterFunctionRepository" class="org.fao.geonet.services.metadata.format.function.FileFormatterFunctionRepository"/>
 </beans>

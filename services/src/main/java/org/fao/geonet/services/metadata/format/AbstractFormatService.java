@@ -9,6 +9,7 @@ import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.kernel.DataManager;
 import org.fao.geonet.services.Utils;
+import org.fao.geonet.services.metadata.format.function.FileFormatterFunctionRepository;
 import org.jdom.Element;
 
 import java.io.File;

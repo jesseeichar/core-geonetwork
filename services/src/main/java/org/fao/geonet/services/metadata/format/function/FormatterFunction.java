@@ -1,9 +1,6 @@
-package org.fao.geonet.services.metadata.format;
+package org.fao.geonet.services.metadata.format.function;
 
 import com.vividsolutions.jts.util.Assert;
-import org.apache.commons.io.IOUtils;
-import org.fao.geonet.constants.Geonet;
-import org.fao.geonet.utils.IO;
 import org.fao.geonet.utils.Xml;
 import org.jdom.*;
 
@@ -11,8 +8,6 @@ import javax.annotation.Nonnull;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.fao.geonet.services.metadata.format.FormatterFunctionRepository.*;
 
 /**
  * An object representing a xslt function that can be used in any xslt.
@@ -157,58 +152,4 @@ public class FormatterFunction {
         return this.namespace.equals(namespace) && this.name.equals(name);
     }
 
-    /**
-     * Compile function and run it to ensure that it is a valid standalone function.
-     * if there is an error throw and exception containing the error.
-     *
-     * @throws IllegalArgumentException an exception containing the error.
-     */
-    public Element testValidity() throws IllegalArgumentException, IOException {
-        final Element element = toElement();
-        @SuppressWarnings("unchecked")
-        final List<Element> params = element.getChildren(EL_PARAM, XSL_NAMESPACE);
-        StringBuilder paramString = new StringBuilder("(");
-        for (Element param : params) {
-            if (paramString.length() > 1) {
-                paramString.append(", ");
-            }
-            paramString.append("'").append(param.getAttributeValue("name")).append("'");
-        }
-
-        paramString.append(")");
-
-        Element stylesheet = new Element(EL_STYLESHEET, XSL_NAMESPACE).setAttribute(FormatterFunctionRepository.ATT_VERSION, "2.0");
-        stylesheet.addNamespaceDeclaration(getJDomNamespace(this.namespace));
-        stylesheet.addContent(element);
-
-        Element testFunction = new Element("template", XSL_NAMESPACE).setAttribute("match", "/");
-        Element callFunction = new Element("value-of", XSL_NAMESPACE).setAttribute("select", getQualifiedName() + paramString);
-        testFunction.addContent(callFunction);
-        stylesheet.addContent(testFunction);
-
-        OutputStream out = null;
-        BufferedOutputStream bufferedOutputStream = null;
-        File file = File.createTempFile("TestFormatterFunction", ".xsl");
-        try {
-            try {
-                out = new FileOutputStream(file);
-                bufferedOutputStream = new BufferedOutputStream(out);
-                Xml.writeResponse(new Document(stylesheet), bufferedOutputStream);
-            } finally {
-                IOUtils.closeQuietly(bufferedOutputStream);
-                IOUtils.closeQuietly(out);
-            }
-
-            try {
-                return Xml.transform(new Element("doc").addContent(new Element("elem")), file.getPath());
-            } catch (IOException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new IllegalArgumentException(e.getMessage());
-            }
-        } finally {
-            IO.delete(file, false, Geonet.FORMATTER);
-
-        }
-    }
 }

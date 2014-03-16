@@ -1,4 +1,4 @@
-package org.fao.geonet.services.metadata.format;
+package org.fao.geonet.services.metadata.format.function;
 
 import org.jdom.Namespace;
 

@@ -1,5 +1,6 @@
-package org.fao.geonet.services.metadata.format;
+package org.fao.geonet.services.metadata.format.function;
 
+import org.fao.geonet.services.metadata.format.function.FormatterFunction;
 import org.fao.geonet.utils.Xml;
 import org.jdom.Comment;
 import org.jdom.Element;
@@ -9,7 +10,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test constructors and methods of {@link org.fao.geonet.services.metadata.format.FormatterFunction}
+ * Test constructors and methods of {@link org.fao.geonet.services.metadata.format.function.FormatterFunction}
  * Created by Jesse on 3/16/14.
  */
 public class FormatterFunctionTest {
@@ -32,12 +33,4 @@ public class FormatterFunctionTest {
         assertEquals(Xml.getString(element), formatterFunction.getFunction());
     }
 
-    @Test
-    public void testValidity() throws Exception {
-
-        final Element element = new Element("el").setText("text");
-        final FormatterFunction formatterFunction = new FormatterFunction("ns", "name", element);
-
-        assertEquals(element, formatterFunction.testValidity());
-    }
 }

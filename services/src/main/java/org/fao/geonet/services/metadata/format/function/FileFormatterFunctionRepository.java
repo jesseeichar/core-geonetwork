@@ -1,4 +1,4 @@
-package org.fao.geonet.services.metadata.format;
+package org.fao.geonet.services.metadata.format.function;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -26,7 +26,7 @@ import java.util.*;
  * Created by Jesse on 3/15/14.
  */
 public class FileFormatterFunctionRepository implements FormatterFunctionRepository {
-    static final String FUNCTION_DIRECTORY = "formatter-shared-functions";
+    public static final String FUNCTION_DIRECTORY = "formatter-shared-functions";
 
     @Autowired
     GeonetworkDataDirectory _dataDirectory;
@@ -70,7 +70,6 @@ public class FileFormatterFunctionRepository implements FormatterFunctionReposit
 
     @Override
     public void save(@Nonnull FormatterFunction newFunction) throws IOException {
-        newFunction.testValidity();
         final String namespace = newFunction.getNamespace();
         final List<FormatterFunction> allByNamespace = findAllByNamespace(namespace);
         allByNamespace.add(newFunction);

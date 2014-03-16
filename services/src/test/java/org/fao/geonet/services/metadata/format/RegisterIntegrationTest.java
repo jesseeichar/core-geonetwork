@@ -3,6 +3,7 @@ package org.fao.geonet.services.metadata.format;
 import jeeves.server.context.ServiceContext;
 import org.fao.geonet.exceptions.BadParameterEx;
 import org.fao.geonet.services.AbstractServiceIntegrationTest;
+import org.fao.geonet.services.metadata.format.function.FileFormatterFunctionRepository;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

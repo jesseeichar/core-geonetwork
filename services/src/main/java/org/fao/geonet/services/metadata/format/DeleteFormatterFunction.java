@@ -1,10 +1,11 @@
 package org.fao.geonet.services.metadata.format;
 
+import static org.fao.geonet.services.metadata.format.AddFormatterFunction.PARAM_NAME;
+import static org.fao.geonet.services.metadata.format.AddFormatterFunction.PARAM_NAMESPACE;
 import jeeves.interfaces.Service;
 import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
 import org.fao.geonet.Util;
-import org.fao.geonet.services.metadata.format.function.FormatterFunction;
 import org.fao.geonet.services.metadata.format.function.FormatterFunctionRepository;
 import org.jdom.Element;
 
@@ -14,10 +15,7 @@ import org.jdom.Element;
  * 
  * Created by Jesse on 3/15/14.
  */
-public class AddFormatterFunction implements Service {
-    public static final String PARAM_NAMESPACE = "namespace";
-    public static final String PARAM_NAME = "name";
-    public static final String PARAM_FUNCTION = "function";
+public class DeleteFormatterFunction implements Service {
 
     @Override
     public void init(String appPath, ServiceConfig params) throws Exception {
@@ -28,10 +26,8 @@ public class AddFormatterFunction implements Service {
     public Element exec(Element params, ServiceContext context) throws Exception {
         String namespace = Util.getParam(params, PARAM_NAMESPACE);
         String name = Util.getParam(params, PARAM_NAME);
-        String function = Util.getParam(params, PARAM_FUNCTION);
 
-        FormatterFunction functionObj = new FormatterFunction(namespace, name, function);
-        context.getBean(FormatterFunctionRepository.class).save(functionObj);
+        context.getBean(FormatterFunctionRepository.class).delete(namespace, name);
 
         return new Element("ok");
     }
