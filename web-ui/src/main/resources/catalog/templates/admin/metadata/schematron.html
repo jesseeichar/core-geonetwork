@@ -21,11 +21,14 @@
             <div class="col-sm-4">
                 <div class="panel panel-default">
                     <div class="panel-heading" data-translate="">schematrons</div>
+                    <input class="form-control" data-ng-model="schematronSearch.$" autofocus=""
+                           placeholder="{{'filter' | translate}}"/>
+
                     <div class="panel-body" data-ng-repeat="schema in schematrons">
                         <h5><strong>{{schema.name}}</strong></h5>
 
                         <div class="list-group">
-                            <a class="list-group-item" data-ng-repeat="schematron in schema.schematron"
+                            <a class="list-group-item" data-ng-repeat="schematron in schema.schematron | filter:schematronSearch"
                                data-ng-click="selectSchematron(schema, schematron)"
                                data-ng-class="{active: selection.schematron === schematron}">
                                 <i class="fa"
