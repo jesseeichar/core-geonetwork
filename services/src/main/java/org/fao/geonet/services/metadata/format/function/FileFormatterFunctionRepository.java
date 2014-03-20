@@ -33,54 +33,54 @@ public class FileFormatterFunctionRepository implements FormatterFunctionReposit
 
     @Override
     @Nonnull
-    public List<String> findAllNamespaces() throws IOException {
+    public Set<String> findAllNamespaces() throws IOException {
         final String[] functions = getFunctionDir().list();
-        if (functions == null) {
-            return Collections.emptyList();
+        TreeSet<String> sortedFunctions = new TreeSet<String>();
+        if (functions != null) {
+            sortedFunctions.addAll(Lists.transform(Arrays.asList(functions), new Function<String, String>() {
+                @Nullable
+                @Override
+                public String apply(@Nonnull String input) {
+                    return Files.getNameWithoutExtension(input);
+                }
+            }));
         }
-        return Lists.transform(Arrays.asList(functions), new Function<String, String>() {
-            @Nullable
-            @Override
-            public String apply(@Nullable String input) {
-                return Files.getNameWithoutExtension(input);
-            }
-        });
+        return sortedFunctions;
     }
 
 
     @Override
     @Nonnull
-    public List<FormatterFunction> findAll() throws IOException {
-        final ArrayList<FormatterFunction> functions = Lists.newArrayList();
+    public Set<FormatterFunction> findAll() throws IOException {
+        final Set<FormatterFunction> functions = new TreeSet<FormatterFunction>(COMPARATOR);
         final File[] functionFiles = getFunctionDir().listFiles();
-        if (functionFiles == null) {
-            return functions;
-        }
-        for (File functionFile : functionFiles) {
-            loadFunctionFromFile(functions, functionFile);
+        if (functionFiles != null) {
+            for (File functionFile : functionFiles) {
+                loadFunctionFromFile(functions, functionFile);
+            }
         }
         return functions;
     }
 
     @Override
     @Nonnull
-    public List<FormatterFunction> findAllByNamespace(@Nonnull String namespace) throws IOException {
-        return loadFunctionFromFile(Lists.<FormatterFunction>newArrayList(), getFunctionFile(namespace));
+    public Set<FormatterFunction> findAllByNamespace(@Nonnull String namespace) throws IOException {
+        return loadFunctionFromFile(new TreeSet<FormatterFunction>(COMPARATOR), getFunctionFile(namespace));
     }
 
     @Override
     public void save(@Nonnull FormatterFunction newFunction) throws IOException {
         final String namespace = newFunction.getNamespace();
-        final List<FormatterFunction> allByNamespace = findAllByNamespace(namespace);
+        final Set<FormatterFunction> allByNamespace = findAllByNamespace(namespace);
+
         allByNamespace.add(newFunction);
         writeFunctionsToFile(namespace, allByNamespace);
     }
 
     @Override
     public void delete(@Nonnull String namespace, @Nonnull String name) throws IOException {
-        final List<FormatterFunction> functions = findAllByNamespace(namespace);
-        Iterator<FormatterFunction> allInNamespaceIter = functions
-                .iterator();
+        final Set<FormatterFunction> functions = findAllByNamespace(namespace);
+        Iterator<FormatterFunction> allInNamespaceIter = functions.iterator();
         while (allInNamespaceIter.hasNext()) {
             FormatterFunction next = allInNamespaceIter.next();
             if (next.hasId(namespace, name)) {
@@ -94,7 +94,7 @@ public class FileFormatterFunctionRepository implements FormatterFunctionReposit
         }
     }
 
-    private void writeFunctionsToFile(String namespace, List<FormatterFunction> allByNamespace) throws IOException {
+    private void writeFunctionsToFile(String namespace, Collection<FormatterFunction> allByNamespace) throws IOException {
         Element root = new Element(EL_STYLESHEET, XSL_NAMESPACE).setAttribute(ATT_VERSION, "2.0");
         root.addNamespaceDeclaration(FormatterFunction.getJDomNamespace(namespace));
         for (FormatterFunction formatterFunction : allByNamespace) {
@@ -114,9 +114,9 @@ public class FileFormatterFunctionRepository implements FormatterFunctionReposit
         }
     }
 
-    private ArrayList<FormatterFunction> loadFunctionFromFile(ArrayList<FormatterFunction> functions, File functionFile) {
+    private Set<FormatterFunction> loadFunctionFromFile(Set<FormatterFunction> functions, File functionFile) {
         if (!functionFile.exists()) {
-            return Lists.newArrayList();
+            return functions;
         }
         try {
             final Element functionXml = Xml.loadFile(functionFile);

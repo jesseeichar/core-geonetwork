@@ -13,7 +13,6 @@ import org.jdom.Element;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Add a formatter widget library.  A widget library is an xslt file containing only functions.  The libraries are not permitted to
@@ -35,7 +34,7 @@ public class FormatterFunctionManagerService implements Service {
     }
 
     public static enum FormatterFunctionServiceAction {
-        ADD, DELETE, LIST;
+        SET, DELETE, LIST;
 
         public static FormatterFunctionServiceAction lookup(ServiceConfig params) {
             String action = params.getMandatoryValue(Params.ACTION);
@@ -51,8 +50,8 @@ public class FormatterFunctionManagerService implements Service {
     @Override
     public Element exec(Element params, ServiceContext context) throws Exception {
         switch (_action) {
-            case ADD:
-                return add(params, context);
+            case SET:
+                return set(params, context);
             case DELETE:
                 return delete(params, context);
             case LIST:
@@ -93,7 +92,7 @@ public class FormatterFunctionManagerService implements Service {
         return new Element("ok");
     }
 
-    private Element add(Element params, ServiceContext context) throws IOException {
+    private Element set(Element params, ServiceContext context) throws IOException {
         String namespace = Util.getParam(params, PARAM_NAMESPACE);
         String name = Util.getParam(params, PARAM_NAME);
         String function = Util.getParam(params, PARAM_FUNCTION);

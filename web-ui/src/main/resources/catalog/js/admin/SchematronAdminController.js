@@ -9,8 +9,8 @@
     var module = angular.module('gn_schematronadmin_controller', ['gn_schematronadmin_editcriteriadirective']);
 
     /**
-     * GnAdminMetadataController provides administration tools
-     * for metadata and templates
+     * GnSchematronEditCriteriaController provides administration tools
+     * for managing schematron rules and when schematrons apply to a metadata
      */
     module.controller('GnSchematronEditCriteriaController', [
         '$scope', '$routeParams', '$location', '$translate', '$timeout', 'gnSchematronAdminService',

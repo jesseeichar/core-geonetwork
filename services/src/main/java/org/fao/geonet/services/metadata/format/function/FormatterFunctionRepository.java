@@ -4,7 +4,9 @@ import org.jdom.Namespace;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * An API for accessing Formatters and related objects.
@@ -18,11 +20,27 @@ public interface FormatterFunctionRepository {
     String EL_PARAM = "param";
 
     @Nonnull
-    List<String> findAllNamespaces() throws IOException;
+    Set<String> findAllNamespaces() throws IOException;
     @Nonnull
-    List<FormatterFunction> findAll() throws IOException;
+    Set<FormatterFunction> findAll() throws IOException;
     @Nonnull
-    List<FormatterFunction> findAllByNamespace(@Nonnull String namespace) throws IOException;
+    Set<FormatterFunction> findAllByNamespace(@Nonnull String namespace) throws IOException;
     void save(@Nonnull FormatterFunction newFunction) throws IOException;
     void delete(@Nonnull String namespace, @Nonnull String name) throws IOException;
+
+    /**
+     * A comparator for sorting and matching {@link org.fao.geonet.services.metadata.format.function.FormatterFunction}s returned
+     * in the sets of this API.
+     */
+    Comparator<FormatterFunction> COMPARATOR = new Comparator<FormatterFunction>() {
+
+        @Override
+        public int compare(FormatterFunction o1, FormatterFunction o2) {
+            int namespaceComparison = o1.getNamespace().compareTo(o2.getNamespace());
+            if (namespaceComparison != 0) {
+                return namespaceComparison;
+            }
+            return o1.getName().compareTo(o2.getName());
+        }
+    };
 }

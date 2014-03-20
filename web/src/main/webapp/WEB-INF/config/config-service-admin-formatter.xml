@@ -109,7 +109,11 @@
     
     <service name="md.formatter.xml">
       <documentation><![CDATA[
-        
+        Render a record to xml using a formatter.
+
+        Parameters:
+        * xsl: formatter id
+        * id: metadata id
         ]]></documentation>
       <class name=".services.metadata.format.Format">
         <param name="user_xsl_dir" value="user_xsl" />
@@ -119,13 +123,55 @@
     
     <service name="md.formatter.pdf">
       <documentation><![CDATA[
-        
+        Render a record to a pdf using a formatter.
+
+        Parameters:
+        * xsl: formatter id
+        * id: metadata id
         ]]></documentation>
       <class name=".services.metadata.format.Format">
         <param name="user_xsl_dir" value="user_xsl" />
       </class>
       <class name=".services.metadata.format.PDF"/>
       <output file="true"/>
+      <error id="illegal-params" sheet="metadata-error.xsl"/>
+    </service>
+
+    <service name="md.formatter.function.list">
+      <documentation><![CDATA[
+          List all the shared formatter functions available for use in formatters that are registered with the geonetwork instance.
+        ]]></documentation>
+      <class name="org.fao.geonet.services.metadata.format.FormatterFunctionManagerService">
+        <param name="action" value="LIST" />
+      </class>
+      <error id="illegal-params" sheet="metadata-error.xsl"/>
+    </service>
+    <service name="md.formatter.function.set">
+      <documentation><![CDATA[
+          Add or update the function.
+
+          Parameters:
+          * namespace - the namespace of the function to add.  The namespace is the both the name of the xsl file that will be
+                        created to hold the function as well as being the namespace used when calling the function.
+          * name - the name of the function
+          * function - the xslt body of the function including the xsl parameter declarations if there are any.
+        ]]></documentation>
+      <class name="org.fao.geonet.services.metadata.format.FormatterFunctionManagerService">
+        <param name="action" value="SET" />
+      </class>
+      <error id="illegal-params" sheet="metadata-error.xsl"/>
+    </service>
+    <service name="md.formatter.function.delete">
+      <documentation><![CDATA[
+          Delete a function.
+
+          Parameters:
+          * namespace - the namespace of the function
+          * name - the name of the function to delete
+        ]]></documentation>
+      <class name="org.fao.geonet.services.metadata.format.FormatterFunctionManagerService">
+        <param name="action" value="DELETE" />
+      </class>
       <error id="illegal-params" sheet="metadata-error.xsl"/>
     </service>
   </services>

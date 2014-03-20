@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.fao.geonet.services.metadata.format.FormatterFunctionManagerService.*;
-import static org.fao.geonet.services.metadata.format.FormatterFunctionManagerService.FormatterFunctionServiceAction.ADD;
+import static org.fao.geonet.services.metadata.format.FormatterFunctionManagerService.FormatterFunctionServiceAction.SET;
 import static org.fao.geonet.services.metadata.format.FormatterFunctionManagerService.FormatterFunctionServiceAction.DELETE;
 import static org.fao.geonet.services.metadata.format.FormatterFunctionManagerService.FormatterFunctionServiceAction.LIST;
 import static org.junit.Assert.assertEquals;
@@ -35,7 +35,7 @@ public class FormatterFunctionManagerServiceTest extends AbstractServiceIntegrat
     private FormatterFunctionRepository _formatterFunctionRepository;
 
     @Test
-    public void testAdd() throws Exception {
+    public void testSet() throws Exception {
         final ServiceContext context = createServiceContext();
         loginAsAdmin(context);
 
@@ -48,7 +48,12 @@ public class FormatterFunctionManagerServiceTest extends AbstractServiceIntegrat
                 Pair.read(PARAM_NAME, name),
                 Pair.read(PARAM_FUNCTION, "<div>this is the value of the function</div>")
         );
-        assertEquals("ok", createService(ADD).exec(params, context).getName());
+        final FormatterFunctionManagerService service = createService(SET);
+        assertEquals("ok", service.exec(params, context).getName());
+        assertEquals(countBeforeAdd + 1, _formatterFunctionRepository.findAll().size());
+        assertEquals(countInNamespaceBeforeAdd + 1, _formatterFunctionRepository.findAllByNamespace(namespace).size());
+
+        assertEquals("ok", service.exec(params, context).getName());
         assertEquals(countBeforeAdd + 1, _formatterFunctionRepository.findAll().size());
         assertEquals(countInNamespaceBeforeAdd + 1, _formatterFunctionRepository.findAllByNamespace(namespace).size());
     }

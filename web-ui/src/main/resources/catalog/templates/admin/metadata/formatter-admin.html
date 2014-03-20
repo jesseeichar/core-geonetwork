@@ -1,0 +1,8 @@
+<div >
+    <ul class="nav nav-tabs">
+        <li data-ng-class="{active: formatterPage == 'formatters'}"><a data-ng-click="formatterPage = 'formatters'" data-ng-translate="">metadataFormatter</a></li>
+        <li data-ng-class="{active: formatterPage == 'functions'}"><a data-ng-click="formatterPage = 'functions'" data-ng-translate="">metadataFormatterFunction</a></li>
+    </ul>
+    <div data-ng-if="formatterPage === 'functions'" data-ng-include="'../../catalog/templates/admin/metadata/formatter-functions.html'">functions</div>
+    <div data-ng-if="formatterPage === 'formatters'" data-ng-include="'../../catalog/templates/admin/metadata/formatter.html'"></div>
+</div>

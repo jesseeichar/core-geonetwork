@@ -1,8 +1,6 @@
 package org.fao.geonet.services.metadata.format.function;
 
 import org.fao.geonet.kernel.GeonetworkDataDirectory;
-import org.fao.geonet.services.metadata.format.function.FileFormatterFunctionRepository;
-import org.fao.geonet.services.metadata.format.function.FormatterFunction;
 import org.jdom.Element;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,7 +9,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -33,7 +31,7 @@ public class FileFormatterFunctionRepositoryTest {
         repo.save(new FormatterFunction("ns1", "name1", new Element("result")));
         repo.save(new FormatterFunction("ns2", "name2", new Element("result2")));
 
-        final List<String> allNamespaces = repo.findAllNamespaces();
+        final Set<String> allNamespaces = repo.findAllNamespaces();
         assertEquals(2, allNamespaces.size());
         assertTrue(allNamespaces.containsAll(Arrays.asList("ns1","ns1")));
     }
@@ -49,7 +47,7 @@ public class FileFormatterFunctionRepositoryTest {
         final FormatterFunction function3 = new FormatterFunction("ns2", "name2", new Element("result2"));
         repo.save(function3);
 
-        final List<FormatterFunction> allFunctions = repo.findAll();
+        final Set<FormatterFunction> allFunctions = repo.findAll();
         assertEquals(3, allFunctions.size());
         assertTrue(allFunctions.containsAll(Arrays.asList(function1, function2, function3)));
     }
@@ -64,7 +62,7 @@ public class FileFormatterFunctionRepositoryTest {
         final FormatterFunction function3 = new FormatterFunction("ns2", "name2", new Element("result2"));
         repo.save(function3);
 
-        List<FormatterFunction> allFunctions = repo.findAllByNamespace("ns1");
+        Set<FormatterFunction> allFunctions = repo.findAllByNamespace("ns1");
         assertEquals(2, allFunctions.size());
         assertTrue(allFunctions.containsAll(Arrays.asList(function1, function2)));
 
@@ -84,7 +82,7 @@ public class FileFormatterFunctionRepositoryTest {
 
         repo.delete(function1.getNamespace(), function1.getName());
 
-        List<FormatterFunction> allFunctions = repo.findAll();
+        Set<FormatterFunction> allFunctions = repo.findAll();
         assertEquals(1, allFunctions.size());
         assertTrue(allFunctions.containsAll(Arrays.asList(function2)));
 
@@ -94,6 +92,22 @@ public class FileFormatterFunctionRepositoryTest {
         assertEquals(0, allFunctions.size());
 
         assertEquals(0, new File(temporaryFolder.getRoot(), FileFormatterFunctionRepository.FUNCTION_DIRECTORY).list().length);
+    }
+
+    @Test
+    public void testSaveAndUpdate() throws Exception {
+
+        FileFormatterFunctionRepository repo = getRepo();
+        final FormatterFunction function1 = new FormatterFunction("ns1", "name1", new Element("result1"));
+
+        repo.save(function1);
+        Set<FormatterFunction> allFunctions = repo.findAll();
+        assertEquals(1, allFunctions.size());
+
+        repo.save(function1);
+        allFunctions = repo.findAll();
+        assertEquals(1, allFunctions.size());
+
     }
 
     private FileFormatterFunctionRepository getRepo() {
