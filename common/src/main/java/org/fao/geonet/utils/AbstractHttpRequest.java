@@ -7,34 +7,37 @@ import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HttpContext;
 import org.fao.geonet.exceptions.BadSoapResponseEx;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.Namespace;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Super class for classes that encapsulate requests.
@@ -63,6 +66,7 @@ public class AbstractHttpRequest {
     private UsernamePasswordCredentials proxyCredentials;
     private String fragment;
     private String userInfo;
+    private boolean usePreemptiveBasicAuth = false;
 
     public AbstractHttpRequest(String protocol, String host, int port, GeonetHttpRequestFactory requestFactory) {
         if (!(protocol.equals("http") || protocol.equals("https"))) {
@@ -203,6 +207,10 @@ public class AbstractHttpRequest {
     }
 
     protected ClientHttpResponse doExecute(final HttpRequestBase httpMethod) throws IOException {
+        HttpContext context = null;
+        if (this.usePreemptiveBasicAuth) {
+            context = createPreemptiveBasicAuthContext(httpMethod.getURI());
+        }
         return requestFactory.execute(httpMethod, new Function<HttpClientBuilder, Void>() {
             @Nullable
             @Override
@@ -225,7 +233,28 @@ public class AbstractHttpRequest {
                 input.setRedirectStrategy(new LaxRedirectStrategy());
                 return null;
             }
-        });
+        }, context);
+    }
+
+    private HttpContext createPreemptiveBasicAuthContext(URI uri) {
+        HttpHost targetHost = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
+        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(
+                new AuthScope(targetHost.getHostName(), targetHost.getPort()),
+                new UsernamePasswordCredentials("username", "password"));
+
+// Create AuthCache instance
+        AuthCache authCache = new BasicAuthCache();
+// Generate BASIC scheme object and add it to the local auth cache
+        BasicScheme basicAuth = new BasicScheme();
+        authCache.put(targetHost, basicAuth);
+
+// Add AuthCache to the execution context
+        HttpClientContext context = HttpClientContext.create();
+        context.setCredentialsProvider(credsProvider);
+        context.setAuthCache(authCache);
+
+        return context;
     }
 
     protected HttpRequestBase setupHttpMethod() throws IOException {
@@ -364,6 +393,10 @@ public class AbstractHttpRequest {
 
     public String getQuery() {
         return query;
+    }
+
+    public void setUsePreemptiveBasicAuth(boolean usePreemptiveBasicAuth) {
+        this.usePreemptiveBasicAuth = usePreemptiveBasicAuth;
     }
 
     public enum Method {GET, POST}

@@ -12,20 +12,23 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.client.*;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.AbstractClientHttpResponse;
 import org.springframework.http.client.ClientHttpResponse;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.PreDestroy;
 
 /**
  * Factory interface for making different kinds of requests.  This is an interface so that tests can mock their own implementations.
@@ -135,12 +138,14 @@ public class GeonetHttpRequestFactory {
         };
         return execute(request, setCredentials);
     }
-
     public ClientHttpResponse execute(HttpUriRequest request, Function<HttpClientBuilder, Void> configurator) throws IOException {
+        return execute(request, configurator, null);
+    }
+    public ClientHttpResponse execute(HttpUriRequest request, Function<HttpClientBuilder, Void> configurator, HttpContext context) throws IOException {
         final HttpClientBuilder clientBuilder = getDefaultHttpClientBuilder();
         configurator.apply(clientBuilder);
         CloseableHttpClient httpClient = clientBuilder.build();
-            return new AdaptingResponse(httpClient, httpClient.execute(request));
+        return new AdaptingResponse(httpClient, httpClient.execute(request, context));
     }
 
     public HttpClientBuilder getDefaultHttpClientBuilder() {
