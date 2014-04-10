@@ -1,5 +1,5 @@
 <div class="row" data-ng-controller="GnMetadataFormatterFunctionController">
-    <div class="col-lg-4">
+    <div class="col-sm-4">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span data-translate="">metadataFormatterFunction</span>
@@ -8,16 +8,29 @@
 
                 <input class="form-control" data-ng-model="functionSearch.$" autofocus=""
                        placeholder="{{'filter' | translate}}"/>
-                <div class="list-group">
-                    <a href="" class="list-group-item"
-                       data-ng-repeat="f in functions | filter:functionSearch"
-                       data-ng-class="f === userSelected ? 'active' : ''" data-ng-click="selectFunction(f)">
-                        {{f}} </a>
+
+                <div class="panel-group" id="accordion">
+                    <div class="panel panel-default" data-ng-repeat="(key, def) in functions | filter:functionSearch">
+                        <div class="panel-heading gn-action" data-ng-click="expandNamespace(key)">
+                            <h4 class="panel-title">
+                                {{key}}
+                                <i class="badge pull-right">{{def.formatterFunction.length}}</i>
+                            </h4>
+                        </div>
+                        <div id="{{'collapsable_'+key}}" class="panel-collapse collapse">
+                            <div class="panel-body"
+                                 data-ng-repeat="funcDef in def.formatterFunction"
+                                 data-ng-class="funcDef === userSelected ? 'active' : ''"
+                                 data-ng-click="selectFunction(funcDef)"   >
+                                {{funcDef.name}}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-lg-8">
+    <div class="col-sm-8">
         <form role="form">
             <div class="form-group">
                 <label for="namespace" translate="">namespace</label>
@@ -30,15 +43,18 @@
                        data-ng-model="edited.name" placeholder="{{'name' | translate}}">
             </div>
             <div class="form-group">
-                <textarea type="text" class="form-control" id="function"
-                          data-ng-model="edited.function" placeholder="{{'function' | translate}}" rows="15"></textarea>
+                <label for="functionBody" translate="">formatterFunctionBody</label>
+                <textarea type="text" class="form-control" id="functionBody" data-gn-autogrow="" rows="10"
+                          data-ng-model="edited.functionBody" placeholder="{{'functionBody' | translate}}" ></textarea>
             </div>
             <button type="submit" class="btn btn-default" data-ng-click="update()"
-                    data-ng-disabled="edited.namespace === '' || edited.name === '' || edited.function === ''"
-                    translate="">submit</button>
-            <button type="submit" class="btn btn-default" data-ng-click="delete()"
-                    data-ng-disabled="!userSelected || userSelected.namespace !== namespace || userSelected.name !== name"
-                    translate="">delete</button>
+                    data-ng-disabled="edited.namespace === '' || edited.name === '' || edited.functionBody === ''"
+                    translate="">submit
+            </button>
+            <button type="submit" class="btn btn-default" data-ng-click="deleteFunction()"
+                    data-ng-disabled="!userSelected || userSelected.namespace !== edited.namespace || userSelected.name !== edited.name"
+                    translate="">delete
+            </button>
         </form>
     </div>
 </div>

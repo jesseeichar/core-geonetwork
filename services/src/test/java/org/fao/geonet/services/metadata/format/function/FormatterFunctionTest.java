@@ -8,6 +8,7 @@ import org.jdom.Text;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * Test constructors and methods of {@link org.fao.geonet.services.metadata.format.function.FormatterFunction}
@@ -33,4 +34,32 @@ public class FormatterFunctionTest {
         assertEquals(Xml.getString(element), formatterFunction.getFunction());
     }
 
+    @Test
+    public void testLegalName() throws Exception {
+        assertIllegalName("f/f");
+        assertIllegalName("f;f");
+        assertIllegalName("f#f");
+        assertIllegalName("f%f");
+        assertIllegalName("f%\nf");
+        assertIllegalName("f%\tf");
+        assertIllegalName("f% f");
+        assertIllegalName("1asd");
+        assertIllegalName("-asd");
+        assertIllegalName("_asd");
+
+        // if the following don't throw exception then it is considered a pass
+        new FormatterFunction("ns1", "asjdflkas", "body");
+        new FormatterFunction("ns1", "asdfj1123", "body");
+        new FormatterFunction("ns1", "Ads123_djasf-fkj", "body");
+
+    }
+
+    private void assertIllegalName(String illegalName) {
+        try {
+            new FormatterFunction("ns1", illegalName, "data");
+            fail("Excepted error");
+        } catch (IllegalArgumentException e) {
+            // good
+        }
+    }
 }

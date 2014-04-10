@@ -19,7 +19,7 @@
       $scope.edited = {
         namespace: '',
         name: '',
-        function: ''
+        functionBody: ''
       };
       $scope.userSelected = null;
       $scope.functions = [];
@@ -34,8 +34,12 @@
           } else {
             $scope.functions = data;
           }
-        }).error(function(){
-
+        }).error(function(data){
+          $rootScope.$broadcast('StatusUpdated', {
+            title: $translate('formatterListError'),
+            error: data.jqXHR.responseJSON,
+            timeout: 0,
+            type: 'danger'});
         });
       };
       $scope.selectFunction = function (formatterFunction) {
@@ -50,16 +54,16 @@
           params: {
             namespace: $scope.edited.namespace,
             name: $scope.edited.name,
-            function: $scope.edited.function
+            functionBody: $scope.edited.functionBody
           }
         }).success(function(){
+          var i, f;
           if ($scope.userSelected) {
             angular.copy($scope.edited, $scope.userSelected);
             loadFunctions();
-            for (var i = 0; i < $scope.functions.length; i++) {
-              var f = $scope.functions[i];
-              if (
-                  f.namespace === $scope.edited.namespace &&
+            for (i = 0; i < $scope.functions.length; i++) {
+              f = $scope.functions[i];
+              if (f.namespace === $scope.edited.namespace &&
                   f.name === $scope.edited.name) {
                 $scope.userSelected = f;
                 break;
@@ -75,21 +79,23 @@
         });
       };
 
-      $scope.delete = function () {
+      $scope.deleteFunction = function () {
         if ($scope.userSelected) {
           $http({
             method: 'GET',
-            url: 'md.formatter.function.set@json',
+            url: 'md.formatter.function.delete',
             params: {
               namespace: $scope.edited.namespace,
-              name: $scope.edited.name,
-              function: $scope.edited.function
+              name: $scope.edited.name
             }
           }).success(function() {
-            var idx = $scope.functions.indexOf($scope.userSelected);
-            if (idx < 0) {
-              $scope.functions.splice(idx, 1);
-            }
+            loadFunctions();
+            $scope.edited = {
+              namespace: $scope.userSelected.namespace,
+              name: '',
+              functionBody: ''
+            };
+            $scope.userSelected = null;
           }).error(function(data){
             $rootScope.$broadcast('StatusUpdated', {
               title: $translate('formatterFunctionDeleteFailure'),
@@ -99,7 +105,14 @@
           });
         }
       };
-
+      $scope.expandNamespace = function (functionNamespace) {
+        $('#collapsable_'+functionNamespace).collapse('toggle');
+        $scope.edited = {
+          namespace: functionNamespace,
+          name: '',
+          functionBody: ''
+        };
+      };
       loadFunctions();
     }]);
 }());

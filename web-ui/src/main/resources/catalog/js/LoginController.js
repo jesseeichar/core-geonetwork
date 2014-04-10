@@ -15,7 +15,10 @@
        function($scope, $http, $rootScope, $translate, 
            $location, $window, $timeout,
                gnUtilityService, gnConfig) {
-          $scope.formAction = '../../j_spring_security_check#'+$location.path();
+          $scope.formAction = '../../j_spring_security_check';
+          if ($location.path()) {
+            $scope.formAction += '#' + $location.path();
+          }
           $scope.registrationStatus = null;
           $scope.passwordReminderStatus = null;
           $scope.sendPassword = false;

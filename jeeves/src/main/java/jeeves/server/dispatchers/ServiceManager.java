@@ -43,6 +43,9 @@ import jeeves.server.sources.ServiceRequest.InputMethod;
 import jeeves.server.sources.ServiceRequest.OutputMethod;
 import jeeves.server.sources.http.HttpServiceRequest;
 import jeeves.server.sources.http.JeevesServlet;
+import net.sf.json.JSON;
+import net.sf.json.xml.XMLSerializer;
+import org.apache.commons.io.IOUtils;
 import org.fao.geonet.Constants;
 import org.fao.geonet.NodeInfo;
 import org.fao.geonet.Util;
@@ -52,14 +55,20 @@ import org.fao.geonet.exceptions.ServiceNotFoundEx;
 import org.fao.geonet.exceptions.ServiceNotMatchedEx;
 import org.fao.geonet.utils.*;
 import org.jdom.Element;
+import org.jdom.output.Format;
+import org.jdom.output.XMLOutputter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.OutputStreamWriter;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -596,8 +605,28 @@ public class ServiceManager {
 
                     if (req.hasJSONOutput()) {
                         req.beginStream("application/json; charset=UTF-8", cache);
-                        req.getOutputStream().write(Xml.getJSON(response).getBytes(Constants.ENCODING));
-                        req.endStream();
+
+                        XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
+                        ByteArrayOutputStream pout = null;
+                        ByteArrayInputStream pin = null;
+                        OutputStreamWriter writer = null;
+                        try {
+                            pout = new ByteArrayOutputStream();
+                            outputter.output(response, pout);
+                            pin = new ByteArrayInputStream(pout.toByteArray());
+                            XMLSerializer xmlSerializer = new XMLSerializer();
+
+                            xmlSerializer.setTypeHintsEnabled(true);
+                            xmlSerializer.setTypeHintsCompatibility(false);
+                            JSON json = xmlSerializer.readFromStream(pin);
+                            writer = new OutputStreamWriter(req.getOutputStream(), Constants.ENCODING);
+                            json.write(writer);
+                        } finally {
+                            IOUtils.closeQuietly(pout);
+                            IOUtils.closeQuietly(pin);
+                            req.endStream();
+                            IOUtils.closeQuietly(writer);
+                        }
                     } else {
                         req.beginStream("application/xml; charset=UTF-8", cache);
                         req.write(response);

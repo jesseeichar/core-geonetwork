@@ -98,7 +98,9 @@ public class FileFormatterFunctionRepositoryTest {
     public void testSaveAndUpdate() throws Exception {
 
         FileFormatterFunctionRepository repo = getRepo();
-        final FormatterFunction function1 = new FormatterFunction("ns1", "name1", new Element("result1"));
+        final String namespace = "ns1";
+        final String name = "name1";
+        final FormatterFunction function1 = new FormatterFunction(namespace, name, new Element("result1"));
 
         repo.save(function1);
         Set<FormatterFunction> allFunctions = repo.findAll();
@@ -107,6 +109,18 @@ public class FileFormatterFunctionRepositoryTest {
         repo.save(function1);
         allFunctions = repo.findAll();
         assertEquals(1, allFunctions.size());
+
+        FormatterFunction updated = new FormatterFunction(namespace, name, new Element("updated"));
+
+
+        repo.save(updated);
+        allFunctions = repo.findAll();
+        assertEquals(1, allFunctions.size());
+
+        FormatterFunction function = allFunctions.iterator().next();
+        assertEquals(namespace, function.getNamespace());
+        assertEquals(name, function.getName());
+        assertEquals(updated.getFunction().replaceAll("\\s+", ""), function.getFunction().replaceAll("\\s+", ""));
 
     }
 

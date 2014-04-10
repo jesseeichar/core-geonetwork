@@ -4,6 +4,9 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import net.sf.json.xml.JSONTypes;
 import org.fao.geonet.constants.Params;
 import org.fao.geonet.domain.Pair;
 import org.fao.geonet.services.AbstractServiceIntegrationTest;
@@ -19,14 +22,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.fao.geonet.services.metadata.format.FormatterFunctionManagerService.*;
-import static org.fao.geonet.services.metadata.format.FormatterFunctionManagerService.FormatterFunctionServiceAction.SET;
-import static org.fao.geonet.services.metadata.format.FormatterFunctionManagerService.FormatterFunctionServiceAction.DELETE;
-import static org.fao.geonet.services.metadata.format.FormatterFunctionManagerService.FormatterFunctionServiceAction.LIST;
+import static org.fao.geonet.services.metadata.format.FormatterFunctionManagerService.FormatterFunctionServiceAction.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- *
  * Created by Jesse on 3/15/14.
  */
 public class FormatterFunctionManagerServiceTest extends AbstractServiceIntegrationTest {
@@ -102,36 +103,41 @@ public class FormatterFunctionManagerServiceTest extends AbstractServiceIntegrat
                 Pair.read(PARAM_NAME, name1)
         );
         final Element listResult = createService(LIST).exec(params, context);
-        System.out.println(Xml.getJSON(listResult));
+        final String jsonString = Xml.getJSON(listResult);
+        final JSONObject json = JSONObject.fromObject(jsonString);
+        assertNotNull(json.getJSONObject(namespace1));
+        assertNotNull(json.getJSONObject(namespace2));
+        assertEquals(2, json.getJSONObject(namespace1).getJSONArray("formatterFunction").size());
+        assertEquals(1, json.getJSONObject(namespace2).getJSONArray("formatterFunction").size());
 
         assertEquals("formatterFunctions", listResult.getName());
-        assertEquals(2, listResult.getChildren("namespace").size());
         assertEquals(2, listResult.getChildren().size());
 
         List<String> namespaceNames = Lists.transform(listResult.getChildren(), new Function<Object, String>() {
             @Nullable
             @Override
             public String apply(@Nullable Object input) {
-                return ((Element)input).getChildText("name");
+                return ((Element) input).getName();
             }
         });
         assertTrue(namespaceNames.containsAll(Arrays.asList(namespace1, namespace2)));
 
-        assertEquals(2, Xml.selectNumber(listResult, "count(namespace[name='"+namespace1+"']/functions/function)").intValue());
-        assertEquals(1, Xml.selectNumber(listResult, "count(namespace[name='"+namespace2+"']/functions/function)").intValue());
+        assertEquals(2, Xml.selectNumber(listResult, "count(" + namespace1 + "/formatterFunction)").intValue());
+        assertEquals(JSONTypes.ARRAY, Xml.selectString(listResult, namespace1 + "/formatterFunction/@json_class"));
+        assertEquals(2, Xml.selectNumber(listResult, "count(" + namespace1 + "[name = '"+namespace1+"']/formatterFunction)").intValue());
+        assertEquals(1, Xml.selectNumber(listResult, "count(" + namespace2 + "/formatterFunction)").intValue());
 
-        assertEquals(1, Xml.selectNumber(listResult, "count(namespace[name='"+namespace1+"']/functions/function[name = '"+name1+"'])").intValue());
-        assertEquals(1, Xml.selectNumber(listResult, "count(namespace[name='"+namespace1+"']/functions/function[name = '"+name1_2+"'])").intValue());
+        assertEquals(1, Xml.selectNumber(listResult, "count(" + namespace1 + "/formatterFunction[name = '" + name1 + "'])").intValue());
+        assertEquals(1, Xml.selectNumber(listResult, "count(" + namespace1 + "/formatterFunction[name = '" + name1_2 + "'])").intValue
+                ());
 
-        assertEqualsIgnoreWhitespace(function1, Xml.selectString(listResult, "namespace[name='" + namespace1 +
-                                                                             "']/functions/function[name = '" + name1 + "']/function"));
-        assertEqualsIgnoreWhitespace(function1_2, Xml.selectString(listResult, "namespace[name='" + namespace1 +
-                                                                               "']/functions/function[name = '" +
-                                                                               name1_2 + "']/function"));
+        assertEqualsIgnoreWhitespace(function1, Xml.selectString(listResult, namespace1 +
+                                                                             "/formatterFunction[name = '" + name1 + "']/functionBody"));
+        assertEqualsIgnoreWhitespace(function1_2, Xml.selectString(listResult, namespace1 +
+                                                                               "/formatterFunction[name = '" + name1_2 + "']/functionBody"));
 
-        assertEqualsIgnoreWhitespace(function2, Xml.selectString(listResult, "namespace[name='" + namespace2 + "']/functions" +
-                                                                             "/function/function"));
-        assertEquals(name2, Xml.selectString(listResult, "namespace[name='" + namespace2 + "']/functions/function/name"));
+        assertEqualsIgnoreWhitespace(function2, Xml.selectString(listResult, namespace2 + "/formatterFunction/functionBody"));
+        assertEquals(name2, Xml.selectString(listResult, namespace2 + "/formatterFunction/name"));
 
     }
 

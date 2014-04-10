@@ -24,7 +24,6 @@ import static org.fao.geonet.wro4j.ClosureRequireDependencyManager.Node.REQUIRE_
  * Time: 3:29 PM
  */
 @SupportedResourceType(ResourceType.JS)
-@Minimize
 public class StripGoogProcessor
         implements ResourcePreProcessor {
 

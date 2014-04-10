@@ -72,7 +72,7 @@ public class FileFormatterFunctionRepository implements FormatterFunctionReposit
     public void save(@Nonnull FormatterFunction newFunction) throws IOException {
         final String namespace = newFunction.getNamespace();
         final Set<FormatterFunction> allByNamespace = findAllByNamespace(namespace);
-
+        allByNamespace.remove(newFunction);
         allByNamespace.add(newFunction);
         writeFunctionsToFile(namespace, allByNamespace);
     }

@@ -23,16 +23,14 @@ public class FormatterFunction {
         this.name = name;
         this.namespace = namespace;
         this.function = function;
+        checkValues();
     }
 
     public FormatterFunction(@Nonnull String namespace, @Nonnull String name, @Nonnull Content... function) {
-        this.name = name;
-        this.namespace = namespace;
-        this.function = convertToString(Arrays.asList(function));
+        this(namespace, name, convertToString(Arrays.asList(function)));
     }
 
     public FormatterFunction(String expectedNamespace, Element functionEl) {
-        Assert.equals(functionEl.getName(), "function");
         String[] parts = functionEl.getAttributeValue("name").split(":", 2);
         this.name = parts[1];
         this.namespace = parts[0];
@@ -40,13 +38,18 @@ public class FormatterFunction {
         @SuppressWarnings("unchecked")
         List<Content> functionBodyEls = functionEl.getContent();
         this.function = convertToString(functionBodyEls);
+        checkValues();
+    }
+
+    private void checkValues() {
+
     }
 
     public static Namespace getJDomNamespace(String namespace) {
         return Namespace.getNamespace(namespace, "org.fao.geonet.metadata.formatter.function." + namespace);
     }
 
-    private String convertToString(List<Content> functionBodyEls) {
+    private static String convertToString(List<Content> functionBodyEls) {
         StringBuilder functionText = new StringBuilder();
         for (Content functionBodyEl : functionBodyEls) {
             if (functionBodyEl instanceof Element) {

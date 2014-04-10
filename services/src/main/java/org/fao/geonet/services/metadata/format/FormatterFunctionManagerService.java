@@ -3,6 +3,7 @@ package org.fao.geonet.services.metadata.format;
 import jeeves.interfaces.Service;
 import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
+import net.sf.json.xml.JSONTypes;
 import org.fao.geonet.Util;
 import org.fao.geonet.constants.Params;
 import org.fao.geonet.exceptions.BadParameterEx;
@@ -23,7 +24,7 @@ import java.util.Arrays;
 public class FormatterFunctionManagerService implements Service {
     public static final String PARAM_NAMESPACE = "namespace";
     public static final String PARAM_NAME = "name";
-    public static final String PARAM_FUNCTION = "function";
+    public static final String PARAM_FUNCTION = "functionBody";
     private FormatterFunctionServiceAction _action;
 
     @Override
@@ -65,18 +66,18 @@ public class FormatterFunctionManagerService implements Service {
         final Element root = new Element("formatterFunctions");
         final FormatterFunctionRepository repository = context.getBean(FormatterFunctionRepository.class);
         for (String namespace : repository.findAllNamespaces()) {
-            Element singleNamespaceEl = new Element("namespace");
-            root.addContent(singleNamespaceEl);
+            Element singleNamespaceEl = new Element(namespace);
             singleNamespaceEl.addContent(new Element("name").setText(namespace));
-            Element allFunctionsEl = new Element("functions");
-            singleNamespaceEl.addContent(allFunctionsEl);
+            root.addContent(singleNamespaceEl);
+            Element functions = new Element("functions");
+            singleNamespaceEl.addContent(functions);
             for (FormatterFunction function : repository.findAllByNamespace(namespace)) {
-                Element singleFunctionEl = new Element("function");
-                allFunctionsEl.addContent(singleFunctionEl);
+                Element singleFunctionEl = new Element("formatterFunction");
+                functions.addContent(singleFunctionEl);
                 singleFunctionEl.addContent(Arrays.asList(
                         new Element("namespace").setText(function.getNamespace()),
                         new Element("name").setText(function.getName()),
-                        new Element("function").addContent(new CDATA(function.getFunction()))
+                        new Element("functionBody").addContent(new CDATA(function.getFunction()))
                 ));
             }
         }
