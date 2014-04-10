@@ -1,11 +1,10 @@
-package org.fao.geonet.kernel.schema;
+package org.fao.geonet.kernel.schema.iso19139.schematron;
 
 import org.fao.geonet.domain.Pair;
 import org.fao.geonet.kernel.EditLib;
 import org.fao.geonet.utils.Xml;
 import org.jdom.Content;
 import org.jdom.Element;
-import org.jdom.JDOMException;
 import org.jdom.Text;
 import org.junit.Before;
 import org.junit.Test;

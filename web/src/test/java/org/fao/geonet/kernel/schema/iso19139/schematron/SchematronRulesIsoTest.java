@@ -1,6 +1,7 @@
-package org.fao.geonet.kernel.schema;
+package org.fao.geonet.kernel.schema.iso19139.schematron;
 
 import org.fao.geonet.domain.Pair;
+import org.fao.geonet.kernel.schema.AbstractSchematronTest;
 import org.fao.geonet.utils.Xml;
 import org.jdom.Element;
 import org.junit.Before;
@@ -12,7 +13,7 @@ import java.util.Collections;
 
 import static org.fao.geonet.constants.Geonet.Namespaces.GCO;
 import static org.fao.geonet.constants.Geonet.Namespaces.GMD;
-import static org.fao.geonet.kernel.schema.AbstractInspireTest.INSPIRE_VALID_ISO19139_XML;
+import static org.fao.geonet.kernel.schema.iso19139.schematron.AbstractInspireTest.INSPIRE_VALID_ISO19139_XML;
 import static org.junit.Assert.assertEquals;
 
 /**
