@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,9 +15,7 @@ import (
 )
 
 type LocalizationFile struct {
-	file     string
-	name     string
-	i18nType string
+	file, name, slug, i18nType string
 }
 
 const (
@@ -23,6 +23,7 @@ const (
 	transifexApiUrl = "https://www.transifex.com/api/2/"
 	projectSlug     = "core-geonetwork"
 	resourceUrl     = transifexApiUrl + "project/" + projectSlug + "/resource"
+	resourcesUrl    = resourceUrl + "s"
 
 	localizationFileName = "transifex/localization-files.json"
 )
@@ -31,11 +32,12 @@ var geonetworkDir = flag.String("geonetwork", "", "REQUIRED - The root of the Ge
 var username = flag.String("username", "", "The transifex username")
 var password = flag.String("password", "", "The transifex password")
 var client = &http.Client{}
+var existingResources = make(map[string]LocalizationFile)
 
 func readFiles() (files []LocalizationFile, err error) {
 	bytes, err := ioutil.ReadFile(*geonetworkDir + localizationFileName)
 	if err != nil {
-		log.Printf("Unable to read %s", *geonetworkDir+localizationFileName)
+		fmt.Printf("Unable to read %s", *geonetworkDir+localizationFileName)
 		return nil, err
 	}
 
@@ -49,7 +51,8 @@ func readFiles() (files []LocalizationFile, err error) {
 			nextFile := nextFileRaw.(map[string]interface{})
 			file := nextFile["file"].(string)
 			name := nextFile["name"].(string)
-			files = append(files, LocalizationFile{file, name, i18nType})
+			slug := nextFile["slug"].(string)
+			files = append(files, LocalizationFile{file, name, slug, i18nType})
 		}
 	}
 	return files, nil
@@ -61,37 +64,83 @@ func testGithubUrl(file LocalizationFile) {
 	}
 }
 
-func execTransifexRequest(method string, url string, requestData io.Reader)  (*Response, error) {
-	request, err := http.NewRequest("POST", resourceUrl, requestData)
+func execTransifexRequest(method string, url string, requestData io.Reader) (*http.Response, error) {
+	request, err := http.NewRequest(method, url, requestData)
 	if err != nil {
-		log.Fatalf("Error encountered creating request: %s:\n %s", githubUrl+file.file, err)
+		log.Fatalf("Error encountered creating request: %s:\n %s", url, err)
 	}
 	request.SetBasicAuth(*username, *password)
+	if requestData != nil {
+		request.Header.Set("Content-Type", "application/json")
+	}
+	fmt.Printf("\nExecuting http %s request: '%s'\n\n", method, url)
 	return client.Do(request)
 }
 
-func uploadFile(file LocalizationFile) {
-	fileParts := strings.Split(file.file, "/")
-	slug := fileParts[len(fileParts)-1]
-	data := fmt.Sprintf(`{
-		"slug": "%s",
-		"name": "%s",
-		"accept_translations": "true",
-		"i18n_type": "%s"
-		}`, slug, githubUrl + file.name, file.i18nType)
-
-
-	_ , err := execTransifexRequest("POST", resourceUrl, strings.NewReader(data))
-	if err != nil {
-		log.Fatalf("Error encountered sending the request to transifex: \n%s", err)
+func readBody(resp http.Response) []byte {
+	bytes, readErr := ioutil.ReadAll(resp.Body)
+	if readErr != nil {
+		log.Fatalf("Failed to read response %s\n", readErr)
 	}
-
-	fmt.Printf("Successfully added resource: %s\n", file.file)
+	return bytes
 }
 
-func readAuth(field *String, prompt string) (line string, readlineErr error) {
+type UploadRequest struct {
+	Slug                string `json:"slug"`
+	Name                string `json:"name"`
+	I18n_type           string `json:"i18n_type"`
+	Content             string `json:"content"`
+	Accept_translations bool   `json:"accept_translations"`
+}
+
+func uploadFile(file LocalizationFile) {
+	slug := file.slug
+
+	content, fileErr := ioutil.ReadFile(*geonetworkDir + file.file)
+	if fileErr != nil {
+		log.Fatalf("Unable to load file: %s", fileErr)
+	}
+	data, marshalErr := json.Marshal(UploadRequest{slug, file.name, file.i18nType, string(content), true})
+	if marshalErr != nil {
+		log.Fatalf("%s is not a valid json file: %s", file.file, marshalErr)
+	}
+
+	if _, has := existingResources[slug]; !has {
+		fmt.Printf("Creating new resource: '%s' '%s'\n", file.file, slug)
+		body, err := execTransifexRequest("POST", resourcesUrl, bytes.NewReader(data))
+		if err != nil {
+			log.Fatalf("Error encountered sending the request to transifex: \n%s'n", err)
+		}
+		responseData := readBody(*body)
+		var jsonData interface{}
+		if err := json.Unmarshal(responseData, &jsonData); err != nil {
+			log.Fatalf("Failed to create resource: %s\n\nResponse: %s", slug, string(responseData))
+		}
+
+	} else {
+		fmt.Printf("Resource with name '%s' already exists, updating content\n", slug)
+
+		updateContentBody, updateErr := execTransifexRequest("PUT",
+			fmt.Sprintf("%s/%s/content/", resourceUrl, slug),
+			bytes.NewReader(data))
+		if updateErr != nil {
+			log.Fatalf("Failed to update resource: %s\nError\t%s\n", updateErr)
+		}
+		responseData := readBody(*updateContentBody)
+		var jsonData interface{}
+		if err := json.Unmarshal(responseData, &jsonData); err != nil {
+			log.Fatalf("Failed to update resource: %s\n\nResponse: %s", slug, string(responseData))
+		}
+
+		fmt.Printf("Finished Adding '%s'\n", slug)
+	}
+}
+
+func readAuth(field *string, prompt string) {
 
 	if *field == "" {
+		var line string
+		var readlineErr error
 		in := bufio.NewReader(os.Stdin)
 		fmt.Printf("Enter your %s: ", prompt)
 		if line, readlineErr = in.ReadString('\n'); readlineErr != nil {
@@ -102,45 +151,56 @@ func readAuth(field *String, prompt string) (line string, readlineErr error) {
 	}
 }
 
-func makeJsonTransifexRequest(url string, failureString string) {
-	resp, err := execTransifexRequest("GET", transifexApiUrl + "project/" + projectSlug, nil)
+func makeJsonTransifexRequest(url string, failureString string) (interface{}, error) {
+	resp, err := execTransifexRequest("GET", url, nil)
 	if err != nil {
-		log.Fatalf("Failure occurred while attempting to check authentication: \n%s", err)
+		log.Fatalf("%s: \n%s", failureString, err)
 	}
 	defer resp.Body.Close()
 
 	bytes, readErr := ioutil.ReadAll(resp.Body)
 	if readErr != nil {
-		log.Fatalf("Failed to read the response while checking authentication:\n%s", readErr)
+		log.Fatalf("%s: \n%s", failureString, err)
 	}
-	var projectJson map[string]interface{}
 
-	return json.Unmarshal(bytes, projectJson)
+	var jsonData interface{}
+	jsonErr := json.Unmarshal(bytes, &jsonData)
+
+	return jsonData, jsonErr
 
 }
 
 func assertAuth() {
-	resp, err := execTransifexRequest("GET", transifexApiUrl + "project/" + projectSlug, nil)
+	failureString := "Error occurred when checking credentials. Please check credentials and network connection"
+	tmpJson, err := makeJsonTransifexRequest(transifexApiUrl+"project/"+projectSlug,
+		failureString)
+
+	projectJson := tmpJson.(map[string]interface{})
+
 	if err != nil {
-		log.Fatalf("Failure occurred while attempting to check authentication: \n%s", err)
+		log.Fatalf(failureString+"\n\nError parsing returned JSON: %s", err)
 	}
-	defer resp.Body.Close()
-
-	bytes, readErr := ioutil.ReadAll(resp.Body)
-	if readErr != nil {
-		log.Fatalf("Failed to read the response while checking authentication:\n%s", readErr)
-	}
-	var projectJson map[string]interface{}
-
-	json.Unmarshal(bytes, projectJson)
-
-	if _, has := projectJson[""]; !has {
-		log.Fatalf("Failure occurred when checking credentials. Please check credentials and network connection")
+	if _, has := projectJson["description"]; !has {
+		log.Fatalf(failureString+"\n\nReceived json was: %s", projectJson)
 	}
 }
 
 func readExistingResources() {
-	resp
+	tmpJson, err := makeJsonTransifexRequest(resourcesUrl, "Failure occurred when loading resources")
+	if err != nil {
+		log.Fatalf("A failure occurred parsing the resources json.  The json must be illegal.  Error Message is: \n%s", err)
+	}
+
+	resourceJson := tmpJson.([]interface{})
+
+	for _, rawResource := range resourceJson {
+		resource := rawResource.(map[string]interface{})
+		var slug = resource["slug"].(string)
+		var i18nType = resource["i18n_type"].(string)
+		var name = resource["name"].(string)
+		fmt.Printf("Found Existing Resource: '%s'\n", slug)
+		existingResources[slug] = LocalizationFile{slug, name, slug, i18nType}
+	}
 }
 
 func main() {
@@ -153,7 +213,7 @@ func main() {
 
 	if !strings.HasSuffix(*geonetworkDir, "/") {
 		*geonetworkDir = *geonetworkDir + "/"
-	} 
+	}
 
 	readAuth(username, "username")
 	readAuth(password, "password")
@@ -161,7 +221,6 @@ func main() {
 	assertAuth()
 
 	readExistingResources()
-
 	files, err := readFiles()
 
 	if err != nil {
@@ -173,7 +232,7 @@ func main() {
 
 	for _, file := range files {
 		go func() {
-			testGithubUrl(file)
+			// testGithubUrl(file)
 			uploadFile(file)
 			doneChannel <- ""
 		}()
