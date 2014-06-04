@@ -12,18 +12,18 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"transifex"
 )
 
 type LocalizationFile struct {
-	file, name, slug, i18nType string
+	transifex.BaseResource
+	file string
 }
 
 const (
-	githubUrl       = "https://github.com/geonetwork/core-geonetwork/blob/develop/"
-	transifexApiUrl = "https://www.transifex.com/api/2/"
-	projectSlug     = "core-geonetwork"
-	resourceUrl     = transifexApiUrl + "project/" + projectSlug + "/resource"
-	resourcesUrl    = resourceUrl + "s"
+	projectSlug  = "core-geonetwork"
+	resourceUrl  = "https://www.transifex.com/api/2/" + "project/" + projectSlug + "/resource"
+	resourcesUrl = "https://www.transifex.com/api/2/" + "project/" + projectSlug + "/resources"
 
 	localizationFileName = "transifex/localization-files.json"
 )
@@ -32,7 +32,8 @@ var geonetworkDir = flag.String("geonetwork", "", "REQUIRED - The root of the Ge
 var username = flag.String("username", "", "The transifex username")
 var password = flag.String("password", "", "The transifex password")
 var client = &http.Client{}
-var existingResources = make(map[string]LocalizationFile)
+var transifexApi transifex.TransifexAPI
+var existingResources = make(map[string]bool)
 
 func readFiles() (files []LocalizationFile, err error) {
 	bytes, err := ioutil.ReadFile(*geonetworkDir + localizationFileName)
@@ -52,16 +53,16 @@ func readFiles() (files []LocalizationFile, err error) {
 			file := nextFile["file"].(string)
 			name := nextFile["name"].(string)
 			slug := nextFile["slug"].(string)
-			files = append(files, LocalizationFile{file, name, slug, i18nType})
+			priority := nextFile["priority"].(string)
+			var categories []string
+			for _, c := range nextFile["categories"].([]interface{}) {
+				categories = append(categories, c.(string))
+			}
+			files = append(files, LocalizationFile{
+				transifex.BaseResource{slug, name, i18nType, string(priority), strings.Join(categories, " ")}, file})
 		}
 	}
 	return files, nil
-}
-func testGithubUrl(file LocalizationFile) {
-	var _, err = http.Get(githubUrl + file.file)
-	if err != nil {
-		log.Fatalf("%s does not exist, tried: %s", file.file, githubUrl+file.file)
-	}
 }
 
 func execTransifexRequest(method string, url string, requestData io.Reader) (*http.Response, error) {
@@ -94,31 +95,28 @@ type UploadRequest struct {
 }
 
 func uploadFile(file LocalizationFile) {
-	slug := file.slug
+	slug := file.Slug
 
 	content, fileErr := ioutil.ReadFile(*geonetworkDir + file.file)
 	if fileErr != nil {
 		log.Fatalf("Unable to load file: %s", fileErr)
 	}
-	data, marshalErr := json.Marshal(UploadRequest{slug, file.name, file.i18nType, string(content), true})
-	if marshalErr != nil {
-		log.Fatalf("%s is not a valid json file: %s", file.file, marshalErr)
-	}
+	req := transifex.UploadResourceRequest{file.BaseResource, string(content), "true"}
 
 	if _, has := existingResources[slug]; !has {
 		fmt.Printf("Creating new resource: '%s' '%s'\n", file.file, slug)
-		body, err := execTransifexRequest("POST", resourcesUrl, bytes.NewReader(data))
+		err := transifexApi.CreateResource(req)
 		if err != nil {
 			log.Fatalf("Error encountered sending the request to transifex: \n%s'n", err)
-		}
-		responseData := readBody(*body)
-		var jsonData interface{}
-		if err := json.Unmarshal(responseData, &jsonData); err != nil {
-			log.Fatalf("Failed to create resource: %s\n\nResponse: %s", slug, string(responseData))
 		}
 
 	} else {
 		fmt.Printf("Resource with name '%s' already exists, updating content\n", slug)
+		data, marshalErr := json.Marshal(UploadRequest{slug, file.Name, file.I18nType, string(content), true})
+		if marshalErr != nil {
+			log.Fatalf("%s is not a valid json file: %s", file.file, marshalErr)
+		}
+
 
 		updateContentBody, updateErr := execTransifexRequest("PUT",
 			fmt.Sprintf("%s/%s/content/", resourceUrl, slug),
@@ -172,7 +170,7 @@ func makeJsonTransifexRequest(url string, failureString string) (interface{}, er
 
 func assertAuth() {
 	failureString := "Error occurred when checking credentials. Please check credentials and network connection"
-	tmpJson, err := makeJsonTransifexRequest(transifexApiUrl+"project/"+projectSlug,
+	tmpJson, err := makeJsonTransifexRequest("https://www.transifex.com/api/2/project/"+projectSlug,
 		failureString)
 
 	projectJson := tmpJson.(map[string]interface{})
@@ -186,20 +184,13 @@ func assertAuth() {
 }
 
 func readExistingResources() {
-	tmpJson, err := makeJsonTransifexRequest(resourcesUrl, "Failure occurred when loading resources")
+	resources, err := transifexApi.ListResources()
 	if err != nil {
-		log.Fatalf("A failure occurred parsing the resources json.  The json must be illegal.  Error Message is: \n%s", err)
+		log.Fatalf("Unable to load resources: %s", err)
 	}
-
-	resourceJson := tmpJson.([]interface{})
-
-	for _, rawResource := range resourceJson {
-		resource := rawResource.(map[string]interface{})
-		var slug = resource["slug"].(string)
-		var i18nType = resource["i18n_type"].(string)
-		var name = resource["name"].(string)
-		fmt.Printf("Found Existing Resource: '%s'\n", slug)
-		existingResources[slug] = LocalizationFile{slug, name, slug, i18nType}
+	for _, res := range resources {
+		log.Printf("%v", res)
+		existingResources[res.Slug] = true
 	}
 }
 
@@ -218,6 +209,8 @@ func main() {
 	readAuth(username, "username")
 	readAuth(password, "password")
 
+	transifexApi = transifex.NewTransifexAPI(projectSlug, *username, *password)
+	transifexApi.Debug = true
 	assertAuth()
 
 	readExistingResources()
