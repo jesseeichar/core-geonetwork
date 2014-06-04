@@ -69,18 +69,39 @@ func (t TransifexAPI) CreateResource(newResource UploadResourceRequest) error {
 		return err
 	}
 
-	responseData, readErr := ioutil.ReadAll(resp.Body)
+	_, checkErr := t.checkValidJsonResponse(resp, fmt.Sprintf("Failed to create resource: %s\n", newResource.Slug))
+	return checkErr
+}
 
-	if readErr != nil {
-		return readErr
+func (t TransifexAPI) UpdateResourceContent(slug, content string) error {
+	data, marshalErr := json.Marshal(map[string]string{"slug":slug, "content":content})
+	if marshalErr != nil {
+		return marshalErr
 	}
 
-	var jsonData interface{}
-	if err := json.Unmarshal(responseData, &jsonData); err != nil {
-		return fmt.Errorf("Failed to create resource: %s\n\nResponse: %s", newResource.Slug, string(responseData))
+	resp, err := t.execRequest("PUT", t.resourceUrl(slug, true) + "content/", bytes.NewReader(data))
+	if err != nil {
+		return err
 	}
 
-	return nil
+	checkData, checkErr := t.checkValidJsonResponse(resp, fmt.Sprintf("Error updating content of %s", slug))
+	dataMap := checkData.(map[string]interface{})
+	fmt.Printf(`Strings Added: %v
+Strings updated: %v
+Strings deleted: %v
+
+`, dataMap["strings_added"], dataMap["strings_updated"], dataMap["strings_delete"])
+	return checkErr
+}
+
+func (t TransifexAPI) ValidateConfiguration() error {
+	msg := "Error occurred when checking credentials. Please check credentials and network connection"
+	resp, err := t.execRequest("GET", "https://www.transifex.com/api/2/project/"+t.Project, nil)
+	if err != nil {
+		return fmt.Errorf(msg)
+	}
+	_, err = t.checkValidJsonResponse(resp, msg);
+	return err	
 }
 
 func (t TransifexAPI) execRequest(method string, url string, requestData io.Reader) (*http.Response, error) {
@@ -110,4 +131,43 @@ func (t TransifexAPI) resourcesUrl(endSlash bool) string {
 		return url + "/"
 	} 
 	return url
+}
+func (t TransifexAPI) resourceUrl(slug string, endSlash bool) string {
+	url := fmt.Sprintf(t.ApiUrl+"project/%s/resource/%s", t.Project, slug)
+	if endSlash {
+		return url + "/"
+	} 
+	return url
+}
+
+func (t TransifexAPI) checkValidJsonResponse(resp *http.Response, errorMsg string) (interface{}, error) {
+
+	responseData, readErr := ioutil.ReadAll(resp.Body)
+
+	if readErr != nil {
+		return nil, readErr
+	}
+
+	var jsonData interface{}
+	if err := json.Unmarshal(responseData, &jsonData); err != nil {
+		return nil, fmt.Errorf(errorMsg + "\n\nError:\n" + string(responseData))
+	}
+
+	if t.Debug {
+		switch jsonData.(type) {
+		case map[string]interface{}:
+			for key, val := range jsonData.(map[string]interface{}) {
+				fmt.Println(key,":",val)
+			}
+		case []interface{}:
+			for _, val := range jsonData.(map[string]interface{}) {
+				fmt.Println(val)
+			}
+		default:
+			fmt.Printf("Response: %s", jsonData)
+		}
+	}
+
+	fmt.Println("\n")
+	return jsonData, nil
 }
