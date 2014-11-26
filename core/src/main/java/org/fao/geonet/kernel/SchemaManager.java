@@ -167,7 +167,7 @@ public class SchemaManager {
 		this.createOrUpdateSchemaCatalog = createOrUpdateSchemaCatalog;
 		
 		Element schemaPluginCatRoot = getSchemaPluginCatalogTemplate();
-
+        addCatalogCoreRewrite(applicationContext, schemaPluginCatRoot);
 		// -- check the plugin directory and add any schemas already in there
 		String[] saSchemas = new File(this.schemaPluginsDir).list();
 		if (saSchemas == null) {
@@ -189,6 +189,20 @@ public class SchemaManager {
 		writeSchemaPluginCatalog(schemaPluginCatRoot);
 
 	}
+
+    private void addCatalogCoreRewrite(ApplicationContext applicationContext, Element root) {
+        Element formatterBase = new Element("rewriteURI", Namespaces.OASIS_CATALOG);
+
+        final GeonetworkDataDirectory dataDirectory = applicationContext.getBean(GeonetworkDataDirectory.class);
+
+        formatterBase.setAttribute("uriStartString", "formatter");
+        try {
+            formatterBase.setAttribute("rewritePrefix",  dataDirectory.getFormatterDir().getCanonicalPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        root.addContent(formatterBase);
+    }
 
     /**
      * Ensures singleton-ness by preventing cloning.

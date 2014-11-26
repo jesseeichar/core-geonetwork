@@ -28,19 +28,10 @@ import java.util.Set;
  */
 @Component
 public class XsltFormatter {
-    private Set<String> compiledXslt = Sets.newConcurrentHashSet();
-    final Charset charset = Charset.forName(Constants.ENCODING);
-
     @Autowired
     GeonetworkDataDirectory dataDirectory;
 
     public Element format(FormatterParams fparams) throws Exception {
-
-        final String viewFilePath = fparams.viewFile.getPath();
-        if (fparams.isDevMode() || !this.compiledXslt.contains(viewFilePath)) {
-            compileFunctionsFile(fparams.viewFile, viewFilePath);
-        }
-
         String lang = fparams.config.getLang(fparams.context.getLanguage());
         Iterable<SchemaLocalization> localization = fparams.format.getSchemaLocalizations(fparams.context).values();
 
@@ -84,22 +75,5 @@ public class XsltFormatter {
         Element response = new Element("metadata");
         response.addContent(transformed);
         return response;
-    }
-
-
-    private synchronized void compileFunctionsFile(File viewXslFile,
-                                                   String canonicalPath) throws IOException, JDOMException {
-        this.compiledXslt.add(canonicalPath);
-
-        final String baseName = Files.getNameWithoutExtension(viewXslFile.getName());
-        final File lastUpdateFile = new File(viewXslFile.getParentFile(), baseName + ".lastUpdate");
-        if (lastUpdateFile.lastModified() < viewXslFile.lastModified()) {
-            final String xml = Files.toString(viewXslFile, charset);
-
-            String updated = xml.replace("@@formatterDir@@", this.dataDirectory.getFormatterDir().toURI().toString());
-
-            Files.write(updated, viewXslFile, charset);
-            Files.touch(lastUpdateFile);
-        }
     }
 }

@@ -165,6 +165,7 @@ public class Format extends AbstractFormatService {
 
         if (id == null && uuid != null) {
             md = metadataRepository.findOneByUuid(uuid);
+            id = md.getId() + "";
         }
 
         if (md == null) {
@@ -177,7 +178,7 @@ public class Format extends AbstractFormatService {
         if (XmlSerializer.getThreadLocal(false) != null || withholdWithheldElements) {
             XmlSerializer.getThreadLocal(true).setForceFilterEditOperation(withholdWithheldElements);
         }
-        if (id == null) {
+        if (md == null) {
             throw new MetadataNotFoundEx("Metadata not found.");
         }
 
