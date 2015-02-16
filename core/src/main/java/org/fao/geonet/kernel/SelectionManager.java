@@ -1,22 +1,22 @@
 package org.fao.geonet.kernel;
 
-import jeeves.server.ServiceConfig;
 import jeeves.server.UserSession;
 import jeeves.server.context.ServiceContext;
-
 import org.fao.geonet.GeonetContext;
 import org.fao.geonet.constants.Edit;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.constants.Params;
-import org.fao.geonet.kernel.search.LuceneSearcher;
 import org.fao.geonet.kernel.search.MetadataRecordSelector;
-import org.fao.geonet.kernel.search.SearchManager;
-import org.fao.geonet.kernel.search.SearcherType;
 import org.fao.geonet.kernel.setting.SettingInfo;
 import org.jdom.Element;
 
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 
 /**
@@ -56,8 +56,6 @@ public class SelectionManager {
 	 * 
 	 * @param result
 	 *            the result modified<br/>
-	 * 
-	 * @see org.fao.geonet.services.main.Result <br/>
 	 */
 	public static void updateMDResult(UserSession session, Element result) {
 		SelectionManager manager = getManager(session);
@@ -237,14 +235,14 @@ public class SelectionManager {
 	            request = (Element) request.clone();
 	            request.addContent(new Element(Geonet.SearchResult.BUILD_SUMMARY).setText("false"));
 				GeonetContext gc = (GeonetContext) context.getHandlerContext(Geonet.CONTEXT_NAME);
-				SearchManager searchMan = gc.getBean(SearchManager.class);
-				try {
-					searcher = searchMan.newSearcher(SearcherType.LUCENE, Geonet.File.SEARCH_LUCENE);
-					ServiceConfig sc = new ServiceConfig();
-					((LuceneSearcher)searcher).search(context, request, sc);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+//				SearchManager searchMan = gc.getBean(SearchManager.class);
+//				try {
+//					searcher = searchMan.newSearcher(SearcherType.LUCENE, Geonet.File.SEARCH_LUCENE);
+//					ServiceConfig sc = new ServiceConfig();
+//					((LuceneSearcher)searcher).search(context, request, sc);
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
 			} else {
 				searcher = session.getProperty(Geonet.Session.SEARCH_RESULT);
 			}

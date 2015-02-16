@@ -22,14 +22,13 @@ package org.fao.geonet.services.util.z3950.provider.GN;
 
 import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
-import org.fao.geonet.kernel.search.SearcherType;
-import org.fao.geonet.utils.Log;
-import org.fao.geonet.utils.Xml;
-import org.fao.geonet.GeonetContext;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.kernel.search.MetaSearcher;
 import org.fao.geonet.kernel.search.SearchManager;
+import org.fao.geonet.kernel.search.SearcherType;
 import org.fao.geonet.services.util.z3950.GNXMLQuery;
+import org.fao.geonet.utils.Log;
+import org.fao.geonet.utils.Xml;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.output.DOMOutputter;
@@ -37,7 +36,12 @@ import org.jzkit.search.util.RecordModel.ExplicitRecordFormatSpecification;
 import org.jzkit.search.util.RecordModel.InformationFragment;
 import org.jzkit.search.util.RecordModel.InformationFragmentImpl;
 import org.jzkit.search.util.RecordModel.RecordFormatSpecification;
-import org.jzkit.search.util.ResultSet.*;
+import org.jzkit.search.util.ResultSet.AbstractIRResultSet;
+import org.jzkit.search.util.ResultSet.IFSNotificationTarget;
+import org.jzkit.search.util.ResultSet.IRResultSet;
+import org.jzkit.search.util.ResultSet.IRResultSetException;
+import org.jzkit.search.util.ResultSet.IRResultSetInfo;
+import org.jzkit.search.util.ResultSet.IRResultSetStatus;
 
 import java.util.List;
 import java.util.Observer;
@@ -65,10 +69,8 @@ public class GNResultSet extends AbstractIRResultSet implements IRResultSet {
                this.srvxtx = srvctx;
 
                try {
-
-                       GeonetContext gc = (GeonetContext) this.srvxtx
-                       .getHandlerContext(Geonet.CONTEXT_NAME);
-                       SearchManager searchMan = gc.getBean(SearchManager.class);
+// TODO SOLR
+                       SearchManager searchMan = this.srvxtx.getBean(SearchManager.class);
 
                        metasearcher = searchMan.newSearcher(SearcherType.LUCENE,
                                        Geonet.File.SEARCH_Z3950_SERVER);

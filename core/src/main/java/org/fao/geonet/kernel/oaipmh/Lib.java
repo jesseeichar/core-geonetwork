@@ -26,12 +26,6 @@ package org.fao.geonet.kernel.oaipmh;
 import jeeves.constants.Jeeves;
 import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
-import org.fao.geonet.GeonetContext;
-import org.fao.geonet.constants.Edit;
-import org.fao.geonet.constants.Geonet;
-import org.fao.geonet.kernel.search.MetaSearcher;
-import org.fao.geonet.kernel.search.SearchManager;
-import org.fao.geonet.kernel.search.SearcherType;
 import org.fao.geonet.utils.Xml;
 import org.fao.oaipmh.exceptions.OaiPmhException;
 import org.jdom.Element;
@@ -98,36 +92,38 @@ public class Lib
 
 	public static List<Integer> search(ServiceContext context, Element params) throws Exception
 	{
-		GeonetContext gc = (GeonetContext) context.getHandlerContext(Geonet.CONTEXT_NAME);
-		SearchManager sm = gc.getBean(SearchManager.class);
+        List<Integer> result = new ArrayList<Integer>();
 
-		MetaSearcher searcher = sm.newSearcher(SearcherType.LUCENE, Geonet.File.SEARCH_LUCENE);
-
-        if(context.isDebugEnabled()) context.debug("Searching with params:\n"+ Xml.getString(params));
-
-		searcher.search(context, params, dummyConfig);
-
-		params.addContent(new Element("fast").setText("true"));
-		params.addContent(new Element("from").setText("1"));
-		params.addContent(new Element("to").setText(searcher.getSize() +""));
-
-		context.info("Records found : "+ searcher.getSize());
-
-		Element records = searcher.present(context, params, dummyConfig);
-
-		records.getChild("summary").detach();
-
-		List<Integer> result = new ArrayList<Integer>();
-
-		for (Object o : records.getChildren())
-		{
-			Element rec  = (Element) o;
-			Element info = rec.getChild("info", Edit.NAMESPACE);
-
-			result.add(Integer.parseInt(info.getChildText("id")));
-		}
-
-		searcher.close();
+        // TODO SOLR
+//		GeonetContext gc = (GeonetContext) context.getHandlerContext(Geonet.CONTEXT_NAME);
+//		SearchManager sm = gc.getBean(SearchManager.class);
+//
+//		MetaSearcher searcher = sm.newSearcher(SearcherType.LUCENE, Geonet.File.SEARCH_LUCENE);
+//
+//        if(context.isDebugEnabled()) context.debug("Searching with params:\n"+ Xml.getString(params));
+//
+//		searcher.search(context, params, dummyConfig);
+//
+//		params.addContent(new Element("fast").setText("true"));
+//		params.addContent(new Element("from").setText("1"));
+//		params.addContent(new Element("to").setText(searcher.getSize() +""));
+//
+//		context.info("Records found : "+ searcher.getSize());
+//
+//		Element records = searcher.present(context, params, dummyConfig);
+//
+//		records.getChild("summary").detach();
+//
+//
+//		for (Object o : records.getChildren())
+//		{
+//			Element rec  = (Element) o;
+//			Element info = rec.getChild("info", Edit.NAMESPACE);
+//
+//			result.add(Integer.parseInt(info.getChildText("id")));
+//		}
+//
+//		searcher.close();
 
 		return result;
 	}

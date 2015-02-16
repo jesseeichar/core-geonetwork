@@ -80,16 +80,17 @@ public class DoActions implements Service
 		SettingManager settingMan = gc.getBean(SettingManager.class);
 		SettingInfo si = context.getBean(SettingInfo.class);
 
-		try {
-			if (si.getLuceneIndexOptimizerSchedulerEnabled()) {
-				dataMan.rescheduleOptimizer(si.getLuceneIndexOptimizerSchedulerAt(), si.getLuceneIndexOptimizerSchedulerInterval());
-			} else {
-				dataMan.disableOptimizer();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new OperationAbortedEx("Parameters saved but cannot restart Lucene Index Optimizer: "+e.getMessage());
-		}
+//        TODO SOLR
+//		try {
+//			if (si.getLuceneIndexOptimizerSchedulerEnabled()) {
+//				dataMan.rescheduleOptimizer(si.getLuceneIndexOptimizerSchedulerAt(), si.getLuceneIndexOptimizerSchedulerInterval());
+//			} else {
+//				dataMan.disableOptimizer();
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			throw new OperationAbortedEx("Parameters saved but cannot restart Lucene Index Optimizer: "+e.getMessage());
+//		}
 
         try {
     		// Load proxy information into Jeeves

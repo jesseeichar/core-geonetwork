@@ -32,7 +32,6 @@ import org.fao.geonet.exceptions.BadParameterEx;
 import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.kernel.region.RegionsDAO;
 import org.fao.geonet.utils.Log;
-import org.fao.geonet.utils.TransformerFactoryFactory;
 import org.fao.geonet.utils.Xml;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -51,19 +50,10 @@ import org.jzkit.search.util.ResultSet.IRResultSetStatus;
 import org.jzkit.service.z3950server.ZSetInfo;
 import org.springframework.context.ApplicationContext;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 //--------------------------------------------------------------------------------
 // search metadata remotely using Z39.50
@@ -77,7 +67,6 @@ class Z3950Searcher extends MetaSearcher
 	//public final static int IDLE      = SearchTask.TASK_IDLE;
 
 	private SchemaManager _schemaMan;
-	private SearchManager _searchMan;
 	private String        _styleSheetName;
 	private int size = 0;
 	private int status = 0;
@@ -91,10 +80,9 @@ class Z3950Searcher extends MetaSearcher
 
 	//--------------------------------------------------------------------------------
 	// constructor
-	public Z3950Searcher(SearchManager searchMan, SchemaManager schemaMan, String styleSheetName)
+	public Z3950Searcher(SchemaManager schemaMan, String styleSheetName)
 	{
 		_schemaMan      = schemaMan;
-		_searchMan      = searchMan;
 		_styleSheetName = styleSheetName;
 	}
 
@@ -112,11 +100,12 @@ class Z3950Searcher extends MetaSearcher
 	        RegionsDAO dao = srvContext.getApplicationContext().getBean(RegionsDAO.class);
 	        request.addContent(dao.getAllRegionsAsXml(srvContext));
 
-			Element xmlQuery = _searchMan.transform(_styleSheetName, request);
-
-            if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
-                Log.debug(Geonet.SEARCH_ENGINE, "OUTGOING XML QUERY:\n"+ Xml.getString(xmlQuery));
-			query = newQuery(xmlQuery);
+//            TODO SOLR
+//			Element xmlQuery = _searchMan.transform(_styleSheetName, request);
+//
+//            if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
+//                Log.debug(Geonet.SEARCH_ENGINE, "OUTGOING XML QUERY:\n"+ Xml.getString(xmlQuery));
+//			query = newQuery(xmlQuery);
 		}
 
         if(Log.isDebugEnabled(Geonet.SEARCH_ENGINE))
@@ -261,19 +250,20 @@ class Z3950Searcher extends MetaSearcher
 						if (docObj instanceof org.w3c.dom.Document) {
 							org.w3c.dom.Document dochtml = (org.w3c.dom.Document)fraghtml.getOriginalObject();	
 							String fileid = UUID.randomUUID().toString();
-							Path filename = srvContext.getAppPath().resolve(_searchMan.getHtmlCacheDir()).resolve(fileid+".html");
-							elementFileName = srvContext.getBaseUrl()+"/"+_searchMan.getHtmlCacheDir()+"/"+fileid+".html";
-                            try {
-								Transformer xformer = TransformerFactoryFactory.getTransformerFactory().newTransformer();
-								xformer.setOutputProperty(OutputKeys.METHOD, "text");
-								Source source = new DOMSource(dochtml);
-								Result result = new StreamResult(filename.toUri().getPath());
-								xformer.transform(source,result);
-							} catch (TransformerConfigurationException e) {
-								e.printStackTrace();
-							} catch (TransformerException e) {
-								e.printStackTrace();
-							}
+                            // TODO SOLR
+//							Path filename = srvContext.getAppPath().resolve(_searchMan.getHtmlCacheDir()).resolve(fileid+".html");
+//							elementFileName = srvContext.getBaseUrl()+"/"+_searchMan.getHtmlCacheDir()+"/"+fileid+".html";
+//                            try {
+//								Transformer xformer = TransformerFactoryFactory.getTransformerFactory().newTransformer();
+//								xformer.setOutputProperty(OutputKeys.METHOD, "text");
+//								Source source = new DOMSource(dochtml);
+//								Result result = new StreamResult(filename.toUri().getPath());
+//								xformer.transform(source,result);
+//							} catch (TransformerConfigurationException e) {
+//								e.printStackTrace();
+//							} catch (TransformerException e) {
+//								e.printStackTrace();
+//							}
 						} else {
 							htmlError = "HTML result not available. Error message: "+docObj.toString();
 						}

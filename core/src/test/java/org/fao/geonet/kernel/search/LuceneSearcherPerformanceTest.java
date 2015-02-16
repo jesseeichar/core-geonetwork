@@ -9,7 +9,6 @@ import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.constants.Params;
 import org.fao.geonet.domain.User;
 import org.fao.geonet.kernel.mef.MEFLibIntegrationTest;
-import org.fao.geonet.kernel.search.index.FSDirectoryFactory;
 import org.fao.geonet.repository.UserRepository;
 import org.fao.geonet.repository.UserRepositoryTest;
 import org.jdom.Element;
@@ -17,36 +16,10 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
-import javax.annotation.Nonnull;
 
 @ContextConfiguration(inheritLocations = true, locations = "classpath:perf-repository-test-context.xml")
 public class LuceneSearcherPerformanceTest extends AbstractCoreIntegrationTest {
-
-    public static class PerfDirectoryFactory extends FSDirectoryFactory {
-        Path luceneTempDir;
-        @Override
-        public synchronized void init() throws IOException {
-            if (taxonomyFile == null) {
-                luceneTempDir = Files.createTempDirectory("luceneTempDir");
-
-                indexFile = luceneTempDir.resolve(NON_SPATIAL_DIR);
-                taxonomyFile = luceneTempDir.resolve(TAXONOMY_DIR);
-
-                Files.createDirectories(indexFile);
-                Files.createDirectories(taxonomyFile);
-            }
-        }
-
-        @Nonnull
-        @Override
-        protected Path createNewIndexDirectory(String baseName) throws IOException {
-            return luceneTempDir.resolve(baseName);
-        }
-    }
 
     @Autowired
     private SearchManager searchManager;
@@ -63,7 +36,6 @@ public class LuceneSearcherPerformanceTest extends AbstractCoreIntegrationTest {
         importMetadata.setUuidAction(Params.GENERATE_UUID);
         importMetadata.getMefFilesToLoad().add("mef2-example-2md.zip");
         importMetadata.invoke(100);
-        searchManager.forceIndexChanges();
 
 //        loginAsNewUser(context);
 

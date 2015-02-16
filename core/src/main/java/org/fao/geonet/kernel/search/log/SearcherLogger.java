@@ -1,8 +1,6 @@
 package org.fao.geonet.kernel.search.log;
 
-import com.google.common.base.Optional;
 import jeeves.server.context.ServiceContext;
-import org.fao.geonet.utils.Log;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -10,10 +8,11 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.fao.geonet.constants.Geonet;
-import org.fao.geonet.domain.statistic.LuceneQueryParamType;
 import org.fao.geonet.domain.statistic.SearchRequestParam;
+import org.fao.geonet.utils.Log;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A class to log Lucene search queries (context, search parameters and search
@@ -141,12 +140,13 @@ public class SearcherLogger {
 				result.addAll(extractQueryTerms(clause.getQuery()));
 			}
 		} else {
-            Optional<SearchRequestParam> info = LuceneQueryParamType.createRequestParam(query);
-            if (info.isPresent()) {
-                result.add(info.get());
-            } else {
-			    Log.warning(Geonet.SEARCH_LOGGER, "unknown queryInfo type: " + query.getClass().getName());
-            }
+            // TODO SOLR
+//            Optional<SearchRequestParam> info = LuceneQueryParamType.createRequestParam(query);
+//            if (info.isPresent()) {
+//                result.add(info.get());
+//            } else {
+//                Log.warning(Geonet.SEARCH_LOGGER, "unknown queryInfo type: " + query.getClass().getName());
+//            }
 		}
 
 		return result;
