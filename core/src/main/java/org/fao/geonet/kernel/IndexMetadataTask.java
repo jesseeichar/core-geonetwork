@@ -8,7 +8,6 @@ import org.fao.geonet.kernel.search.SearchManager;
 import org.fao.geonet.utils.Log;
 import org.springframework.transaction.TransactionStatus;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -78,14 +77,6 @@ final class IndexMetadataTask implements Runnable {
             // servlet up so safe to index all metadata that needs indexing
             for (Object metadataId : _metadataIds) {
                 this.indexed.incrementAndGet();
-                if (this.indexed.compareAndSet(500, 0)) {
-                    try {
-                        searchManager.forceIndexChanges();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
                 try {
                     dataManager.indexMetadata(metadataId.toString(), false);
                 } catch (Exception e) {
@@ -96,9 +87,6 @@ final class IndexMetadataTask implements Runnable {
             if (_user != null && _context.getUserSession().getUserId() == null) {
                 _context.getUserSession().loginAs(_user);
             }
-            searchManager.forceIndexChanges();
-        } catch (IOException e) {
-            Log.error(Geonet.INDEX_ENGINE, "Error occurred indexing metadata", e);
         } finally {
             _batchIndex.remove(this);
         }

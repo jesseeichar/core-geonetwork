@@ -23,18 +23,10 @@
 
 package org.fao.geonet.kernel.setting;
 
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.TermQuery;
 import org.fao.geonet.constants.Geonet;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
-
-import static org.apache.lucene.search.BooleanClause.Occur.MUST;
-import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 
 //=============================================================================
 public class SettingInfo {
@@ -131,52 +123,53 @@ public class SettingInfo {
         }
     }
 
-    public enum SearchRequestLanguage {
-        OFF("off", null, null),
-        PREFER_LOCALE("prefer_locale", "_locale", SHOULD),
-        ONLY_LOCALE("only_locale", "_locale", MUST),
-        PREFER_DOC_LOCALE("prefer_docLocale", "_docLocale", SHOULD),
-        ONLY_DOC_LOCALE("only_docLocale", "_docLocale", MUST),
-        PREFER_UI_LOCALE("prefer_ui_locale", "_locale", SHOULD),
-        ONLY_UI_LOCALE("only_ui_locale", "_locale", MUST),
-        PREFER_UI_DOC_LOCALE("prefer_ui_docLocale", "_docLocale", SHOULD),
-        ONLY_UI_DOC_LOCALE("only_ui_docLocale", "_docLocale", MUST);
-
-        public final String databaseValue;
-        public final String fieldName;
-        private final BooleanClause.Occur occur;
-
-        SearchRequestLanguage(String databaseValue, String fieldName, BooleanClause.Occur occur) {
-            this.databaseValue = databaseValue;
-            this.fieldName = fieldName;
-            this.occur = occur;
-        }
-
-        public static SearchRequestLanguage find(String value) {
-            for (SearchRequestLanguage enumValue : values()) {
-                if (enumValue.databaseValue.equals(value)) {
-                    return enumValue;
-                }
-            }
-
-            return OFF;
-        }
-
-        public void addQuery(BooleanQuery query, String langCode) {
-            if (fieldName != null) {
-                query.add(new TermQuery(new Term(fieldName, langCode)), occur);
-            }
-
-        }
-    }
-    /**
-     * Whether search results should be only in the requested language.
-     * @return
-     */
-    public SearchRequestLanguage getRequestedLanguageOnly() {
-        String value = _settingManager.getValue(SettingManager.SYSTEM_REQUESTED_LANGUAGE_ONLY);
-        return SearchRequestLanguage.find(value);
-    }
+//    TODO SOLR
+//    public enum SearchRequestLanguage {
+//        OFF("off", null, null),
+//        PREFER_LOCALE("prefer_locale", "_locale", SHOULD),
+//        ONLY_LOCALE("only_locale", "_locale", MUST),
+//        PREFER_DOC_LOCALE("prefer_docLocale", "_docLocale", SHOULD),
+//        ONLY_DOC_LOCALE("only_docLocale", "_docLocale", MUST),
+//        PREFER_UI_LOCALE("prefer_ui_locale", "_locale", SHOULD),
+//        ONLY_UI_LOCALE("only_ui_locale", "_locale", MUST),
+//        PREFER_UI_DOC_LOCALE("prefer_ui_docLocale", "_docLocale", SHOULD),
+//        ONLY_UI_DOC_LOCALE("only_ui_docLocale", "_docLocale", MUST);
+//
+//        public final String databaseValue;
+//        public final String fieldName;
+//        private final BooleanClause.Occur occur;
+//
+//        SearchRequestLanguage(String databaseValue, String fieldName, BooleanClause.Occur occur) {
+//            this.databaseValue = databaseValue;
+//            this.fieldName = fieldName;
+//            this.occur = occur;
+//        }
+//
+//        public static SearchRequestLanguage find(String value) {
+//            for (SearchRequestLanguage enumValue : values()) {
+//                if (enumValue.databaseValue.equals(value)) {
+//                    return enumValue;
+//                }
+//            }
+//
+//            return OFF;
+//        }
+//
+//        public void addQuery(BooleanQuery query, String langCode) {
+//            if (fieldName != null) {
+//                query.add(new TermQuery(new Term(fieldName, langCode)), occur);
+//            }
+//
+//        }
+//    }
+//    /**
+//     * Whether search results should be only in the requested language.
+//     * @return
+//     */
+//    public SearchRequestLanguage getRequestedLanguageOnly() {
+//        String value = _settingManager.getValue(SettingManager.SYSTEM_REQUESTED_LANGUAGE_ONLY);
+//        return SearchRequestLanguage.find(value);
+//    }
 
     /**
      * Whether search results should be sorted with the requested language on top.

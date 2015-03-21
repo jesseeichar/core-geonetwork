@@ -3,15 +3,10 @@ package org.fao.geonet.kernel.search;
 import jeeves.server.context.ServiceContext;
 import org.apache.commons.io.IOUtils;
 import org.fao.geonet.AbstractCoreIntegrationTest;
-import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.constants.Params;
 import org.fao.geonet.domain.MetadataType;
 import org.fao.geonet.domain.ReservedGroup;
-import org.fao.geonet.domain.Setting;
-import org.fao.geonet.kernel.setting.SettingInfo;
-import org.fao.geonet.kernel.setting.SettingManager;
 import org.fao.geonet.repository.SettingRepository;
-import org.fao.geonet.repository.Updater;
 import org.jdom.JDOMException;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,13 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import javax.annotation.Nonnull;
 
-import static org.fao.geonet.kernel.setting.SettingInfo.SearchRequestLanguage.ONLY_DOC_LOCALE;
-import static org.fao.geonet.kernel.setting.SettingInfo.SearchRequestLanguage.ONLY_LOCALE;
-import static org.fao.geonet.kernel.setting.SettingInfo.SearchRequestLanguage.ONLY_UI_LOCALE;
-import static org.fao.geonet.kernel.setting.SettingInfo.SearchRequestLanguage.PREFER_LOCALE;
-import static org.fao.geonet.kernel.setting.SettingInfo.SearchRequestLanguage.PREFER_UI_LOCALE;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -143,7 +132,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
                     MetadataType.METADATA, ReservedGroup.intranet.getId(), Params.GENERATE_UUID);
         }
 
-        this._luceneSearcher = _searchManager.newSearcher(SearcherType.LUCENE, Geonet.File.SEARCH_LUCENE);
+//        this._luceneSearcher = _searchManager.newSearcher(SearcherType.LUCENE, Geonet.File.SEARCH_LUCENE);
     }
 
     protected abstract String[] doSearch(String lang) throws Exception;
@@ -151,7 +140,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void freTitleSearch_RequestLangNotSorted_AllLanguagesAllowed() throws Exception {
         importMetadata("" + System.currentTimeMillis());
-        setSearchSettings(PREFER_LOCALE, false, false);
+//        setSearchSettings(PREFER_LOCALE, false, false);
         String[] titles = doSearch("fre");
         assertArrayEquals(new String[]{
                 "A ENG EN and FR is FR",
@@ -169,7 +158,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void engTitleSearch_RequestLangNotSorted_AllLanguagesAllowed() throws Exception {
         importMetadata("" + System.currentTimeMillis());
-        setSearchSettings(PREFER_LOCALE, false, false);
+//        setSearchSettings(PREFER_LOCALE, false, false);
         String[] titles = doSearch("eng");
         assertArrayEquals(new String[]{"A ENG EN and FR is EN", "A FRA EN and FR is EN", "E3 FRA EN and FR is EN",
                 "e eng en and fr is en", "é fra is fr", "G eng is fr", "xx", "yy", "Z2 ENG EN and FR is EN", "zz"}, titles);
@@ -178,7 +167,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void freTitleSearch_RequestLangNotSorted_OnlyResultsInSearchLanguageAllowed() throws Exception {
         importMetadata("" + System.currentTimeMillis());
-        setSearchSettings(ONLY_DOC_LOCALE, false, false);
+//        setSearchSettings(ONLY_DOC_LOCALE, false, false);
         String[] titles = doSearch("fre");
         assertArrayEquals(new String[]{"A FRA EN and FR is FR", "é fra is fr", "Z3 FRA EN and FR is FR"}, titles);
     }
@@ -186,7 +175,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void engTitleSearch_RequestLangNotSorted_OnlyResultsInSearchLanguageAllowed() throws Exception {
         importMetadata("" + System.currentTimeMillis());
-        setSearchSettings(ONLY_DOC_LOCALE, false, false);
+//        setSearchSettings(ONLY_DOC_LOCALE, false, false);
         String[] titles = doSearch("eng");
         assertArrayEquals(new String[]{"A ENG EN and FR is EN", "e eng en and fr is en", "G eng is fr", "Z2 ENG EN and FR is EN",
                 "zz"}, titles);
@@ -195,7 +184,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void freTitleSearch_RequestLangNotSorted_OnlyResultsContainingDataInSearchLanguageAllowed() throws Exception {
         importMetadata("" + System.currentTimeMillis());
-        setSearchSettings(ONLY_LOCALE, false, false);
+//        setSearchSettings(ONLY_LOCALE, false, false);
         String[] titles = doSearch("fre");
         assertArrayEquals(new String[]{"A FRA EN and FR is FR", "é fra is fr", "Z3 FRA EN and FR is FR"}, titles);
     }
@@ -203,7 +192,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void engTitleSearch_RequestLangNotSorted_OnlyResultsContainingDataInSearchLanguageAllowed() throws Exception {
         importMetadata("" + System.currentTimeMillis());
-        setSearchSettings(ONLY_LOCALE, false, false);
+//        setSearchSettings(ONLY_LOCALE, false, false);
         String[] titles = doSearch("eng");
         assertArrayEquals(new String[]{"A ENG EN and FR is EN", "A FRA EN and FR is EN", "E3 FRA EN and FR is EN",
                 "e eng en and fr is en", "é fra is fr", "G eng is fr", "xx", "yy", "Z2 ENG EN and FR is EN", "zz"}, titles);
@@ -212,7 +201,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void freAutoDetect_RequestLangNotSorted_OnlyResultsContainingDataInSearchLanguageAllowed() throws Exception {
         importMetadata("comment allez-vous aujourd'hui");
-        setSearchSettings(ONLY_LOCALE, false, true);
+//        setSearchSettings(ONLY_LOCALE, false, true);
         String[] titles = doSearch("eng");
         assertArrayEquals(new String[]{"A FRA EN and FR is FR", "é fra is fr", "Z3 FRA EN and FR is FR"}, titles);
     }
@@ -220,7 +209,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void engAutoDetect_RequestLangNotSorted_OnlyResultsContainingDataInSearchLanguageAllowed() throws Exception {
         importMetadata("it is a very nice day");
-        setSearchSettings(ONLY_LOCALE, false, true);
+//        setSearchSettings(ONLY_LOCALE, false, true);
         String[] titles = doSearch("fre");
         assertArrayEquals(new String[]{"A ENG EN and FR is EN", "A FRA EN and FR is EN", "E3 FRA EN and FR is EN",
                 "e eng en and fr is en", "é fra is fr", "G eng is fr", "xx", "yy", "Z2 ENG EN and FR is EN", "zz"}, titles);
@@ -229,7 +218,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void freAutoDetect_RequestLangNotSorted_OnlyResultsContainingDataInSearchLanguageAllowed_UseDisplayLanguageAsPreferredLanguage() throws Exception {
         importMetadata("comment allez-vous aujourd'hui");
-        setSearchSettings(ONLY_UI_LOCALE, false, true);
+//        setSearchSettings(ONLY_UI_LOCALE, false, true);
         String[] titles = doSearch("eng");
         assertArrayEquals(new String[]{"A ENG EN and FR is EN", "A FRA EN and FR is EN", "E3 FRA EN and FR is EN",
                 "e eng en and fr is en", "é fra is fr", "G eng is fr", "xx", "yy", "Z2 ENG EN and FR is EN", "zz"}, titles);
@@ -238,7 +227,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void engAutoDetect_RequestLangNotSorted_OnlyResultsContainingDataInSearchLanguageAllowed_UseDisplayLanguageAsPreferredLanguage() throws Exception {
         importMetadata("it is a very nice day");
-        setSearchSettings(ONLY_UI_LOCALE, false, true);
+//        setSearchSettings(ONLY_UI_LOCALE, false, true);
         String[] titles = doSearch("fre");
         assertArrayEquals(new String[]{"A FRA EN and FR is FR", "é fra is fr", "Z3 FRA EN and FR is FR"}, titles);
     }
@@ -246,7 +235,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void freAutoDetect_RequestLangNotSorted_AllLanguagesAllowed_UseDisplayLanguageAsPreferredLanguage() throws Exception {
         importMetadata("comment allez-vous aujourd'hui");
-        setSearchSettings(PREFER_UI_LOCALE, false, true);
+//        setSearchSettings(PREFER_UI_LOCALE, false, true);
         String[] titles = doSearch("eng");
         assertArrayEquals(new String[]{"A ENG EN and FR is EN", "A FRA EN and FR is EN", "E3 FRA EN and FR is EN",
                 "e eng en and fr is en", "é fra is fr", "G eng is fr", "xx", "yy", "Z2 ENG EN and FR is EN", "zz"}, titles);
@@ -255,7 +244,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void engAutoDetect_RequestLangNotSorted_AllLanguagesAllowed_UseDisplayLanguageAsPreferredLanguage() throws Exception {
         importMetadata("it is a very nice day");
-        setSearchSettings(PREFER_UI_LOCALE, false, true);
+//        setSearchSettings(PREFER_UI_LOCALE, false, true);
         String[] titles = doSearch("fre");
         assertArrayEquals(new String[]{"A ENG EN and FR is FR", "A FRA EN and FR is FR", "E2 ENG EN and FR is FR",
                 "e eng en and fr is fr", "é fra is fr", "G eng is fr", "xx", "yy", "Z3 FRA EN and FR is FR", "zz"}, titles);
@@ -264,7 +253,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void freTitleSearch_RequestLangSorted_AllLanguagesAllowed() throws Exception {
         importMetadata("" + System.currentTimeMillis());
-        setSearchSettings(PREFER_LOCALE, true, false);
+//        setSearchSettings(PREFER_LOCALE, true, false);
         String[] titles = doSearch("fre");
         assertContainsOnly(titles, "A ENG EN and FR is FR", "A FRA EN and FR is FR", "e eng en and fr is fr", "é fra is fr",
                 "E2 ENG EN and FR is FR", "G eng is fr", "xx", "yy", "Z3 FRA EN and FR is FR", "zz");
@@ -276,7 +265,7 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
     @Test
     public void engTitleSearch_RequestLangSorted_AllLanguagesAllowed() throws Exception {
         importMetadata("" + System.currentTimeMillis());
-        setSearchSettings(PREFER_LOCALE, true, false);
+//        setSearchSettings(PREFER_LOCALE, true, false);
         String[] titles = doSearch("eng");
         assertContainsOnly(titles, "A ENG EN and FR is EN", "A FRA EN and FR is EN", "E3 FRA EN and FR is EN",
                 "e eng en and fr is en", "é fra is fr", "G eng is fr", "xx", "yy", "Z2 ENG EN and FR is EN", "zz");
@@ -315,28 +304,6 @@ public abstract class AbstractLanguageSearchOrderIntegrationTest extends Abstrac
             throw new AssertionError("Following strings should not be in results: " + extras + "\nFollowing strings should have been in" +
                                      " results: " + missing);
         }
-    }
-
-    private void setSearchSettings(final SettingInfo.SearchRequestLanguage searchSetting, final Boolean sorted,
-                                   final Boolean autoDetectSearchLanguage) {
-        _settingRepository.update(SettingManager.SYSTEM_REQUESTED_LANGUAGE_ONLY, new Updater<Setting>() {
-            @Override
-            public void apply(@Nonnull Setting entity) {
-                entity.setValue(searchSetting.databaseValue);
-            }
-        });
-        _settingRepository.update(SettingManager.SYSTEM_REQUESTED_LANGUAGE_SORTED, new Updater<Setting>() {
-            @Override
-            public void apply(@Nonnull Setting entity) {
-                entity.setValue(sorted.toString());
-            }
-        });
-        _settingRepository.update(SettingManager.SYSTEM_AUTODETECT_ENABLE, new Updater<Setting>() {
-            @Override
-            public void apply(@Nonnull Setting entity) {
-                entity.setValue(autoDetectSearchLanguage.toString());
-            }
-        });
     }
 
 }

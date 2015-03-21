@@ -13,13 +13,10 @@ import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
 import org.fao.geonet.GeonetContext;
 import org.fao.geonet.kernel.SchemaManager;
-import org.fao.geonet.kernel.search.CodeListTranslator;
-import org.fao.geonet.kernel.search.Translator;
 import org.fao.geonet.kernel.setting.SettingManager;
 import org.fao.geonet.utils.Log;
 import org.fao.geonet.utils.Xml;
 import org.fao.geonet.constants.Geonet;
-import org.fao.geonet.kernel.search.LuceneSearcher;
 import org.fao.geonet.languages.IsoLanguagesMapper;
 
 import javax.annotation.Nonnull;
@@ -256,34 +253,12 @@ public final class XslUtil
      * @return metadata title or an empty string if Lucene index or uuid could not be found
      */
     public static String getIndexField(Object appName, Object uuid, Object field, Object lang) {
-        String id = uuid.toString();
-        String fieldname = field.toString();
-        String language = (lang.toString().equals("") ? null : lang.toString());
-        try {
-            String fieldValue = LuceneSearcher.getMetadataFromIndex(language, id, fieldname);
-            if(fieldValue == null) {
-                return getIndexFieldById(appName,uuid,field,lang);
-            } else {
-                return fieldValue;
-            }
-        } catch (Exception e) {
-            Log.error(Geonet.GEONETWORK, "Failed to get index field value caused by " + e.getMessage());
-            return "";
-        }
+        throw new UnsupportedOperationException("To implement");
     }
 
     public static String getIndexFieldById(Object appName, Object id, Object field, Object lang) {
-        String fieldname = field.toString();
-        String language = (lang.toString().equals("") ? null : lang.toString());
-        try {
-            String fieldValue = LuceneSearcher.getMetadataFromIndexById(language, id.toString(), fieldname);
-            return fieldValue == null ? "" : fieldValue;
-        } catch (Exception e) {
-            Log.error(Geonet.GEONETWORK, "Failed to get index field value caused by " + e.getMessage());
-            return "";
-        }
+        throw new UnsupportedOperationException("To implement");
     }
-
 
     /**
      * Return a translation for a codelist or enumeration element.
@@ -295,25 +270,7 @@ public final class XslUtil
      * if no codelist value provided.
      */
     public static String getCodelistTranslation(Object codelist, Object value, Object langCode) {
-        String codeListValue = (String) value;
-        if (codeListValue != null && codelist != null && langCode != null) {
-            String translation = codeListValue;
-            try {
-                final GeonetContext gc = (GeonetContext) ServiceContext.get().getHandlerContext(Geonet.CONTEXT_NAME);
-                Translator t = new CodeListTranslator(gc.getBean(SchemaManager.class),
-                        (String) langCode,
-                        (String) codelist);
-                translation = t.translate(codeListValue);
-            } catch (Exception e) {
-                Log.error(
-                    Geonet.GEONETWORK,
-                    String.format("Failed to translate codelist value '%s' in language '%s'. Error is %s",
-                            codeListValue, langCode, e.getMessage()));
-            }
-            return translation;
-        } else {
-            return "";
-        }
+        throw new UnsupportedOperationException("To implement");
     }
 
     /**

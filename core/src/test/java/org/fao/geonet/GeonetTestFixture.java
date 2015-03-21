@@ -1,20 +1,14 @@
 package org.fao.geonet;
 
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.MultiPolygon;
-
 import jeeves.server.ServiceConfig;
 import jeeves.server.context.ServiceContext;
-
 import org.fao.geonet.domain.Source;
 import org.fao.geonet.kernel.DataManager;
 import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.kernel.ThesaurusManager;
-import org.fao.geonet.kernel.search.LuceneConfig;
 import org.fao.geonet.kernel.search.SearchManager;
-import org.fao.geonet.kernel.search.index.DirectoryFactory;
-import org.fao.geonet.kernel.search.spatial.SpatialIndexWriter;
 import org.fao.geonet.kernel.setting.SettingManager;
 import org.fao.geonet.languages.LanguageDetector;
 import org.fao.geonet.repository.SourceRepository;
@@ -23,12 +17,7 @@ import org.fao.geonet.utils.IO;
 import org.fao.geonet.utils.TransformerFactoryFactory;
 import org.fao.geonet.utils.Xml;
 import org.geotools.data.DataStore;
-import org.geotools.feature.AttributeTypeBuilder;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.jdom.Element;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -43,7 +32,6 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import javax.sql.DataSource;
 
 import static org.fao.geonet.constants.Geonet.Config.LANGUAGE_PROFILES_DIR;
@@ -61,14 +49,11 @@ public class GeonetTestFixture {
     @Autowired
     private ConfigurableApplicationContext _applicationContext;
     @Autowired
-    protected DirectoryFactory _directoryFactory;
-    @Autowired
     protected DataStore dataStore;
 
 
     private FileSystemPool.CreatedFs currentFs;
 
-    private static LuceneConfig templateLuceneConfig;
     private static SearchManager templateSearchManager;
 
     public void tearDown() throws IOException {
@@ -115,8 +100,6 @@ public class GeonetTestFixture {
 
                     templateSchemaManager = initSchemaManager(webappDir, geonetworkDataDirectory);
 
-                    _applicationContext.getBean(LuceneConfig.class).configure("WEB-INF/config-lucene.xml");
-                    _applicationContext.getBean(SearchManager.class).init(false, false, "", 100);
                     Files.createDirectories(templateDataDirectory.resolve("data/resources/htmlcache"));
                 }
             }
@@ -128,7 +111,6 @@ public class GeonetTestFixture {
         assertTrue(Files.isDirectory(currentFs.dataDir.resolve("config")));
         assertTrue(Files.isDirectory(currentFs.dataDir.resolve("data")));
 
-        System.setProperty(LuceneConfig.USE_NRT_MANAGER_REOPEN_THREAD, Boolean.toString(true));
         configureNodeId(test);
 
 
@@ -137,13 +119,8 @@ public class GeonetTestFixture {
 
         assertCorrectDataDir();
 
-        if (test.resetLuceneIndex()) {
-        _directoryFactory.resetIndex();
-        }
-
         ServiceContext serviceContext = test.createServiceContext();
 
-        _applicationContext.getBean(LuceneConfig.class).configure("WEB-INF/config-lucene.xml");
         _applicationContext.getBean(SearchManager.class).initNonStaticData(false, false, "", 100);
         _applicationContext.getBean(DataManager.class).init(serviceContext, false);
         _applicationContext.getBean(ThesaurusManager.class).init(true, serviceContext, "WEB-INF/data/config/codelist");
@@ -217,23 +194,8 @@ public class GeonetTestFixture {
 
     protected ServiceConfig registerServiceConfigAndInitDatastoreTable(AbstractCoreIntegrationTest test) throws IOException {
         final ArrayList<Element> params = test.getServiceConfigParameterElements();
-        final ServiceConfig serviceConfig = new ServiceConfig(params);
-        final String initializedString = "initialized";
-        try {
-            _applicationContext.getBean(initializedString);
-        } catch (NoSuchBeanDefinitionException e) {
-            _applicationContext.getBeanFactory().registerSingleton("serviceConfig", serviceConfig);
-            _applicationContext.getBeanFactory().registerSingleton(initializedString, initializedString);
-            SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-            AttributeDescriptor geomDescriptor = new AttributeTypeBuilder().crs(DefaultGeographicCRS.WGS84).binding(MultiPolygon.class)
-                    .buildDescriptor("the_geom");
-            builder.setName("spatialIndex");
-            builder.add(geomDescriptor);
-            builder.add(SpatialIndexWriter._IDS_ATTRIBUTE_NAME, String.class);
-            this.dataStore.createSchema(builder.buildFeatureType());
 
-        }
-        return serviceConfig;
+        return new ServiceConfig(params);
     }
 
     private void deploySchema(Path srcDataDir, Path schemaPluginPath) throws IOException {

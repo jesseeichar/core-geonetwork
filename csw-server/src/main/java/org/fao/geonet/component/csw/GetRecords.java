@@ -25,7 +25,6 @@ package org.fao.geonet.component.csw;
 
 import jeeves.server.context.ServiceContext;
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.search.Sort;
 import org.fao.geonet.GeonetContext;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.csw.common.ConstraintLanguage;
@@ -46,7 +45,6 @@ import org.fao.geonet.kernel.csw.CatalogService;
 import org.fao.geonet.kernel.csw.services.AbstractOperation;
 import org.fao.geonet.kernel.csw.services.getrecords.FieldMapper;
 import org.fao.geonet.kernel.csw.services.getrecords.SearchController;
-import org.fao.geonet.kernel.search.LuceneSearcher;
 import org.fao.geonet.kernel.search.SearchManager;
 import org.fao.geonet.repository.CustomElementSetRepository;
 import org.fao.geonet.util.xml.NamespaceUtils;
@@ -764,11 +762,7 @@ public class GetRecords extends AbstractOperation implements CatalogService {
         GeonetContext gc = (GeonetContext) context.getHandlerContext(Geonet.CONTEXT_NAME);
         SearchManager sm = gc.getBean(SearchManager.class);
         boolean requestedLanguageOnTop = sm.getSettingInfo().getRequestedLanguageOnTop();
-
-        String preferredLanguage = LuceneSearcher.determineLanguage(context, request, sm.getSettingInfo()).presentationLanguage;
-
-        // we always want to keep the relevancy as part of the sorting mechanism
-		return LuceneSearcher.makeSort(sortFields, preferredLanguage, requestedLanguageOnTop);
+        throw new UnsupportedOperationException("To implement");
 	}
 
 

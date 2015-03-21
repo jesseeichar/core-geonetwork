@@ -41,17 +41,17 @@ public class LuceneSearcher_FastEqualsFullLoad_OrderIntegrationTest extends Abst
         final List<Element> nodes = (List<Element>) Xml.selectNodes(result, xpath, theNSs);
 
         final SettingInfo settingInfo = _serviceContext.getBean(SearchManager.class).getSettingInfo();
-        final LuceneSearcher.LanguageSelection language = LuceneSearcher.determineLanguage(_serviceContext, request,settingInfo);
+//        final LuceneSearcher.LanguageSelection language = LuceneSearcher.determineLanguage(_serviceContext, request,settingInfo);
 
         String[] titles = new String[nodes.size()];
-        final String langCode;
-        if (language.presentationLanguage.equals("fre")) {
-            langCode = "#FR";
-        } else if (language.presentationLanguage.equals("eng")) {
-            langCode = "#EN";
-        } else {
-            throw new AssertionError("Unexpected language code.  Add a new if clause for "+language);
-        }
+        final String langCode = "lang";
+//        if (language.presentationLanguage.equals("fre")) {
+//            langCode = "#FR";
+//        } else if (language.presentationLanguage.equals("eng")) {
+//            langCode = "#EN";
+//        } else {
+//            throw new AssertionError("Unexpected language code.  Add a new if clause for "+language);
+//        }
         for (int i = 0; i < titles.length; i++) {
             final String titleSelectXpath = "gmd:PT_FreeText//gmd:LocalisedCharacterString[@locale = '%s']";
             titles[i] = Xml.selectString(nodes.get(i), String.format(titleSelectXpath, langCode), theNSs);

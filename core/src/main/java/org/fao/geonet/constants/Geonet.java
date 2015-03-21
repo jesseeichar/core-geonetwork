@@ -24,10 +24,7 @@
 package org.fao.geonet.constants;
 
 import javax.xml.XMLConstants;
-
 import jeeves.constants.Jeeves;
-
-import org.apache.lucene.util.Version;
 import org.jdom.Namespace;
 
 import java.util.List;
@@ -467,7 +464,7 @@ public final class Geonet {
 			public static final String POPULARITY= "popularity";
 			public static final String DATE      = "changeDate";
 
-			/** Parameter name: {@value #_TITLE} - Title not tokenized mainly
+			/** Parameter name: {@value #TITLE} - Title not tokenized mainly
 			 * used for sorting purpose */
 			public static final String TITLE     = "title";
 			public static final String SCALE_DENOMINATOR = "denominator";
@@ -579,7 +576,6 @@ public final class Geonet {
 	public static final String SEARCH_LOGGER = GEONETWORK + ".search-logger";
 	public static final String THREADPOOL = GEONETWORK + ".threadpool";
 	public static final String DATA_DIRECTORY = GEONETWORK + ".data.directory";
-    public static final Version LUCENE_VERSION = Version.LUCENE_4_9;
     public static final String FEEDBACK = GEONETWORK + ".feedback";
     public static final String GEOPUBLISH = GEONETWORK + ".geopublisher";
     public static final String FORMATTER = GEONETWORK + ".formatter";

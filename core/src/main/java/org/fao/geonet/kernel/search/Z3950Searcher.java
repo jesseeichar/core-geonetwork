@@ -69,8 +69,7 @@ import javax.xml.transform.stream.StreamResult;
 // search metadata remotely using Z39.50
 //--------------------------------------------------------------------------------
 
-class Z3950Searcher extends MetaSearcher
-{
+public class Z3950Searcher extends MetaSearcher {
 	//public final static int EXECUTING = SearchTask.TASK_EXECUTING;
 	//public final static int FAILURE   = SearchTask.TASK_FAILURE;
 	//public final static int COMPLETE  = SearchTask.TASK_COMPLETE;
@@ -91,8 +90,7 @@ class Z3950Searcher extends MetaSearcher
 
 	//--------------------------------------------------------------------------------
 	// constructor
-	public Z3950Searcher(SearchManager searchMan, SchemaManager schemaMan, String styleSheetName)
-	{
+	public Z3950Searcher(SearchManager searchMan, SchemaManager schemaMan, String styleSheetName) {
 		_schemaMan      = schemaMan;
 		_searchMan      = searchMan;
 		_styleSheetName = styleSheetName;

@@ -1,25 +1,16 @@
 package org.fao.geonet.services;
 
 import jeeves.server.context.ServiceContext;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopDocs;
 import org.fao.geonet.GeonetContext;
 import org.fao.geonet.Util;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.constants.Params;
 import org.fao.geonet.exceptions.MissingParameterEx;
 import org.fao.geonet.kernel.DataManager;
-import org.fao.geonet.kernel.search.IndexAndTaxonomy;
 import org.fao.geonet.kernel.search.SearchManager;
-import org.fao.geonet.kernel.search.index.GeonetworkMultiReader;
 import org.jdom.Element;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
 
 public class Utils {
 
@@ -88,26 +79,7 @@ public class Utils {
     }
 
     public static String lookupMetadataIdFromFileId(String fileId, SearchManager searchManager) throws IOException, InterruptedException {
-        TermQuery query = new TermQuery(new Term("fileId", fileId));
-
-        IndexAndTaxonomy indexAndTaxonomy = searchManager.getIndexReader(null, -1);
-        GeonetworkMultiReader reader = indexAndTaxonomy.indexReader;
-
-        try {
-            IndexSearcher searcher = new IndexSearcher(reader);
-            TopDocs tdocs = searcher.search(query, 1);
-
-            if (tdocs.totalHits > 0) {
-
-                Set<String> id = Collections.singleton("_id");
-                Document element = reader.document(tdocs.scoreDocs[0].doc, id);
-                return element.get("_id");
-            }
-
-            return null;
-        } finally {
-            searchManager.releaseIndexReader(indexAndTaxonomy);
-        }
+        throw new UnsupportedOperationException("To implement");
     }
 
     /**

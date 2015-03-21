@@ -48,7 +48,6 @@ import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.kernel.region.RegionsDAO;
 import org.fao.geonet.kernel.search.MetaSearcher;
 import org.fao.geonet.kernel.search.SearchManager;
-import org.fao.geonet.kernel.search.SearcherType;
 import org.fao.geonet.kernel.setting.SettingManager;
 import org.fao.geonet.lib.Lib;
 import org.fao.geonet.repository.GroupRepository;
@@ -514,28 +513,8 @@ public class Info implements Service {
 
 	//--------------------------------------------------------------------------
 
-	private Element search(ServiceContext context) throws Exception
-	{
-		GeonetContext gc = (GeonetContext) context.getHandlerContext(Geonet.CONTEXT_NAME);
-
-		context.info("Creating searcher");
-
-		Element       params = buildParams();
-		ServiceConfig config = new ServiceConfig();
-
-		SearchManager searchMan = gc.getBean(SearchManager.class);
-		MetaSearcher  searcher  = searchMan.newSearcher(SearcherType.LUCENE, Geonet.File.SEARCH_LUCENE);
-
-		searcher.search(context, params, config);
-
-		params.addContent(new Element("from").setText("1"));
-		params.addContent(new Element("to").setText(searcher.getSize() +""));
-
-		Element result = searcher.present(context, params, config);
-
-		searcher.close();
-
-		return result;
+	private Element search(ServiceContext context) throws Exception {
+        throw new UnsupportedOperationException("To implement");
 	}
 
 	//--------------------------------------------------------------------------
