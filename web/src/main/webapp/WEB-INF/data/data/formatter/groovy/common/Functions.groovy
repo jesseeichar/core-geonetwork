@@ -3,7 +3,7 @@ package common
 import org.fao.geonet.services.metadata.format.FormatType
 
 public class Functions {
-    org.fao.geonet.services.metadata.format.groovy.Handlers handlers;
+    org.fao.geonet.transformer.groovy.Handlers handlers;
     def f
     def env
 

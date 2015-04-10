@@ -1,3 +1,4 @@
+
 /*
  * The view.groovy script is a groovy script which must configure the handlers object
  * (org.fao.geonet.services.metadata.format.groovy.Handlers).  To script has

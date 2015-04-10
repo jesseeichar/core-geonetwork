@@ -2,6 +2,7 @@ package org.fao.geonet.services.metadata.format;
 
 import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.fao.geonet.kernel.SchemaManager;
+import org.fao.geonet.transformer.SchemaLocalization;
 import org.fao.geonet.utils.Xml;
 import org.jdom.Element;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static org.fao.geonet.services.metadata.format.SchemaLocalizations.loadSchemaLocalizations;
+import static org.fao.geonet.transformer.SchemaLocalizations.loadSchemaLocalizations;
 
 /**
  * Strategy for formatting using an xslt based formatter.

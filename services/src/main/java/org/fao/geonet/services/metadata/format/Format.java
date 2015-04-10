@@ -60,7 +60,7 @@ import org.fao.geonet.services.metadata.format.cache.Key;
 import org.fao.geonet.services.metadata.format.cache.NoCacheValidator;
 import org.fao.geonet.services.metadata.format.cache.StoreInfoAndDataLoadResult;
 import org.fao.geonet.services.metadata.format.cache.Validator;
-import org.fao.geonet.services.metadata.format.groovy.ParamValue;
+import org.fao.geonet.transformer.groovy.ParamValue;
 import org.fao.geonet.util.XslUtil;
 import org.fao.geonet.utils.GeonetHttpRequestFactory;
 import org.fao.geonet.utils.IO;

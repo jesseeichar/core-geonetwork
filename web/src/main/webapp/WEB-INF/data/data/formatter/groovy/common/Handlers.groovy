@@ -3,14 +3,14 @@ import jeeves.server.context.ServiceContext
 import org.fao.geonet.constants.Geonet
 import org.fao.geonet.guiservices.metadata.GetRelated
 import org.fao.geonet.kernel.GeonetworkDataDirectory
-import org.fao.geonet.services.metadata.format.groovy.Environment
-import org.fao.geonet.services.metadata.format.groovy.util.*
+import org.fao.geonet.transformer.groovy.Environment
+import org.fao.geonet.transformer.groovy.util.*
 import org.fao.geonet.utils.Xml
 import org.jdom.Element
 
 public class Handlers {
-    private org.fao.geonet.services.metadata.format.groovy.Handlers handlers;
-    private org.fao.geonet.services.metadata.format.groovy.Functions f
+    private org.fao.geonet.transformer.groovy.Handlers handlers;
+    private org.fao.geonet.transformer.groovy.Functions f
     private Environment env
 
     common.Matchers matchers

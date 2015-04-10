@@ -21,7 +21,7 @@ import org.fao.geonet.repository.SourceRepository;
 import org.fao.geonet.repository.Updater;
 import org.fao.geonet.schema.iso19139.ISO19139Namespaces;
 import org.fao.geonet.services.AbstractServiceIntegrationTest;
-import org.fao.geonet.services.metadata.format.groovy.EnvironmentProxy;
+import org.fao.geonet.transformer.groovy.EnvironmentProxy;
 import org.fao.geonet.utils.IO;
 import org.fao.geonet.utils.MockXmlRequest;
 import org.fao.geonet.utils.Xml;
