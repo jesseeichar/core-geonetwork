@@ -1,8 +1,8 @@
 package org.fao.geonet.services.metadata.format.cache;
 
 import com.google.common.collect.Sets;
-import org.fao.geonet.services.metadata.format.FormatType;
-import org.fao.geonet.services.metadata.format.FormatterWidth;
+import org.fao.geonet.transformer.FormatType;
+import org.fao.geonet.transformer.FormatterWidth;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;

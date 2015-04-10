@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.fao.geonet.services.metadata.format.FormatterWidth._100;
+import static org.fao.geonet.transformer.FormatterWidth._100;
 
 /**
  * @author Jesse on 10/17/2014.

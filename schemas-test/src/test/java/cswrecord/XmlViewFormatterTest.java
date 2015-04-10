@@ -2,7 +2,6 @@ package cswrecord;
 
 import com.google.common.collect.Lists;
 import org.fao.geonet.services.metadata.format.AbstractFormatterTest;
-import org.fao.geonet.services.metadata.format.FormatterWidth;
 import org.fao.geonet.utils.Xml;
 import org.jdom.Content;
 import org.jdom.Element;
@@ -15,7 +14,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 import java.io.File;
 import java.util.List;
 
-import static org.fao.geonet.services.metadata.format.FormatterWidth._100;
+import static org.fao.geonet.transformer.FormatterWidth._100;
 
 /**
  * @author Jesse on 10/17/2014.

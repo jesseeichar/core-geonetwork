@@ -1,7 +1,7 @@
 package org.fao.geonet.services.metadata.format.cache;
 
-import org.fao.geonet.services.metadata.format.FormatType;
-import org.fao.geonet.services.metadata.format.FormatterWidth;
+import org.fao.geonet.transformer.FormatType;
+import org.fao.geonet.transformer.FormatterWidth;
 
 /**
  * A key for storing a value in the cache.

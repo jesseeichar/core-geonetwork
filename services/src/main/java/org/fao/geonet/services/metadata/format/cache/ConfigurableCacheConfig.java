@@ -1,7 +1,7 @@
 package org.fao.geonet.services.metadata.format.cache;
 
 import com.google.common.collect.Sets;
-import org.fao.geonet.services.metadata.format.FormatType;
+import org.fao.geonet.transformer.FormatType;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -61,10 +61,10 @@ public class ConfigurableCacheConfig extends AbstractCacheConfig {
     }
 
     /**
-     * Configure the {@link org.fao.geonet.services.metadata.format.FormatType}s to cache.
+     * Configure the {@link FormatType}s to cache.
      * By default all types except pdf will be cached.
      *
-     * @param allowedTypes set of {@link org.fao.geonet.services.metadata.format.FormatType}s
+     * @param allowedTypes set of {@link FormatType}s
      */
     public void setAllowedTypes(@Nonnull Set<FormatType> allowedTypes) {
         this.allowedTypes = allowedTypes;

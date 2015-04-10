@@ -1,6 +1,6 @@
 package common
 
-import org.fao.geonet.services.metadata.format.FormatType
+import org.fao.geonet.transformer.FormatType
 
 public class Functions {
     org.fao.geonet.transformer.groovy.Handlers handlers;

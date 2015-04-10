@@ -1,8 +1,6 @@
 package org.fao.geonet.services.metadata.format;
 
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
-import groovy.util.XmlSlurper;
 import groovy.util.slurpersupport.GPathResult;
 import jeeves.server.context.ServiceContext;
 import org.fao.geonet.AbstractCoreIntegrationTest;
@@ -23,6 +21,8 @@ import org.fao.geonet.kernel.setting.SettingManager;
 import org.fao.geonet.languages.IsoLanguagesMapper;
 import org.fao.geonet.repository.MetadataRepository;
 import org.fao.geonet.services.metadata.format.cache.Key;
+import org.fao.geonet.transformer.FormatType;
+import org.fao.geonet.transformer.FormatterWidth;
 import org.fao.geonet.transformer.groovy.EnvironmentProxy;
 import org.fao.geonet.transformer.groovy.Handler;
 import org.fao.geonet.transformer.groovy.Handlers;
@@ -30,7 +30,6 @@ import org.fao.geonet.transformer.groovy.TransformationContext;
 import org.fao.geonet.transformer.groovy.Transformer;
 import org.fao.geonet.utils.Xml;
 import org.jdom.Element;
-import org.jdom.Namespace;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -39,7 +38,6 @@ import org.springframework.web.context.request.ServletWebRequest;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.Map;
 
 import static com.google.common.xml.XmlEscapers.xmlContentEscaper;
 
@@ -140,15 +138,6 @@ public abstract class AbstractFormatterTest extends AbstractCoreIntegrationTest 
 
     private double round(double num) {
         return Math.round(num * 1000) /1000;
-    }
-
-    public static GPathResult parseXml(String xmlString, Namespace... namespaces) throws Exception {
-        Map<String, String> namespaceUriToPrefix = Maps.newHashMap();
-        for (Namespace namespace : namespaces) {
-            namespaceUriToPrefix.put(namespace.getPrefix(), namespace.getURI());
-        }
-        final XmlSlurper xmlSlurper = new XmlSlurper(false, false);
-        return xmlSlurper.parseText(xmlString).declareNamespace(namespaceUriToPrefix);
     }
 
     protected String executeHandler(MockHttpServletRequest request, String formatterId, GPathResult elem, Handler handler) throws Exception {

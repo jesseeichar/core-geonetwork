@@ -27,6 +27,7 @@ import com.google.common.collect.Lists;
 import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.repository.MetadataRepository;
+import org.fao.geonet.transformer.ConfigFile;
 import org.fao.geonet.utils.IO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

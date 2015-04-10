@@ -55,7 +55,7 @@ import javax.servlet.ServletContext;
 
 import static org.fao.geonet.schema.iso19139.ISO19139Namespaces.GCO;
 import static org.fao.geonet.schema.iso19139.ISO19139Namespaces.GMD;
-import static org.fao.geonet.services.metadata.format.FormatterWidth._100;
+import static org.fao.geonet.transformer.FormatterWidth._100;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

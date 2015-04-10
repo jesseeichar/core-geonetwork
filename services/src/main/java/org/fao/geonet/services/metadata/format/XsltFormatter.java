@@ -3,12 +3,17 @@ package org.fao.geonet.services.metadata.format;
 import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.transformer.SchemaLocalization;
+import org.fao.geonet.transformer.TransformerResources;
 import org.fao.geonet.utils.Xml;
 import org.jdom.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static org.fao.geonet.transformer.SchemaLocalizations.loadSchemaLocalizations;
 
@@ -36,6 +41,9 @@ import static org.fao.geonet.transformer.SchemaLocalizations.loadSchemaLocalizat
 public class XsltFormatter implements FormatterImpl {
     @Autowired
     GeonetworkDataDirectory dataDirectory;
+    @Autowired
+    private TransformerResources resources;
+
 
     public String format(FormatterParams fparams) throws Exception {
 
@@ -60,7 +68,7 @@ public class XsltFormatter implements FormatterImpl {
         root.addContent(new Element("info")
                 .addContent(info));
 
-        root.addContent(fparams.format.getPluginLocResources(fparams.context, fparams.formatDir, lang));
+        root.addContent(resources.getPluginLocResources(fparams.formatDir, lang));
         if (fparams.config.loadStrings()) {
             root.addContent(fparams.format.getStrings(fparams.context.getAppPath(), lang));
         }

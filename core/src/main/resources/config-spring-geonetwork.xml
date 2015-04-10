@@ -2,9 +2,14 @@
 <beans
 	xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
+  xmlns:context="http://www.springframework.org/schema/context"
+  xsi:schemaLocation="
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
     " >
+
+
+    <context:component-scan base-package="org.fao.geonet.transformer" />
 
     <bean id="ProfileManager" class="jeeves.component.ProfileManager" lazy-init="true"/>
     <bean id="MonitorManager" class="jeeves.monitor.MonitorManager" lazy-init="true"/>
@@ -36,7 +41,6 @@
     <bean id="selectionManager" class="org.fao.geonet.kernel.SelectionManager" lazy-init="true"/>
     <bean id="TranslatorCache" class="org.fao.geonet.kernel.search.TranslatorCache" lazy-init="false" scope="singleton"/>
     <bean id="schematronValidator" class="org.fao.geonet.kernel.SchematronValidator" lazy-init="false" scope="singleton"/>
-
 
     <bean id="indexingList" class="org.fao.geonet.kernel.search.index.IndexingList"/>
 
@@ -72,4 +76,5 @@
     <bean id="SearchLoggerTask" class="org.fao.geonet.kernel.search.SearchLoggerTask" lazy-init="true" scope="prototype"/>
     <bean id="MetadataNotifierTask" class="org.fao.geonet.notifier.MetadataNotifierTask" lazy-init="true" scope="prototype"/>
     <bean id="MetadataNotifierClient" class="org.fao.geonet.notifier.MetadataNotifierClient" lazy-init="true" scope="prototype"/>
+    <bean id="transformerResources" class="org.fao.geonet.transformer.TransformerResources"/>
 </beans>

@@ -33,6 +33,7 @@ import org.fao.geonet.Util;
 import org.fao.geonet.ZipUtil;
 import org.fao.geonet.constants.Geonet;
 import org.fao.geonet.constants.Params;
+import org.fao.geonet.transformer.ConfigFile;
 import org.fao.geonet.utils.IO;
 import org.jdom.Element;
 

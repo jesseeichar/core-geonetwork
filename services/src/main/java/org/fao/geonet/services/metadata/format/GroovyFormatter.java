@@ -14,10 +14,12 @@ import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.languages.IsoLanguagesMapper;
 import org.fao.geonet.repository.IsoLanguageRepository;
+import org.fao.geonet.transformer.ConfigFile;
 import org.fao.geonet.transformer.groovy.Environment;
 import org.fao.geonet.transformer.groovy.EnvironmentProxy;
 import org.fao.geonet.transformer.groovy.Functions;
 import org.fao.geonet.transformer.groovy.Handlers;
+import org.fao.geonet.transformer.groovy.TransformerParams;
 import org.fao.geonet.transformer.groovy.template.TemplateCache;
 import org.fao.geonet.transformer.groovy.Transformer;
 import org.fao.geonet.utils.IO;
@@ -127,7 +129,7 @@ public class GroovyFormatter implements FormatterImpl {
         return this.schemaManager.getSchemaDir(schema).resolve(SCHEMA_PLUGIN_FORMATTER_DIR);
     }
 
-    private GroovyClassLoader getParentClassLoader(FormatterParams fparams, String schema, Path baseShared, Path schemaShared) throws IOException,
+    private GroovyClassLoader getParentClassLoader(TransformerParams fparams, String schema, Path baseShared, Path schemaShared) throws IOException,
             ResourceException, ScriptException {
         GroovyClassLoader cl = this.schemaClassLoaders.get(schema);
         if (fparams.isDevMode() || cl == null) {

@@ -3,8 +3,8 @@ package org.fao.geonet.services.metadata.format.cache;
 import com.google.common.collect.Sets;
 import org.fao.geonet.Constants;
 import org.fao.geonet.domain.Pair;
-import org.fao.geonet.services.metadata.format.FormatType;
-import org.fao.geonet.services.metadata.format.FormatterWidth;
+import org.fao.geonet.transformer.FormatType;
+import org.fao.geonet.transformer.FormatterWidth;
 import org.junit.After;
 import org.junit.Test;
 

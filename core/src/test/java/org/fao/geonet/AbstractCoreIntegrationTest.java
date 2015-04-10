@@ -2,6 +2,8 @@ package org.fao.geonet;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import groovy.util.XmlSlurper;
+import groovy.util.slurpersupport.GPathResult;
 import jeeves.constants.ConfigFile;
 import jeeves.server.UserSession;
 import jeeves.server.context.ServiceContext;
@@ -47,6 +49,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -298,6 +301,14 @@ import static org.junit.Assert.assertTrue;
         System.out.println("   Average of " + round(executions / TimeUnit.NANOSECONDS.toSeconds(duration)) + " executions per second;");
     }
 
+    public static GPathResult parseXml(String xmlString, Namespace... namespaces) throws Exception {
+        Map<String, String> namespaceUriToPrefix = Maps.newHashMap();
+        for (Namespace namespace : namespaces) {
+            namespaceUriToPrefix.put(namespace.getPrefix(), namespace.getURI());
+        }
+        final XmlSlurper xmlSlurper = new XmlSlurper(false, false);
+        return xmlSlurper.parseText(xmlString).declareNamespace(namespaceUriToPrefix);
+    }
 
     protected void addTestSpecificData(GeonetworkDataDirectory geonetworkDataDirectory) throws IOException {
 

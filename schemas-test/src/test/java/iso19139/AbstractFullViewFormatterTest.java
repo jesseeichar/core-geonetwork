@@ -5,7 +5,7 @@ import jeeves.server.context.ServiceContext;
 import org.fao.geonet.guiservices.metadata.GetRelated;
 import org.fao.geonet.languages.IsoLanguagesMapper;
 import org.fao.geonet.services.metadata.format.AbstractFormatterTest;
-import org.fao.geonet.services.metadata.format.FormatType;
+import org.fao.geonet.transformer.FormatType;
 import org.fao.geonet.services.metadata.format.FormatterParams;
 import org.fao.geonet.transformer.groovy.Environment;
 import org.fao.geonet.transformer.groovy.EnvironmentImpl;
@@ -24,7 +24,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 import java.io.File;
 import java.util.List;
 
-import static org.fao.geonet.services.metadata.format.FormatterWidth._100;
+import static org.fao.geonet.transformer.FormatterWidth._100;
 
 /**
  * @author Jesse on 10/17/2014.

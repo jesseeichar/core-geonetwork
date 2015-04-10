@@ -81,6 +81,12 @@ public class SettingManager {
     public static final String SYSTEM_PREFER_GROUP_LOGO = "system/metadata/prefergrouplogo";
     public static final String ENABLE_ALL_THESAURUS = "system/metadata/allThesaurus";
 
+    public static final String REGION_GETMAP_SETTING_BACKGROUND = "settings";
+    public static final String REGION_GETMAP_BACKGROUND = "region/getmap/background";
+    public static final String REGION_GETMAP_MAPPROJ = "region/getmap/mapproj";
+    public static final String REGION_GETMAP_WIDTH = "region/getmap/width";
+    public static final String REGION_GETMAP_SUMMARY_WIDTH = "region/getmap/summaryWidth";
+
     @Autowired
     private SettingRepository _repo;
 
