@@ -5,7 +5,6 @@ import org.fao.geonet.SystemInfo;
 import org.fao.geonet.services.metadata.format.groovy.Handlers;
 import org.fao.geonet.services.metadata.format.groovy.TransformationContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.xml.sax.Attributes;
 
 import java.io.IOException;
@@ -15,7 +14,6 @@ import java.io.IOException;
  *
  * @author Jesse on 12/3/2014.
  */
-@Component
 public class TNodeFactoryInclude extends TNodeFactoryByAttName {
     private static final String INCLUDE = "include";
     private static final String REPLACE = "include-replace";

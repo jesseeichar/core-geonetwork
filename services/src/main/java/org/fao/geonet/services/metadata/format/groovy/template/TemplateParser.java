@@ -4,7 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.fao.geonet.Constants;
 import org.fao.geonet.SystemInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -29,7 +28,6 @@ import javax.xml.parsers.SAXParserFactory;
  *
  * @author Jesse on 11/29/2014.
  */
-@Component
 public class TemplateParser {
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired

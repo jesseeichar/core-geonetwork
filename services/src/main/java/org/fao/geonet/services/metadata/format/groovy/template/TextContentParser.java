@@ -4,7 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +15,6 @@ import java.util.regex.Pattern;
  *
  * @author Jesse on 11/29/2014.
  */
-@Component
 public class TextContentParser {
     final static Pattern INTERPOLATION_PATTERN = Pattern.compile("\\{\\{(\\s*[^}]+\\s*)\\}\\}");
 

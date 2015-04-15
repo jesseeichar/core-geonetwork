@@ -7,8 +7,9 @@ import org.fao.geonet.SystemInfo;
 import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.services.metadata.format.ConfigFile;
 import org.fao.geonet.utils.IO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,20 +25,10 @@ import static org.fao.geonet.services.metadata.format.FormatterConstants.SCHEMA_
  *
  * @author Jesse on 10/20/2014.
  */
-@Component
-public class TemplateCache {
+public class TemplateCache implements ApplicationContextAware {
 
 
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @VisibleForTesting
-    @Autowired
-    SystemInfo systemInfo;
-    @VisibleForTesting
-    @Autowired
-    SchemaManager schemaManager;
-    @VisibleForTesting
-    @Autowired
-    TemplateParser xmlTemplateParser;
+    private ApplicationContext applicationContext;
 
     @VisibleForTesting
     final Map<Path, TNode> canonicalFileNameToText = Maps.newHashMap();
@@ -101,14 +92,14 @@ public class TemplateCache {
                                                "\t * " + rootFormatterDir);
         }
 
-        template = xmlTemplateParser.parse(file);
+        template = this.applicationContext.getBean(TemplateParser.class).parse(file);
         cacheTemplate(originalPath, file, template);
 
         return new FileResult(template, model);
     }
 
     public boolean exists(Path file) throws IOException {
-        if (!this.systemInfo.isDevMode() &&
+        if (!this.applicationContext.getBean(SystemInfo.class).isDevMode() &&
             (this.filesKnownToNotExist.contains(file) || this.filesKnownToNotExist.contains(file.toAbsolutePath()))) {
             return false;
         }
@@ -134,7 +125,7 @@ public class TemplateCache {
     }
 
     public TNode fetchFromCache(Path originalPath, Path file) throws IOException {
-        if (this.systemInfo.isDevMode()) {
+        if (this.applicationContext.getBean(SystemInfo.class).isDevMode()) {
             return null;
         }
         TNode template = this.canonicalFileNameToText.get(originalPath);
@@ -179,7 +170,8 @@ public class TemplateCache {
 
         final String schemaName = configFile.dependOn();
         if (schemaName != null) {
-            Path parentSchema = this.schemaManager.getSchemaDir(schemaName).resolve(SCHEMA_PLUGIN_FORMATTER_DIR);
+            Path parentSchema = this.applicationContext.getBean(SchemaManager.class).getSchemaDir(schemaName).resolve
+                    (SCHEMA_PLUGIN_FORMATTER_DIR);
 
             Path file = parentSchema.resolve(path);
             if (exists(file)) {
@@ -191,5 +183,10 @@ public class TemplateCache {
 
 
         return null;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

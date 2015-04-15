@@ -2,7 +2,6 @@ package org.fao.geonet.services.metadata.format.groovy.template;
 
 import org.fao.geonet.SystemInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.xml.sax.Attributes;
 
 import java.io.IOException;
@@ -29,7 +28,6 @@ import java.io.IOException;
  *
  * @author Jesse on 11/29/2014.
  */
-@Component
 public class TNodeFactoryTranslate extends TNodeFactoryByAttName {
     public static final String TRANSLATE = "translate";
 

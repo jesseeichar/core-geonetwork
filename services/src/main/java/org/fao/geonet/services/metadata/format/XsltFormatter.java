@@ -5,9 +5,12 @@ import org.fao.geonet.kernel.SchemaManager;
 import org.fao.geonet.utils.Xml;
 import org.jdom.Element;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static org.fao.geonet.services.metadata.format.SchemaLocalizations.loadSchemaLocalizations;
 
@@ -31,7 +34,6 @@ import static org.fao.geonet.services.metadata.format.SchemaLocalizations.loadSc
  * @author Francois on 06/01/2015: Add request parameters transfert to XSLT
  *  and metadata info.
  */
-@Component
 public class XsltFormatter implements FormatterImpl {
     @Autowired
     GeonetworkDataDirectory dataDirectory;

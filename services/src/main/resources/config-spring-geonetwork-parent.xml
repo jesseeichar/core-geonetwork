@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans default-lazy-init="true" xmlns="http://www.springframework.org/schema/beans"
+  xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.2.xsd
+    ">
+
+  <bean id="capitalize" class="org.fao.geonet.services.metadata.format.groovy.template.FilterCapitalize" />
+  <bean id="uppercase" class="org.fao.geonet.services.metadata.format.groovy.template.FilterUpperCase" />
+  <bean id="escapeXmlContent" class="org.fao.geonet.services.metadata.format.groovy.template.FilterEscapeXmlContent" />
+  <bean id="escapeXmlAttrs" class="org.fao.geonet.services.metadata.format.groovy.template.FilterEscapeXmlAttrs" />
+  <bean id="lowercase" class="org.fao.geonet.services.metadata.format.groovy.template.FilterLowerCase" />
+  <bean id="templateCache" class="org.fao.geonet.services.metadata.format.groovy.template.TemplateCache" />
+  <bean id="templateParser" class="org.fao.geonet.services.metadata.format.groovy.template.TemplateParser" />
+  <bean id="textContentParser" class="org.fao.geonet.services.metadata.format.groovy.template.TextContentParser" />
+  <bean id="tNodeFactoryIf" class="org.fao.geonet.services.metadata.format.groovy.template.TNodeFactoryIf" />
+  <bean id="tNodeFactoryInclude" class="org.fao.geonet.services.metadata.format.groovy.template.TNodeFactoryInclude" />
+  <bean id="tNodeFactoryRepeat" class="org.fao.geonet.services.metadata.format.groovy.template.TNodeFactoryRepeat" />
+  <bean id="tNodeFactoryTransclude" class="org.fao.geonet.services.metadata.format.groovy.template.TNodeFactoryTransclude" />
+  <bean id="tNodeFactoryTranslate" class="org.fao.geonet.services.metadata.format.groovy.template.TNodeFactoryTranslate" />
+  <bean id="groovyFormatter" class="org.fao.geonet.services.metadata.format.GroovyFormatter" />
+  <bean id="xsltFormatter" class="org.fao.geonet.services.metadata.format.XsltFormatter" />
+</beans>

@@ -2,7 +2,6 @@ package org.fao.geonet.services.metadata.format.groovy.template;
 
 import org.fao.geonet.SystemInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.xml.sax.Attributes;
 
 import java.io.IOException;
@@ -15,7 +14,6 @@ import java.util.regex.Pattern;
  *
  * @author Jesse on 11/29/2014.
  */
-@Component
 public class TNodeFactoryRepeat extends TNodeFactoryByAttName {
     private static final Pattern MAP_PATTERN = Pattern.compile("\\s*\\(\\s*(\\S+)\\s*,\\s*(\\S+)\\s*\\)");
 

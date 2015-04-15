@@ -12,18 +12,14 @@ import groovy.util.ScriptException;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.fao.geonet.kernel.GeonetworkDataDirectory;
 import org.fao.geonet.kernel.SchemaManager;
-import org.fao.geonet.languages.IsoLanguagesMapper;
-import org.fao.geonet.repository.IsoLanguageRepository;
 import org.fao.geonet.services.metadata.format.groovy.Environment;
 import org.fao.geonet.services.metadata.format.groovy.EnvironmentProxy;
 import org.fao.geonet.services.metadata.format.groovy.Functions;
 import org.fao.geonet.services.metadata.format.groovy.Handlers;
-import org.fao.geonet.services.metadata.format.groovy.template.TemplateCache;
 import org.fao.geonet.services.metadata.format.groovy.Transformer;
+import org.fao.geonet.services.metadata.format.groovy.template.TemplateCache;
 import org.fao.geonet.utils.IO;
 import org.jdom.Namespace;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URL;
@@ -47,19 +43,8 @@ import static org.fao.geonet.services.metadata.format.FormatterConstants.SCHEMA_
  *
  * @author Jesse on 10/15/2014.
  */
-@Component
 public class GroovyFormatter implements FormatterImpl {
 
-    @Autowired
-    GeonetworkDataDirectory dataDirectory;
-    @Autowired
-    SchemaManager schemaManager;
-    @Autowired
-    private IsoLanguagesMapper mapper;
-    @Autowired
-    private TemplateCache templateCache;
-    @Autowired
-    private IsoLanguageRepository isoLanguageRepository;
     private final Cache<Path, Transformer> transformers = CacheBuilder.newBuilder().
             concurrencyLevel(1).
             maximumSize(40).
@@ -80,21 +65,26 @@ public class GroovyFormatter implements FormatterImpl {
         EnvironmentProxy.clearContext();
         final Transformer transformer = createTransformer(fparams);
 
-        EnvironmentProxy.setCurrentEnvironment(fparams, this.mapper);
+        EnvironmentProxy.setCurrentEnvironment(fparams);
         try {
-            final List<Namespace> namespaces = this.schemaManager.getSchema(fparams.schema).getNamespaces();
+            final List<Namespace> namespaces = getSchemaManager(fparams).getSchema(fparams.schema).getNamespaces();
             return transformer.apply(fparams.metadata, namespaces);
         } finally {
             EnvironmentProxy.clearContext();
         }
     }
 
+    protected SchemaManager getSchemaManager(FormatterParams fparams) {
+        return fparams.context.getBean(SchemaManager.class);
+    }
+
     private synchronized Transformer createTransformer(FormatterParams fparams) throws Exception {
         Transformer transformer = this.transformers.getIfPresent(fparams.formatDir);
 
         if (fparams.isDevMode() || transformer == null) {
-            final Path baseShared = this.dataDirectory.getFormatterDir().resolve(GROOVY_SCRIPT_ROOT);
-            final Path schemaFormatterDir = getSchemaPluginFormatterDir(fparams.schema);
+            GeonetworkDataDirectory dataDirectory = fparams.context.getBean(GeonetworkDataDirectory.class);
+            final Path baseShared = dataDirectory.getFormatterDir().resolve(GROOVY_SCRIPT_ROOT);
+            final Path schemaFormatterDir = getSchemaPluginFormatterDir(fparams, fparams.schema);
             final Path schemaShared = schemaFormatterDir.resolve(GROOVY_SCRIPT_ROOT);
             GroovyClassLoader cl = getParentClassLoader(fparams, fparams.schema, baseShared, schemaShared);
 
@@ -105,7 +95,8 @@ public class GroovyFormatter implements FormatterImpl {
 
             loadScripts(fparams.formatDir, groovyScriptEngine);
 
-            Handlers handlers = new Handlers(fparams, schemaShared.getParent(), baseShared.getParent(), this.templateCache);
+            final TemplateCache templateCache = fparams.context.getBean(TemplateCache.class);
+            Handlers handlers = new Handlers(fparams, schemaShared.getParent(), baseShared.getParent(), templateCache);
             Environment env = new EnvironmentProxy();
             Functions functions = new Functions(fparams, env);
             Binding binding = new Binding();
@@ -123,8 +114,8 @@ public class GroovyFormatter implements FormatterImpl {
         return transformer;
     }
 
-    private Path getSchemaPluginFormatterDir(String schema) {
-        return this.schemaManager.getSchemaDir(schema).resolve(SCHEMA_PLUGIN_FORMATTER_DIR);
+    private Path getSchemaPluginFormatterDir(FormatterParams fparams, String schema) {
+        return getSchemaManager(fparams).getSchemaDir(schema).resolve(SCHEMA_PLUGIN_FORMATTER_DIR);
     }
 
     private GroovyClassLoader getParentClassLoader(FormatterParams fparams, String schema, Path baseShared, Path schemaShared) throws IOException,
@@ -132,10 +123,10 @@ public class GroovyFormatter implements FormatterImpl {
         GroovyClassLoader cl = this.schemaClassLoaders.get(schema);
         if (fparams.isDevMode() || cl == null) {
             final GroovyClassLoader parent;
-            ConfigFile newConfig = new ConfigFile(getSchemaPluginFormatterDir(schema), false, null);
+            ConfigFile newConfig = new ConfigFile(getSchemaPluginFormatterDir(fparams, schema), false, null);
             final String dependOnSchema = newConfig.dependOn();
             if (dependOnSchema != null) {
-                Path dependent = getSchemaPluginFormatterDir(dependOnSchema).resolve(GROOVY_SCRIPT_ROOT);
+                Path dependent = getSchemaPluginFormatterDir(fparams, dependOnSchema).resolve(GROOVY_SCRIPT_ROOT);
                 parent = getParentClassLoader(fparams, dependOnSchema, baseShared, dependent);
             } else {
                 if (fparams.isDevMode() || this.baseClassLoader == null) {
